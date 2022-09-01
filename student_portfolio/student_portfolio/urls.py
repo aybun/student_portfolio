@@ -17,17 +17,21 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken import views
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
 
     # path('', include('registration.urls')),
     path('', include('staff.urls')),
     path('', include('student.urls')),
     path('', include('event.urls')),
+    path('', include('portfolio_management.urls')),
 
     path('admin/', admin.site.urls),
     path('', include('django.contrib.auth.urls')),
 
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 urlpatterns += [
     path('api-token-auth/', views.obtain_auth_token)

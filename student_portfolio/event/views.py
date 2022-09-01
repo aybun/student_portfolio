@@ -11,6 +11,35 @@ from student.models import Student
 from django.core.files.storage import default_storage
 
 # Create your views here.
+def event(request, id=0):
+
+    if not request.user.is_authenticated:
+        pass
+
+    if id == 0: #want all events
+
+        # events = Event.objects.all()
+        # # print(events)
+        # events_serializer = EventSerializer(events, many=True)
+        # dict_data = events_serializer.data
+        # print(dict_data)
+        return render(request, 'event/event.html', {})
+
+    if not request.user.is_staff: #The user is student.
+        student = Student.objects.get(userId__exact=request.user.id)
+        event_joined = EventAttendanceOfStudents.objects.filter(studentId=student.studentId)
+        event_serializer = EventAttendanceOfStudentsSerializer(event_joined, many=True)
+
+        dict_data = event_serializer.data[0]
+        dict_data['is_staff'] = False
+        print(dict_data)
+
+
+        return render(request, 'event/event.html', dict_data)
+
+    if request.user.is_staff:
+        pass
+
 
 @csrf_exempt
 def eventApi(request, id=0):
@@ -26,6 +55,10 @@ def eventApi(request, id=0):
             return JsonResponse(event_serializer.data, safe=False)
 
     elif request.method=='POST':
+
+        if not request.user.is_staff:
+            return JsonResponse("You do not have permission add new item.", safe=False)
+
         event_data=JSONParser().parse(request)
 
         events_serializer=EventSerializer(data=event_data)
@@ -36,6 +69,11 @@ def eventApi(request, id=0):
         return JsonResponse("Failed to Add",safe=False)
 
     elif request.method=='PUT':
+
+        if not request.user.is_staff:
+            return JsonResponse("You do not have permission to edit the item.", safe=False)
+
+
         event_data=JSONParser().parse(request)
         event=Event.objects.get(eventId=event_data['eventId'])
         serializer = EventSerializer(event, data=event_data)
@@ -46,6 +84,10 @@ def eventApi(request, id=0):
         return JsonResponse("Failed to Update")
 
     elif request.method=='DELETE': #Need to handle carefully.
+        if not request.user.is_staff:
+            return JsonResponse("You do not have permission to delete the item.", safe=False)
+
+
         event=Event.objects.get(eventId=id)
         event.delete()
         return JsonResponse("Deleted Successfully",safe=False)
