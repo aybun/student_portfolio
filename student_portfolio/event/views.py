@@ -23,19 +23,18 @@ def event(request, id=0):
         # events_serializer = EventSerializer(events, many=True)
         # dict_data = events_serializer.data
         # print(dict_data)
-        return render(request, 'event/event.html', {})
 
-    if not request.user.is_staff: #The user is student.
-        student = Student.objects.get(userId__exact=request.user.id)
-        event_joined = EventAttendanceOfStudents.objects.filter(studentId=student.studentId)
-        event_serializer = EventAttendanceOfStudentsSerializer(event_joined, many=True)
+        return render(request, 'event/event.html', {'is_staff' : request.user.is_staff})
 
-        dict_data = event_serializer.data[0]
-        dict_data['is_staff'] = False
-        print(dict_data)
-
-
-        return render(request, 'event/event.html', dict_data)
+    # if not request.user.is_staff: #The user is student.
+    #     student = Student.objects.get(userId__exact=request.user.id)
+    #     event_joined = EventAttendanceOfStudents.objects.filter(studentId=student.studentId)
+    #     event_serializer = EventAttendanceOfStudentsSerializer(event_joined, many=True)
+    #
+    #     dict_data = event_serializer.data[0]
+    #     dict_data['is_staff'] = False
+    #
+    #     return render(request, 'event/event.html', dict_data)
 
     if request.user.is_staff:
         pass
@@ -88,16 +87,28 @@ def eventApi(request, id=0):
             return JsonResponse("You do not have permission to delete the item.", safe=False)
 
 
+        attendances = EventAttendanceOfStudents.objects.filter(eventId__exact=id)
+        attendances.delete()
+
         event=Event.objects.get(eventId=id)
         event.delete()
         return JsonResponse("Deleted Successfully",safe=False)
+
+def eventAttendanceOfStudents(request, eventId=0, studentId='0'):
+
+    if request.user.is_staff:
+        if studentId == '0': #get all students joined the event.
+            stuff_for_frontend = { 'eventId' : eventId}
+            return render(request, 'event/event_attendance_of_students.html', stuff_for_frontend)
+    else:
+        return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
+
 
 @csrf_exempt
 def eventAttendanceOfStudentsApi(request, eventId=0, studentId='0'):
     # print(eventId)
     # print(studentId)
     if request.method=='GET':
-
 
         if (studentId == '0'):
             # print('This path. ' + studentId )

@@ -18,4 +18,4 @@ def home(request):
 
 def logoutView(request):
 
-    return render(request, 'registration/logout.html', {})
+    return render(request, 'registration/error.html', {})

@@ -83,7 +83,14 @@ data-bs-target="#exampleModal"
 </thead>
 <tbody>
     <tr v-for="eve in events">
-        <td><router-link v-bind:to="'/eventAttendanceOfStudents/' + eve.eventId">{{eve.eventId}}</router-link></td>
+        <td><a v-bind:href="'/eventAttendanceOfStudents/' + eve.eventId">{{eve.eventId}}</a></td>
+
+        <!--
+        <td><a v-if="store.link" :href="store.link" target="_blank">{{ store.title }}</a>
+        <span v-else>{{ store.title }}</span>
+        </td>
+        -->
+
         <td>{{eve.title}}</td>
         <td>{{eve.date}}</td>
         <td>{{eve.mainStaffId}}</td>

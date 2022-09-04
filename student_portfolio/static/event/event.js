@@ -17,6 +17,7 @@ let eventComponent = {
             mainStaffId:"",
             info:"",
 
+            is_staff: true,
             // PhotoFileName:"anonymous.png",
             // PhotoPath:variables.PHOTO_URL
         }
