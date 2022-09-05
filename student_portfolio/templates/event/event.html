@@ -120,7 +120,8 @@ data-bs-target="#exampleModal"
 
 <div class="modal fade" id="exampleModal" tabindex="-1"
     aria-labelledby="exampleModalLabel" aria-hidden="true">
-<div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal-dialog modal-xl modal-dialog-centered">
+
 <div class="modal-content">
     <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">{{modalTitle}}</h5>
@@ -158,11 +159,51 @@ data-bs-target="#exampleModal"
                 </select>
             </div>
 
+
             <div class="input-group mb-3">
                 <span class="input-group-text">info</span>
                 <input type="text" class="form-control" v-model="info">
             </div>
 
+            <form>
+              <h3>Skills</h3>
+              <div class="skill">
+
+                <div class="form-row" v-for="(skill, index) in skills" :key="index">
+
+                    <!--
+                  <div class="form-group col-md-6">
+                    <label>SkillId</label>
+                    <input v-model="skill.skillId" :name="`workExperiences[${index}][skillId]`" type="text" class="form-control" placeholder="skillId">
+                  </div>
+                    -->
+                    <select v-model="skill.skillId" class="form-control sl">
+                        <option v-for="e in skillTable" v-bind:value="e.skillId">
+                            {{ e.title }}
+                        </option>
+                    </select>
+                    <!--
+                  <div class="form-group col-md-6">
+                    <label>Title</label>
+                    <input v-model="experience.title" :name="`workExperiences[${index}][title]`" type="text" class="form-control" placeholder="Title">
+                  </div>
+                  -->
+                </div>
+              </div>
+
+              <div class="form-group">
+                <button @click="addSkillClick()" type="button" class="btn btn-secondary">Add skill</button>
+                  <button @click="removeSkillClick()" type="button" class="btn btn-danger">Remove skill</button>
+              </div>
+
+              <hr>
+
+                <!--
+              <div class="form-group">
+                <button @click="submit" type="button" class="btn btn-primary">Submit</button>
+              </div>
+              </form>
+                -->
 
             <!--
             <div class="input-group mb-3">

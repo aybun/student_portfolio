@@ -4,10 +4,12 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 
-from .models import Event, EventAttendanceOfStudents
-from .serializers import EventSerializer, EventAttendanceOfStudentsSerializer
+from .models import Event, EventAttendanceOfStudents, Skill
+from .serializers import EventSerializer, EventAttendanceOfStudentsSerializer, SkillSerializer
 
 from student.models import Student
+
+from collections import ChainMap
 from django.core.files.storage import default_storage
 
 # Create your views here.
@@ -55,8 +57,8 @@ def eventApi(request, id=0):
 
     elif request.method=='POST':
 
-        if not request.user.is_staff:
-            return JsonResponse("You do not have permission add new item.", safe=False)
+        # if not request.user.is_staff:
+        #     return JsonResponse("You do not have permission add new item.", safe=False)
 
         event_data=JSONParser().parse(request)
 
@@ -65,16 +67,24 @@ def eventApi(request, id=0):
         if events_serializer.is_valid():
             events_serializer.save()
             return JsonResponse("Added Successfully",safe=False)
-        return JsonResponse("Failed to Add",safe=False)
+
+        return JsonResponse("Failed to Add", safe=False)
 
     elif request.method=='PUT':
 
-        if not request.user.is_staff:
-            return JsonResponse("You do not have permission to edit the item.", safe=False)
+        # if not request.user.is_staff:
+        #     return JsonResponse("You do not have permission to edit the item.", safe=False)
 
 
         event_data=JSONParser().parse(request)
-        event=Event.objects.get(eventId=event_data['eventId'])
+        event=Event.objects.get(eventId=id)
+
+        # skills = event_data['skills']
+        # skills_dict = {}
+        # for i in range(0, len(skills)):
+        #     skills_dict[i] = skills[i]
+        #
+        # print(skills_dict)
         serializer = EventSerializer(event, data=event_data)
 
         if serializer.is_valid():
@@ -98,7 +108,7 @@ def eventAttendanceOfStudents(request, eventId=0, studentId='0'):
 
     if request.user.is_staff:
         if studentId == '0': #get all students joined the event.
-            stuff_for_frontend = { 'eventId' : eventId}
+            stuff_for_frontend = { 'eventId' : eventId }
             return render(request, 'event/event_attendance_of_students.html', stuff_for_frontend)
     else:
         return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
@@ -200,3 +210,12 @@ def syncStudentAttendanceByStudentId(request, eventId=0):
             return JsonResponse("Synced successfully", safe=False)
 
         return JsonResponse("Failed to sync", safe=False)
+
+@csrf_exempt
+def skillTableApi(request):
+
+    skill_table = Skill.objects.all().order_by('skillId')
+    serializer = SkillSerializer(skill_table, many=True)
+
+    return JsonResponse(serializer.data, safe=False)
+

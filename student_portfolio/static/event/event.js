@@ -17,7 +17,10 @@ let eventComponent = {
             mainStaffId:"",
             info:"",
 
-            is_staff: true,
+            // is_staff: true,
+
+            skillTable:"",
+            skills: [],
             // PhotoFileName:"anonymous.png",
             // PhotoPath:variables.PHOTO_URL
         }
@@ -34,6 +37,13 @@ let eventComponent = {
             .then((response)=>{
                 this.staffs=response.data;
             });
+
+            axios.get(variables.API_URL+"skillTable")
+            .then((response)=>{
+                this.skillTable=response.data;
+            });
+
+
         },
     addClick(){
         this.modalTitle="Add Event"
@@ -44,6 +54,7 @@ let eventComponent = {
         this.date=""
         this.mainStaffId=""
         this.info="-" // Add some thing to the field.
+        this.skills = []
         // this.DateOfJoining="",
         // this.PhotoFileName="anonymous.png"
     },
@@ -57,6 +68,7 @@ let eventComponent = {
         this.date           =   event.date
         this.mainStaffId    =   event.mainStaffId
         this.info           =   event.info
+        this.skills         =   event.skills
     },
     createClick(){
         axios.post(variables.API_URL+"event",{
@@ -74,13 +86,22 @@ let eventComponent = {
 
     },
     updateClick(){
-        axios.put(variables.API_URL+"event",{
+
+        const tempSkills = {
+            'skills' : this.skills
+        }
+
+        alert(JSON.stringify(tempSkills, null, 2))
+
+
+        axios.put(variables.API_URL+"event/" + this.eventId,{
             // id:         this.id,
             'eventId':    this.eventId,
             'title':      this.title,
             'date':       this.date,
             'mainStaffId':this.mainStaffId,
-            'info':       this.info
+            'info':       this.info,
+            'skills':     this.skills,
         })
         .then((response)=>{
             this.refreshData();
@@ -98,6 +119,16 @@ let eventComponent = {
         });
 
     },
+    addSkillClick(){
+            this.skills.push({
+                skillId: '',
+            })
+    },
+    removeSkillClick(){
+            this.skills.pop()
+    },
+
+
     // imageUpload(event){
     //     let formData=new FormData();
     //     formData.append('file',event.target.files[0]);

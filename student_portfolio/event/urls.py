@@ -23,4 +23,5 @@ urlpatterns=[
     path('api/eventAttendanceOfStudents/<int:eventId>', views.eventAttendanceOfStudentsApi),
     path('api/eventAttendanceOfStudents/<int:eventId>/<str:studentId>', views.eventAttendanceOfStudentsApi),
 
+    path('api/skillTable', views.skillTableApi),
 ]
