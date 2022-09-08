@@ -87,11 +87,26 @@ let eventComponent = {
     },
     updateClick(){
 
-        const tempSkills = {
+            
+        //Remove empty or redundant inputs.
+        nonEmpty = []
+        skillIds = []
+        for (i=0;i<this.skills.length; ++i) {
+            id = this.skills[i]['skillId']
+
+            if ( id !== "" && !skillIds.includes(id)){
+                nonEmpty.push(this.skills[i]);
+                skillIds.push(id)
+            }
+        }
+        this.skills = nonEmpty;
+        console.log(this.skills)
+
+        const tempOutData = {
             'skills' : this.skills
         }
+        alert(JSON.stringify(tempOutData, null, 2))
 
-        alert(JSON.stringify(tempSkills, null, 2))
 
 
         axios.put(variables.API_URL+"event/" + this.eventId,{
