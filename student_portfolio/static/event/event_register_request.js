@@ -1,6 +1,6 @@
 
-let eventComponent = {
-    template: '#event-template',
+let eventRegisterRequestComponent = {
+    template: '#event-register-request-template',
 
     data(){
         return{
@@ -17,10 +17,14 @@ let eventComponent = {
             mainStaffId:"",
             info:"",
 
-            // is_staff: true,
+            is_staff: false,
 
             skillTable:"",
             skills: [],
+
+            approved:false,
+            used_for_calculation:false,
+
             // PhotoFileName:"anonymous.png",
             // PhotoPath:variables.PHOTO_URL
         }
@@ -28,7 +32,9 @@ let eventComponent = {
 
     methods:{
         refreshData(){
-            axios.get(variables.API_URL+"event")
+            this.is_staff = JSON.parse(document.getElementById('is_staff-data').textContent);
+
+            axios.get(variables.API_URL+"eventRegisterRequest")
             .then((response)=>{
                 this.events=response.data;
             });
@@ -47,8 +53,7 @@ let eventComponent = {
         },
     addClick(){
 
-
-        this.modalTitle="Add Event"
+        this.modalTitle="Add xx Event"
         this.addingNewEvent= true // Signal that we are adding a new event -> Create Button.
         document.getElementById("createButton").disabled = false;
 
@@ -72,11 +77,12 @@ let eventComponent = {
         this.mainStaffId    =   event.mainStaffId
         this.info           =   event.info
         this.skills         =   event.skills
-
+        this.approved       =   event.approved
+        this.used_for_calculation = event.used_for_calculation
     },
     createClick(){
         this.skills = this.cleanSkills(this.skills)
-        axios.post(variables.API_URL+"event",{
+        axios.post(variables.API_URL+"eventRegisterRequest",{
             // eventId:    this.eventId,
             'title':      this.title,
             'date':       this.date,
@@ -100,8 +106,7 @@ let eventComponent = {
         }
         alert(JSON.stringify(tempOutData, null, 2))
 
-
-        axios.put(variables.API_URL+"event/" + this.eventId,{
+        axios.put(variables.API_URL+"eventRegisterRequest/" + this.eventId,{
             // id:         this.id,
             'eventId':    this.eventId,
             'title':      this.title,
@@ -109,6 +114,8 @@ let eventComponent = {
             'mainStaffId':this.mainStaffId,
             'info':       this.info,
             'skills':     this.skills,
+            'approved':   this.approved,
+            'used_for_calculation': this.used_for_calculation,
         })
         .then((response)=>{
             this.refreshData();
@@ -167,7 +174,7 @@ let eventComponent = {
 }
 
 const app = Vue.createApp({
-    components: {'event-html' : eventComponent},
+    components: {'event-register-request-html' : eventRegisterRequestComponent},
 
 
 })

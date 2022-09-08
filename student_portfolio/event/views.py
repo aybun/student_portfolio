@@ -43,41 +43,51 @@ def event(request, id=0):
 
 
 @csrf_exempt
-def eventApi(request, id=0):
+def eventApi(request, eventId=0):
     if request.method=='GET':
-        if (id == 0):
-
-            events = Event.objects.all()
+        if (eventId == 0):
+            events = Event.objects.filter(approved__in=[True])
             events_serializer=EventSerializer(events, many=True)
             return JsonResponse(events_serializer.data, safe=False)
         else:
-            event = Event.objects.get(eventId=id)
+            event = Event.objects.get(eventId=eventId)
             event_serializer = EventSerializer(event)
             return JsonResponse(event_serializer.data, safe=False)
 
     elif request.method=='POST':
 
-        # if not request.user.is_staff:
-        #     return JsonResponse("You do not have permission add new item.", safe=False)
+        if not request.user.is_authenticated:
+            return JsonResponse("Permission denied.", safe=False)
 
-        event_data=JSONParser().parse(request)
+        if request.user.is_staff:
+            event_data=JSONParser().parse(request)
+            event_data['created_by'] = request.user.id
+            event_data['approved'] = True
+            event_data['used_for_calculation'] = True
 
-        events_serializer=EventSerializer(data=event_data)
+            print(event_data)
+            events_serializer=EventSerializer(data=event_data)
 
-        if events_serializer.is_valid():
-            events_serializer.save()
-            return JsonResponse("Added Successfully",safe=False)
+            if events_serializer.is_valid():
+                events_serializer.save()
+                return JsonResponse("Added Successfully",safe=False)
 
-        return JsonResponse("Failed to Add", safe=False)
+            return JsonResponse("Failed to Add", safe=False)
+
 
     elif request.method=='PUT':
 
-        # if not request.user.is_staff:
-        #     return JsonResponse("You do not have permission to edit the item.", safe=False)
+        if not request.user.is_authenticated:
+            return JsonResponse("Permission denied.", safe=False)
 
+        if not request.user.is_staff:
+            return JsonResponse("Permission denied.", safe=False)
 
         event_data=JSONParser().parse(request)
-        event=Event.objects.get(eventId=id)
+        event=Event.objects.get(eventId=eventId)
+
+        print('{} : {}'.format('event_data', event_data))
+        print('{} : {}'.format('event', event))
 
         # skills = event_data['skills']
         # skills_dict = {}
@@ -87,20 +97,27 @@ def eventApi(request, id=0):
         # print(skills_dict)
         serializer = EventSerializer(event, data=event_data)
 
+
         if serializer.is_valid():
             serializer.save()
             return JsonResponse("Updated Successfully", safe=False)
-        return JsonResponse("Failed to Update")
+        else:
+            print(serializer.errors)
+            print(serializer.error_messages)
+            return JsonResponse("Failed to Update")
 
     elif request.method=='DELETE': #Need to handle carefully.
+        if not request.user.is_authenticated:
+            JsonResponse("Permission denied.", safe=False)
+
         if not request.user.is_staff:
-            return JsonResponse("You do not have permission to delete the item.", safe=False)
+            JsonResponse("Permission denied.", safe=False)
 
 
-        attendances = EventAttendanceOfStudents.objects.filter(eventId__exact=id)
+        attendances = EventAttendanceOfStudents.objects.filter(eventId__exact=eventId)
         attendances.delete()
 
-        event=Event.objects.get(eventId=id)
+        event=Event.objects.get(eventId=eventId)
         event.delete()
         return JsonResponse("Deleted Successfully",safe=False)
 
@@ -218,4 +235,85 @@ def skillTableApi(request):
     serializer = SkillSerializer(skill_table, many=True)
 
     return JsonResponse(serializer.data, safe=False)
+
+@csrf_exempt
+def eventRegisterRequest(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
+
+    if request.user.is_staff:
+        stuff_for_frontend = {
+            'is_staff': request.user.is_staff
+        }
+        return render(request, 'event/event_register_request.html', stuff_for_frontend)
+    else: # The user is a student.
+
+        stuff_for_frontend = {
+            'is_staff': request.user.is_staff
+        }
+
+        return render(request, 'event/event_register_request.html', stuff_for_frontend)
+
+@csrf_exempt
+def eventRegisterRequestApi(request, eventId=0):
+
+    if request.method == 'GET':
+        if not request.user.is_authenticated:
+            return JsonResponse("Permission denied.", safe=False)
+
+        if request.user.is_staff:
+
+            events = Event.objects.filter(approved__in=[False])
+            serializer = EventSerializer(events, many=True)
+            return JsonResponse(serializer.data, safe=False)
+
+        else: # The user is a student.
+            # The issue of djongo : https://stackoverflow.com/questions/68609027/djongo-fails-to-query-booleanfield
+
+            events = Event.objects.filter(created_by=request.user.id, used_for_calculation__in=[False])
+            serializer = EventSerializer(events, many=True)
+            return JsonResponse(serializer.data, safe=False)
+
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return JsonResponse("Permission denied.", safe=False)
+
+        if not request.user.is_staff: # The user is a student.
+
+            event_data = JSONParser().parse(request)
+            event_data['created_by'] = request.user.id
+            event_data['approved'] = False
+            event_data['used_for_calculated'] = False
+
+            events_serializer = EventSerializer(data=event_data)
+
+            if events_serializer.is_valid():
+                events_serializer.save()
+                return JsonResponse("Added Successfully", safe=False)
+
+            return JsonResponse("Failed to Add", safe=False)
+
+    if request.method == 'PUT':
+        if not request.user.is_authenticated:
+            return JsonResponse("Permission denied.", safe=False)
+        if request.user.is_staff:
+            pass
+        else: #The user is a student.
+
+            event_data = JSONParser().parse(request)
+            event = Event.objects.get(eventId=eventId, created_by=request.user.id)
+
+            if not event:
+                return JsonResponse("Failed to Update")
+
+            #Exclude approved if exists.
+            serializer = EventSerializer(event, data=event_data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse("Updated Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to Update")
+
 

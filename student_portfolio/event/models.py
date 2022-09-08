@@ -31,12 +31,12 @@ class Event(models.Model):
 
     skills = models.JSONField(default=dict)
 
-    # skills = models.ArrayReferenceField(
-    #     to=Skill,
-    #     on_delete=models.SET_NULL,
-    #     null=True,
-    #     default={}
-    # )
+    #user_id
+    created_by = models.BigIntegerField(null=False)
+
+    approved = models.BooleanField(default=False)
+    used_for_calculation = models.BooleanField(default=False)
+
 
 class EventAttendanceOfStudents(models.Model):
 

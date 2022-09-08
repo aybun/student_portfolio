@@ -12,9 +12,14 @@ class EventSerializer(serializers.ModelSerializer):
     info = serializers.CharField(max_length=200, allow_blank=True)
     skills = serializers.JSONField(default=[])
 
+    created_by = serializers.IntegerField(required=False)
+
+    approved = serializers.BooleanField(required=False)
+    used_for_calculation = serializers.BooleanField(required=False)
+
     class Meta:
         model = Event
-        fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills')
+        fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills', 'created_by', 'approved', 'used_for_calculation')
 
     def validate_skills(self, list_of_dicts):
         skill_ids = Skill.objects.all().values_list('skillId', flat=True)
@@ -23,14 +28,16 @@ class EventSerializer(serializers.ModelSerializer):
         out_list = []
         for e in list_of_dicts:
 
-            if e['skillId'] not in skill_ids:
+            id = e['skillId']
+            if id not in skill_ids:
                 raise serializers.ValidationError("The skillId is not present in the Skill table : " + str(e['skillId']) )
 
-            if e['skillId'] not in unique_ids:
-                unique_ids.append(e['skillId'])
+            if id not in unique_ids:
+                unique_ids.append(id)
                 out_list.append(e)
 
         return out_list
+
 
 
 class EventAttendanceOfStudentsSerializer(serializers.ModelSerializer):

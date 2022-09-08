@@ -1,53 +1,44 @@
 {% extends "base/base.html" %}
 {% load static %}
 
+{% block horizontal_navbar %}
+
+{% endblock horizontal_navbar %}
 
 {% block additional_body %}
     <div id="app" class="container">
-        <h3 class="d-flex justify-content-center">
-            Student Profile Management System
-        </h3>
 
-        <!-- <h5 class="d-flex justify-content-center">
-            Student Profile Management System
-        </h5> -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="home-tab" data-toggle="tab" href="/event" role="tab" aria-controls="home" aria-selected="true">Events</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="/event/eventRegisterRequest" role="tab" aria-controls="profile" aria-selected="false">Event register requests</a>
+          </li>
 
-        <nav class="navbar navbar-expand-sm bg-light navbar-dark">
-            <ul class="navbar-nav">
-            <li class="nav-item m-1">
-                <router-link class="btn btn-light btn-outline-primary"
-                to="/home">Home</router-link>
-            </li>
-            <li class="nav-item m-1">
-                <router-link class="btn btn-light btn-outline-primary"
-                to="/staff">Staff</router-link>
-            </li>
-            <li class="nav-item m-1">
-                <router-link class="btn btn-light btn-outline-primary"
-                to="/student">Student</router-link>
-            </li>
-            <li class="nav-item m-1">
-                <router-link class="btn btn-light btn-outline-primary"
-                to="/event">Event</router-link>
-            </li>
-            </ul>
-        </nav>
+        </ul>
 
-        <event-html></event-html>
+        <div class="tab-content" id="myTabContent">
+          <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab"><event-html></event-html></div>
+          <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">...</div>
+
+        </div>
+
     </div>
 
 
-    {% verbatim event-template %}
     <script type="text/x-template" id="event-template">
 <div>
+        {% if user.is_staff %}
+            <button type="button"
+                class="btn btn-primary m-2 fload-end"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+                @click="addClick()">
+             Add Event
+             </button>
+        {% endif %}
 
-<button type="button"
-class="btn btn-primary m-2 fload-end"
-data-bs-toggle="modal"
-data-bs-target="#exampleModal"
-@click="addClick()">
- Add Event
- </button>
 
     <!--
     class Event(models.Model):
@@ -82,6 +73,7 @@ data-bs-target="#exampleModal"
     </tr>
 </thead>
 <tbody>
+        {% verbatim block %}
     <tr v-for="eve in events">
         <td><a v-bind:href="'/eventAttendanceOfStudents/' + eve.eventId">{{eve.eventId}}</a></td>
 
@@ -94,6 +86,7 @@ data-bs-target="#exampleModal"
         <td>{{eve.title}}</td>
         <td>{{eve.date}}</td>
         <td>{{eve.mainStaffId}}</td>
+        {% endverbatim block %}
         <td>
             <button type="button"
             class="btn btn-light mr-1"
@@ -124,7 +117,7 @@ data-bs-target="#exampleModal"
 
 <div class="modal-content">
     <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">{{modalTitle}}</h5>
+        <h5 class="modal-title" id="exampleModalLabel">{% verbatim block %}{{modalTitle}}{% endverbatim block %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"
         aria-label="Close"></button>
     </div>
@@ -154,7 +147,7 @@ data-bs-target="#exampleModal"
                 <span class="input-group-text">Main Staff Id</span>
                 <select class="form-select" v-model="mainStaffId">
                     <option v-for="staff in staffs">
-                    {{staff.staffId}}
+                    {% verbatim block %}{{staff.staffId}}{% endverbatim block %}
                     </option>
                 </select>
             </div>
@@ -165,7 +158,7 @@ data-bs-target="#exampleModal"
                 <input type="text" class="form-control" v-model="info">
             </div>
 
-            <form>
+
               <h3>Skills</h3>
               <div class="skill">
 
@@ -179,7 +172,7 @@ data-bs-target="#exampleModal"
                     -->
                     <select v-model="skill.skillId" class="form-control sl">
                         <option v-for="e in skillTable" v-bind:value="e.skillId">
-                            {{ e.title }}
+                            {% verbatim block %}{{ e.title }}{% endverbatim block %}
                         </option>
                     </select>
                     <!--
@@ -198,30 +191,7 @@ data-bs-target="#exampleModal"
 
               <hr>
 
-                <!--
-              <div class="form-group">
-                <button @click="submit" type="button" class="btn btn-primary">Submit</button>
-              </div>
-              </form>
-                -->
 
-            <!--
-            <div class="input-group mb-3">
-                <span class="input-group-text">Department</span>
-                <select class="form-select" v-model="Department">
-                    <option v-for="dep in departments">
-                    {{dep.DepartmentName}}
-                    </option>
-                </select>
-            </div>
-            -->
-
-            <!--
-            <div class="input-group mb-3">
-                <span class="input-group-text">DOJ</span>
-                <input type="date" class="form-control" v-model="DateOfJoining">
-            </div>
-            -->
 
         </div>
 
@@ -234,11 +204,11 @@ data-bs-target="#exampleModal"
         -->
 
     </div>
-        <button type="button" @click="createClick()"
+        <button id="createButton" type="button" @click="createClick()"
         v-if="addingNewEvent" class="btn btn-primary">
         Create
         </button>
-        <button type="button" @click="updateClick()"
+        <button id="updateButton" type="button" @click="updateClick()"
         v-else class="btn btn-primary">
         Update
         </button>
@@ -252,7 +222,7 @@ data-bs-target="#exampleModal"
 
 </div>
     </script>
-    {% endverbatim event-template %}
+
 
 {% endblock %}
 

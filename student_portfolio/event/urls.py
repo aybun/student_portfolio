@@ -17,11 +17,18 @@ urlpatterns=[
     #Using Django template
     path('event', views.event),
     path('api/event', views.eventApi),
-    path('api/event/<int:id>', views.eventApi),
+    path('api/event/<int:eventId>', views.eventApi),
+
+    path('event/eventRegisterRequest', views.eventRegisterRequest),
+    path('api/eventRegisterRequest', views.eventRegisterRequestApi),
+    path('api/eventRegisterRequest/<int:eventId>', views.eventRegisterRequestApi),
 
     path('eventAttendanceOfStudents/<int:eventId>', views.eventAttendanceOfStudents),
     path('api/eventAttendanceOfStudents/<int:eventId>', views.eventAttendanceOfStudentsApi),
     path('api/eventAttendanceOfStudents/<int:eventId>/<str:studentId>', views.eventAttendanceOfStudentsApi),
 
     path('api/skillTable', views.skillTableApi),
+
+
+
 ]
