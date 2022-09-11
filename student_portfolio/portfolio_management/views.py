@@ -2,7 +2,7 @@ from django.shortcuts import render
 #
 # from django.views.decorators.csrf import csrf_exempt
 # from rest_framework.parsers import JSONParser
-# from django.http.response import JsonResponse
+from django.http.response import JsonResponse
 #
 # from .models import Entry
 # from .serializers import BlogAuthorSerializer
@@ -19,3 +19,11 @@ def home(request):
 def logoutView(request):
 
     return render(request, 'registration/error.html', {})
+
+def userApi(request):
+    data_dict = {
+        'is_staff' : request.user.is_staff,
+        'is_superuser': request.user.is_superuser,
+    }
+
+    return JsonResponse(data_dict, safe=False)

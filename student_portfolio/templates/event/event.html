@@ -28,7 +28,7 @@
 
 
     <script type="text/x-template" id="event-template">
-<div>
+    <div>
         {% if user.is_staff %}
             <button type="button"
                 class="btn btn-primary m-2 fload-end"
@@ -108,7 +108,7 @@
         </td>
     </tr>
 </tbody>
-</thead>
+
 </table>
 
 <div class="modal fade" id="exampleModal" tabindex="-1"
@@ -189,9 +189,14 @@
                   <button @click="removeSkillClick()" type="button" class="btn btn-danger">Remove skill</button>
               </div>
 
+                {% if user.is_staff %}
+                <input type="checkbox" value="approved" v-model="checkboxes"/>
+                <label>approved</label>
+                <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
+                <label>Use for calculation</label>
+                {% endif  %}
+
               <hr>
-
-
 
         </div>
 

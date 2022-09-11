@@ -30,7 +30,7 @@
 
 
     <script type="text/x-template" id="event-register-request-template">
-        <div>
+    <div>
     {% if not user.is_staff %}
         <button
                 type="button"
@@ -43,7 +43,7 @@
          </button>
     {% endif %}
 
-    {% verbatim event-template %}
+
     <!--
     class Event(models.Model):
         eventId = models.BigAutoField(primary_key=True)
@@ -67,6 +67,7 @@
         </tr>
       </thead>
       <tbody>
+      {% verbatim block %}
         <tr v-for="eve in events">
           <td>
             <a v-bind:href="'/eventAttendanceOfStudents/' + eve.eventId">{{eve.eventId}}</a>
@@ -77,6 +78,7 @@
           <td>{{eve.title}}</td>
           <td>{{eve.date}}</td>
           <td>{{eve.mainStaffId}}</td>
+      {% endverbatim block %}
           <td>
             <button type="button" class="btn btn-light mr-1" data-bs-toggle="modal" data-bs-target="#exampleModal" @click="editClick(eve)">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
@@ -92,14 +94,14 @@
           </td>
         </tr>
       </tbody>
-      </thead>undefined
+
     </table>
 
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">{{modalTitle}}</h5>
+        <h5 class="modal-title" id="exampleModalLabel">{% verbatim block %}{{modalTitle}}{% endverbatim block %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -122,7 +124,7 @@
               <span class="input-group-text">Main Staff Id</span>
               <select class="form-select" v-model="mainStaffId">
                 <option v-for="staff in staffs">
-                  {{staff.staffId}}
+                  {% verbatim block %}{{staff.staffId}}{% endverbatim block %}
                 </option>
               </select>
             </div>
@@ -141,7 +143,7 @@
                 -->
               <select v-model="skill.skillId" class="form-control sl">
                 <option v-for="e in skillTable" v-bind:value="e.skillId">
-                  {{ e.title }}
+                  {% verbatim block %}{{ e.title }}{% endverbatim block %}
                 </option>
               </select>
               <!--
@@ -149,21 +151,30 @@
               -->
             </div>
           </div>
+
           <div class="form-group">
             <button @click="addSkillClick()" type="button" class="btn btn-secondary">Add skill</button>
             <button @click="removeSkillClick()" type="button" class="btn btn-danger">Remove skill</button>
           </div>
 
-
+              {% if user.is_staff %}
+                <input type="checkbox" value="approved" v-model="checkboxes"/>
+                <label>approved</label>
+                <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
+                <label>Use for calculation</label>
+              {% endif  %}
+              <!--
               <input
+                id="checkbox"
                 type="checkbox"
-                :checked="approved"
-                @input="approved = $event.target.checked"
-                />
-
+                :value="checkboxVal"
+                :checked="booleanValue"
+                v-on:input="checkboxVal = $event.target.value"
+              />
+              -->
 
               <hr>
-          </div>
+
           <!--
         <div class="p-2 w-50 bd-highlight"><img
                 :src="PhotoPath+PhotoFileName" /><input class="m-2" type="file" @change="imageUpload"></div>
@@ -173,12 +184,13 @@
             <button id="updateButton" type="button" @click="updateClick()" v-else class="btn btn-primary"> Update </button>
           </div>
 
+          </div>
         </div>
       </div>
     </div>
   </div>
+</script>
 
-    {% endverbatim event-template %}
 
 {% endblock %}
 

@@ -7,6 +7,8 @@ let eventComponent = {
             staffs:[],
             events:[],
 
+            user:{},
+
             modalTitle:"",
             addingNewEvent : false,
 
@@ -21,6 +23,8 @@ let eventComponent = {
 
             skillTable:"",
             skills: [],
+
+            checkboxes: [],
             // PhotoFileName:"anonymous.png",
             // PhotoPath:variables.PHOTO_URL
         }
@@ -43,7 +47,6 @@ let eventComponent = {
                 this.skillTable=response.data;
             });
 
-
         },
     addClick(){
 
@@ -58,6 +61,8 @@ let eventComponent = {
         this.mainStaffId=""
         this.info="-" // Add some thing to the field.
         this.skills = []
+
+        this.checkboxes=[]
         // this.DateOfJoining="",
         // this.PhotoFileName="anonymous.png"
     },
@@ -72,6 +77,13 @@ let eventComponent = {
         this.mainStaffId    =   event.mainStaffId
         this.info           =   event.info
         this.skills         =   event.skills
+
+        //Consider create a list of checkbox variables.
+        this.checkboxes = []
+        if (event.approved)
+            this.checkboxes.push('approved')
+        if (event.used_for_calculation)
+            this.checkboxes.push('used_for_calculation')
 
     },
     createClick(){
@@ -98,10 +110,9 @@ let eventComponent = {
         const tempOutData = {
             'skills' : this.skills
         }
-        alert(JSON.stringify(tempOutData, null, 2))
+        // alert(JSON.stringify(tempOutData, null, 2))
 
-
-        axios.put(variables.API_URL+"event/" + this.eventId,{
+        outDict = {
             // id:         this.id,
             'eventId':    this.eventId,
             'title':      this.title,
@@ -109,7 +120,18 @@ let eventComponent = {
             'mainStaffId':this.mainStaffId,
             'info':       this.info,
             'skills':     this.skills,
-        })
+            'approved':   this.checkboxes.includes('approved'),
+            'used_for_calculation': this.checkboxes.includes('used_for_calculation'),
+        }
+
+        if (!this.user['is_staff']){
+            outDict.delete('approved')
+            outDict.delete('used_for_calculation')
+        }
+
+        alert(JSON.stringify(outDict, null, 2))
+
+        axios.put(variables.API_URL+"event/" + this.eventId, outDict)
         .then((response)=>{
             this.refreshData();
             alert(response.data);
@@ -163,6 +185,10 @@ let eventComponent = {
     },
     mounted:function(){
         this.refreshData();
+        axios.get(variables.API_URL+"user")
+            .then((response)=>{
+                this.user=response.data;
+            });
     }
 }
 

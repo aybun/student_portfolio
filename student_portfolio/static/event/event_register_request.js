@@ -4,6 +4,8 @@ let eventRegisterRequestComponent = {
 
     data(){
         return{
+            user:"",
+
             staffs:[],
             events:[],
 
@@ -22,8 +24,7 @@ let eventRegisterRequestComponent = {
             skillTable:"",
             skills: [],
 
-            approved:false,
-            used_for_calculation:false,
+            checkboxes :[],
 
             // PhotoFileName:"anonymous.png",
             // PhotoPath:variables.PHOTO_URL
@@ -53,7 +54,7 @@ let eventRegisterRequestComponent = {
         },
     addClick(){
 
-        this.modalTitle="Add xx Event"
+        this.modalTitle="Add Event"
         this.addingNewEvent= true // Signal that we are adding a new event -> Create Button.
         document.getElementById("createButton").disabled = false;
 
@@ -63,6 +64,7 @@ let eventRegisterRequestComponent = {
         this.mainStaffId=""
         this.info="-" // Add some thing to the field.
         this.skills = []
+        this.checkboxes = []
         // this.DateOfJoining="",
         // this.PhotoFileName="anonymous.png"
     },
@@ -77,10 +79,20 @@ let eventRegisterRequestComponent = {
         this.mainStaffId    =   event.mainStaffId
         this.info           =   event.info
         this.skills         =   event.skills
-        this.approved       =   event.approved
-        this.used_for_calculation = event.used_for_calculation
+        // this.approved       =   event.approved
+        // this.used_for_calculation = event.used_for_calculation
+
+        this.checkboxes = []
+        if (event.approved)
+            this.checkboxes.push('approved')
+        if (event.used_for_calculation)
+            this.checkboxes.push('used_for_calculation')
+
+
     },
     createClick(){
+        responseData=""
+
         this.skills = this.cleanSkills(this.skills)
         axios.post(variables.API_URL+"eventRegisterRequest",{
             // eventId:    this.eventId,
@@ -93,9 +105,12 @@ let eventRegisterRequestComponent = {
         .then((response)=>{
             this.refreshData();
             alert(response.data);
+            responseData = response.data
         });
 
-        document.getElementById("createButton").disabled = true;
+        // check if successfully added.
+        // if responseData =
+        // document.getElementById("createButton").disabled = true;
 
     },
     updateClick(){
@@ -106,7 +121,7 @@ let eventRegisterRequestComponent = {
         }
         alert(JSON.stringify(tempOutData, null, 2))
 
-        axios.put(variables.API_URL+"eventRegisterRequest/" + this.eventId,{
+        outDict = {
             // id:         this.id,
             'eventId':    this.eventId,
             'title':      this.title,
@@ -114,9 +129,16 @@ let eventRegisterRequestComponent = {
             'mainStaffId':this.mainStaffId,
             'info':       this.info,
             'skills':     this.skills,
-            'approved':   this.approved,
-            'used_for_calculation': this.used_for_calculation,
-        })
+            'approved':   this.checkboxes.includes('approved'),
+            'used_for_calculation': this.checkboxes.includes('used_for_calculation'),
+        }
+
+        if (!this.user['is_staff']){
+            outDict.delete('approved')
+            outDict.delete('used_for_calculation')
+        }
+
+        axios.put(variables.API_URL+"eventRegisterRequest/" + this.eventId, outDict)
         .then((response)=>{
             this.refreshData();
             alert(response.data);
@@ -170,6 +192,13 @@ let eventRegisterRequestComponent = {
     },
     mounted:function(){
         this.refreshData();
+
+        axios.get(variables.API_URL+"user")
+            .then((response)=>{
+                this.user=response.data;
+            });
+
+
     }
 }
 

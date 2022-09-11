@@ -83,20 +83,14 @@ def eventApi(request, eventId=0):
         if not request.user.is_staff:
             return JsonResponse("Permission denied.", safe=False)
 
+
         event_data=JSONParser().parse(request)
         event=Event.objects.get(eventId=eventId)
 
         print('{} : {}'.format('event_data', event_data))
         print('{} : {}'.format('event', event))
 
-        # skills = event_data['skills']
-        # skills_dict = {}
-        # for i in range(0, len(skills)):
-        #     skills_dict[i] = skills[i]
-        #
-        # print(skills_dict)
         serializer = EventSerializer(event, data=event_data)
-
 
         if serializer.is_valid():
             serializer.save()
@@ -298,16 +292,33 @@ def eventRegisterRequestApi(request, eventId=0):
         if not request.user.is_authenticated:
             return JsonResponse("Permission denied.", safe=False)
         if request.user.is_staff:
-            pass
+            event_data = JSONParser().parse(request)
+            print(type(event_data))
+            event = Event.objects.get(eventId=eventId)
+
+            if not event:
+                return JsonResponse("The object does not exist.")
+
+            # event_data.pop('hello', None)
+            serializer = EventSerializer(event, data=event_data)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse("Updated Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to Update")
+
         else: #The user is a student.
 
             event_data = JSONParser().parse(request)
+            # Pop fields that are not allowed to be altered by non-staff. We might outright reject such request.
+            event_data.pop('approved', None)
+            event_data.pop('used_for_calculation', None)
+
             event = Event.objects.get(eventId=eventId, created_by=request.user.id)
 
             if not event:
-                return JsonResponse("Failed to Update")
+                return JsonResponse("The object does not exist.")
 
-            #Exclude approved if exists.
             serializer = EventSerializer(event, data=event_data)
 
             if serializer.is_valid():
