@@ -1,5 +1,8 @@
 from django.db import models
 # from djongo import models
+from django.conf import settings
+from djongo.storage import GridFSStorage
+
 
 from student.models import Student
 from staff.models import Staff
@@ -8,6 +11,7 @@ from staff.models import Staff
 from django import forms
 
 # Create your models here.
+grid_fs_storage = GridFSStorage(collection='files', base_url=''.join([settings.ROOT_URLCONF, 'files/']))
 
 class Skill(models.Model):
     skillId = models.BigAutoField(primary_key=True)
@@ -16,8 +20,6 @@ class Skill(models.Model):
 
     def __str__(self):
         return self.title
-
-
 
 class Event(models.Model):
     eventId = models.BigAutoField(primary_key=True)
@@ -32,7 +34,7 @@ class Event(models.Model):
     skills = models.JSONField(default=dict)
 
     #user_id
-    created_by = models.BigIntegerField(null=False)
+    created_by = models.BigIntegerField(null=False, editable=False)
 
     approved = models.BooleanField(default=False)
     used_for_calculation = models.BooleanField(default=False)

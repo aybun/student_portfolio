@@ -60,19 +60,24 @@ def eventApi(request, eventId=0):
             return JsonResponse("Permission denied.", safe=False)
 
         if request.user.is_staff:
-            event_data=JSONParser().parse(request)
+            data = JSONParser().parse(request)
+
+            event_data = data['event']
             event_data['created_by'] = request.user.id
             event_data['approved'] = True
             event_data['used_for_calculation'] = True
 
             print(event_data)
-            events_serializer=EventSerializer(data=event_data)
+            serializer=EventSerializer(data=event_data)
 
-            if events_serializer.is_valid():
-                events_serializer.save()
+            if serializer.is_valid():
+                serializer.save()
                 return JsonResponse("Added Successfully",safe=False)
+            else:
+                print(serializer.error_messages)
+                print(serializer.errors)
+                return JsonResponse("Failed to Add", safe=False)
 
-            return JsonResponse("Failed to Add", safe=False)
 
 
     elif request.method=='PUT':
@@ -84,11 +89,12 @@ def eventApi(request, eventId=0):
             return JsonResponse("Permission denied.", safe=False)
 
 
-        event_data=JSONParser().parse(request)
+        data=JSONParser().parse(request)
+        event_data = data['event']
         event=Event.objects.get(eventId=eventId)
 
-        print('{} : {}'.format('event_data', event_data))
-        print('{} : {}'.format('event', event))
+        # print('{} : {}'.format('event_data', event_data))
+        # print('{} : {}'.format('event', event))
 
         serializer = EventSerializer(event, data=event_data)
 
@@ -153,8 +159,7 @@ def eventAttendanceOfStudentsApi(request, eventId=0, studentId='0'):
         else:
             print(serializer.error_messages)
             print(serializer.errors)
-
-        return JsonResponse("Failed to Add",safe=False)
+            return JsonResponse("Failed to Add",safe=False)
 
     elif request.method=='PUT':
         attendance_data=JSONParser().parse(request)
@@ -265,8 +270,9 @@ def eventRegisterRequestApi(request, eventId=0):
         else: # The user is a student.
             # The issue of djongo : https://stackoverflow.com/questions/68609027/djongo-fails-to-query-booleanfield
 
-            events = Event.objects.filter(created_by=request.user.id, used_for_calculation__in=[False])
+            events = Event.objects.filter(created_by=request.user.id, approved__in=[False])
             serializer = EventSerializer(events, many=True)
+            # print('{} : {}'.format('data', serializer.data ))
             return JsonResponse(serializer.data, safe=False)
 
     if request.method == 'POST':
@@ -293,7 +299,6 @@ def eventRegisterRequestApi(request, eventId=0):
             return JsonResponse("Permission denied.", safe=False)
         if request.user.is_staff:
             event_data = JSONParser().parse(request)
-            print(type(event_data))
             event = Event.objects.get(eventId=eventId)
 
             if not event:
@@ -305,11 +310,14 @@ def eventRegisterRequestApi(request, eventId=0):
                 serializer.save()
                 return JsonResponse("Updated Successfully", safe=False)
             else:
-                return JsonResponse("Failed to Update")
+                print(serializer.errors)
+                print(serializer.error_messages)
+                return JsonResponse("Failed to Update", safe=False)
 
         else: #The user is a student.
 
-            event_data = JSONParser().parse(request)
+            data = JSONParser().parse(request)
+            event_data = data['event']
             # Pop fields that are not allowed to be altered by non-staff. We might outright reject such request.
             event_data.pop('approved', None)
             event_data.pop('used_for_calculation', None)
@@ -317,7 +325,7 @@ def eventRegisterRequestApi(request, eventId=0):
             event = Event.objects.get(eventId=eventId, created_by=request.user.id)
 
             if not event:
-                return JsonResponse("The object does not exist.")
+                return JsonResponse("The object does not exist.", safe=False)
 
             serializer = EventSerializer(event, data=event_data)
 
@@ -325,6 +333,8 @@ def eventRegisterRequestApi(request, eventId=0):
                 serializer.save()
                 return JsonResponse("Updated Successfully", safe=False)
             else:
-                return JsonResponse("Failed to Update")
+                print(serializer.errors)
+                print(serializer.error_messages)
+                return JsonResponse("Failed to Update", safe=False)
 
 

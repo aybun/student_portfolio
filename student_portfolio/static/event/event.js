@@ -6,24 +6,27 @@ let eventComponent = {
         return{
             staffs:[],
             events:[],
-
             user:{},
 
             modalTitle:"",
             addingNewEvent : false,
 
             // id:0,
-            eventId:0,
-            title:"",
-            date:"",
-            mainStaffId:"",
-            info:"",
+            event: {
+                eventId:0,
+                title:"",
+                date:"",
+                mainStaffId:"",
+                info:"",
+                skills: [],
+                approved:false,
+                used_for_calculation: false,
+            },
+
 
             // is_staff: true,
 
             skillTable:"",
-            skills: [],
-
             checkboxes: [],
             // PhotoFileName:"anonymous.png",
             // PhotoPath:variables.PHOTO_URL
@@ -50,17 +53,11 @@ let eventComponent = {
         },
     addClick(){
 
-
         this.modalTitle="Add Event"
         this.addingNewEvent= true // Signal that we are adding a new event -> Create Button.
         document.getElementById("createButton").disabled = false;
 
-        // this.eventId=0
-        this.title=""
-        this.date=""
-        this.mainStaffId=""
-        this.info="-" // Add some thing to the field.
-        this.skills = []
+        this.event = this.getEmptyEvent()
 
         this.checkboxes=[]
         // this.DateOfJoining="",
@@ -70,16 +67,12 @@ let eventComponent = {
         this.modalTitle="Edit Event";
         this.addingNewEvent = false
 
-        // this.id         =   event.id
-        this.eventId        =   event.eventId
-        this.title          =   event.title
-        this.date           =   event.date
-        this.mainStaffId    =   event.mainStaffId
-        this.info           =   event.info
-        this.skills         =   event.skills
+        this.event = event
+        this.checkboxes = []
+
 
         //Consider create a list of checkbox variables.
-        this.checkboxes = []
+
         if (event.approved)
             this.checkboxes.push('approved')
         if (event.used_for_calculation)
@@ -87,51 +80,39 @@ let eventComponent = {
 
     },
     createClick(){
-        this.skills = this.cleanSkills(this.skills)
+        this.event.skills = this.cleanSkills(this.event.skills)
+
+        delete this.event['eventId']
         axios.post(variables.API_URL+"event",{
-            // eventId:    this.eventId,
-            'title':      this.title,
-            'date':       this.date,
-            'mainStaffId':this.mainStaffId,
-            'info':       this.info,
-            'skills':     this.skills,
+            event : this.event,
         })
         .then((response)=>{
             this.refreshData();
             alert(response.data);
         });
 
-        document.getElementById("createButton").disabled = true;
+        //if success
+        //document.getElementById("createButton").disabled = true;
 
     },
     updateClick(){
 
-        this.skills = this.cleanSkills(this.skills);
-        const tempOutData = {
-            'skills' : this.skills
-        }
-        // alert(JSON.stringify(tempOutData, null, 2))
+        this.event.skills = this.cleanSkills(this.event.skills);
+        this.event.approved = this.checkboxes.includes('approved')
+        this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
 
         outDict = {
-            // id:         this.id,
-            'eventId':    this.eventId,
-            'title':      this.title,
-            'date':       this.date,
-            'mainStaffId':this.mainStaffId,
-            'info':       this.info,
-            'skills':     this.skills,
-            'approved':   this.checkboxes.includes('approved'),
-            'used_for_calculation': this.checkboxes.includes('used_for_calculation'),
+           event : this.event,
         }
 
         if (!this.user['is_staff']){
-            outDict.delete('approved')
-            outDict.delete('used_for_calculation')
+            delete outDict.event['approved']
+            delete outDict.event['used_for_calculation']
         }
 
         alert(JSON.stringify(outDict, null, 2))
 
-        axios.put(variables.API_URL+"event/" + this.eventId, outDict)
+        axios.put(variables.API_URL+"event/" + this.event.eventId, outDict)
         .then((response)=>{
             this.refreshData();
             alert(response.data);
@@ -141,7 +122,7 @@ let eventComponent = {
         if(!confirm("Are you sure?")){
             return;
         }
-        axios.delete(variables.API_URL+"event/"+eventId)
+        axios.delete(variables.API_URL+"event/" + eventId)
         .then((response)=>{
             this.refreshData();
             alert(response.data);
@@ -149,19 +130,19 @@ let eventComponent = {
 
     },
     addSkillClick(){
-            this.skills.push({
-                skillId: '',
-            })
+        this.event.skills.push({
+            skillId: '',
+        })
     },
     removeSkillClick(){
-            this.skills.pop()
+        this.event.skills.pop()
     },
     cleanSkills(skills){
         //Remove empty or redundant inputs.
         nonEmpty = []
         skillIds = []
         for (i=0;i<skills.length; ++i) {
-            id = this.skills[i]['skillId']
+            id = skills[i]['skillId']
 
             if ( id !== "" && !skillIds.includes(id)){
                 nonEmpty.push(skills[i]);
@@ -169,7 +150,23 @@ let eventComponent = {
             }
         }
         return nonEmpty
-    }
+    },
+
+    getEmptyEvent(){
+
+        let event= {
+            eventId:0,
+            title:"",
+            date:"",
+            mainStaffId:"",
+            info:"",
+            skills: [],
+            approved:false,
+            used_for_calculation: false,
+        }
+
+        return event
+    },
 
     // imageUpload(event){
     //     let formData=new FormData();
@@ -194,7 +191,6 @@ let eventComponent = {
 
 const app = Vue.createApp({
     components: {'event-html' : eventComponent},
-
 
 })
 

@@ -3,7 +3,7 @@ from .models import Event, EventAttendanceOfStudents, Skill
 
 class EventSerializer(serializers.ModelSerializer):
 
-    # eventId = serializers.IntegerField(null=True)
+    eventId = serializers.IntegerField(required=False, read_only=True)
     title = serializers.CharField(max_length=100, required=True)
     date = serializers.DateField(required=True)
 

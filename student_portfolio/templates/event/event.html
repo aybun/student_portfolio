@@ -98,6 +98,7 @@
                 <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
                 </svg>
             </button>
+
             <button type="button" @click="deleteClick(eve.eventId)"
             class="btn btn-light mr-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
@@ -135,17 +136,17 @@
 
             <div class="input-group mb-3">
                 <span class="input-group-text">Title</span>
-                <input type="text" class="form-control" v-model="title">
+                <input type="text" class="form-control" v-model="event.title">
             </div>
 
             <div class="input-group mb-3">
                 <span class="input-group-text">Date</span>
-                <input type="date" class="form-control" v-model="date">
+                <input type="date" class="form-control" v-model="event.date">
             </div>
 
             <div class="input-group mb-3">
                 <span class="input-group-text">Main Staff Id</span>
-                <select class="form-select" v-model="mainStaffId">
+                <select class="form-select" v-model="event.mainStaffId">
                     <option v-for="staff in staffs">
                     {% verbatim block %}{{staff.staffId}}{% endverbatim block %}
                     </option>
@@ -155,14 +156,14 @@
 
             <div class="input-group mb-3">
                 <span class="input-group-text">info</span>
-                <input type="text" class="form-control" v-model="info">
+                <input type="text" class="form-control" v-model="event.info">
             </div>
 
 
               <h3>Skills</h3>
               <div class="skill">
 
-                <div class="form-row" v-for="(skill, index) in skills" :key="index">
+                <div class="form-row" v-for="(skill, index) in event.skills" :key="index">
 
                     <!--
                   <div class="form-group col-md-6">
@@ -190,11 +191,20 @@
               </div>
 
                 {% if user.is_staff %}
+                <p></p>
                 <input type="checkbox" value="approved" v-model="checkboxes"/>
-                <label>approved</label>
+                <label>&nbsp;approved&nbsp;&nbsp;</label>
                 <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
-                <label>Use for calculation</label>
+                <label>&nbsp;Use for calculation</label>
+                <p></p>
+
+                <div class="mb-3">
+                    <label for="formFile" class="form-label"><h3>Attachment file</h3></label>
+                    <input class="form-control" type="file" id="formFile" v-model="">
+                </div>
                 {% endif  %}
+
+
 
               <hr>
 
@@ -210,9 +220,10 @@
 
     </div>
         <button id="createButton" type="button" @click="createClick()"
-        v-if="addingNewEvent" class="btn btn-primary">
+        v-if="addingNewEvent" class="btn btn-primary" >
         Create
         </button>
+
         <button id="updateButton" type="button" @click="updateClick()"
         v-else class="btn btn-primary">
         Update
