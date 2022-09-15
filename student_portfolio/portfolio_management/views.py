@@ -27,3 +27,15 @@ def userApi(request):
     }
 
     return JsonResponse(data_dict, safe=False)
+
+
+def file(request, file_id):
+    data_dict = {
+        'file_id' : file_id,
+    }
+    return render(request, 'file/image.html', data_dict)
+
+
+def fileApi(request):
+
+    return None

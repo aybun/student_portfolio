@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Event, EventAttendanceOfStudents, Skill
-
+from rest_framework.parsers import JSONParser
+import json
 class EventSerializer(serializers.ModelSerializer):
 
     eventId = serializers.IntegerField(required=False, read_only=True)
@@ -17,12 +18,19 @@ class EventSerializer(serializers.ModelSerializer):
     approved = serializers.BooleanField(required=False)
     used_for_calculation = serializers.BooleanField(required=False)
 
+    attachment_link = serializers.URLField(required=False, max_length=200, allow_blank=True)
+    # Validate attachment_file
+    attachment_file = serializers.FileField(required=False, allow_null=True)
+
     class Meta:
         model = Event
-        fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills', 'created_by', 'approved', 'used_for_calculation')
+        fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills', 'created_by',
+                  'approved', 'used_for_calculation', 'attachment_link', 'attachment_file')
 
-    def validate_skills(self, list_of_dicts):
+    def validate_skills(self, stringnified_list_of_dicts):
         skill_ids = Skill.objects.all().values_list('skillId', flat=True)
+
+        list_of_dicts = json.loads(stringnified_list_of_dicts)
 
         unique_ids = []
         out_list = []
@@ -37,6 +45,11 @@ class EventSerializer(serializers.ModelSerializer):
                 out_list.append(e)
 
         return out_list
+
+    def validate_attachment_file(self, input):
+
+        return input
+
 
 
 

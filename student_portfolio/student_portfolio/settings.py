@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from djongo.storage import GridFSStorage
 from pathlib import Path
 import os
 
@@ -57,9 +58,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
 
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAdminUser',
-   ]
+   #  'DEFAULT_PERMISSION_CLASSES': [
+   #      'rest_framework.permissions.IsAdminUser',
+   # ]
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -77,6 +78,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'student_portfolio.urls'
+# GRID_FS_STORAGE = GridFSStorage(collection='files', base_url=''.join(['http://127.0.0.1:8000/', 'files/']))
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -179,7 +181,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/logoutpage'

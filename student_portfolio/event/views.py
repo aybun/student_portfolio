@@ -1,16 +1,23 @@
 from django.shortcuts import render
 
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 
+from student.models import Student
 from .models import Event, EventAttendanceOfStudents, Skill
 from .serializers import EventSerializer, EventAttendanceOfStudentsSerializer, SkillSerializer
 
-from student.models import Student
+from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 
-from collections import ChainMap
-from django.core.files.storage import default_storage
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+
+import json
+
+
+
+
 
 # Create your views here.
 def event(request, id=0):
@@ -42,8 +49,11 @@ def event(request, id=0):
         pass
 
 
-@csrf_exempt
+@parser_classes([JSONParser, MultiPartParser ])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventApi(request, eventId=0):
+
     if request.method=='GET':
         if (eventId == 0):
             events = Event.objects.filter(approved__in=[True])
@@ -52,6 +62,7 @@ def eventApi(request, eventId=0):
         else:
             event = Event.objects.get(eventId=eventId)
             event_serializer = EventSerializer(event)
+            print(event_serializer.data)
             return JsonResponse(event_serializer.data, safe=False)
 
     elif request.method=='POST':
@@ -60,14 +71,16 @@ def eventApi(request, eventId=0):
             return JsonResponse("Permission denied.", safe=False)
 
         if request.user.is_staff:
-            data = JSONParser().parse(request)
-
-            event_data = data['event']
+            # print(request.POST)
+            # data = MultiPartParser().parse(stream=request.body, parser_context={'request': request})
+            # data = MultiPartParser().parse(stream=request.body, parser_context={'request': request})
+            print(request.data)
+            event_data = request.data.dict()
+            print(event_data)
             event_data['created_by'] = request.user.id
             event_data['approved'] = True
             event_data['used_for_calculation'] = True
 
-            print(event_data)
             serializer=EventSerializer(data=event_data)
 
             if serializer.is_valid():
@@ -78,8 +91,6 @@ def eventApi(request, eventId=0):
                 print(serializer.errors)
                 return JsonResponse("Failed to Add", safe=False)
 
-
-
     elif request.method=='PUT':
 
         if not request.user.is_authenticated:
@@ -89,8 +100,11 @@ def eventApi(request, eventId=0):
             return JsonResponse("Permission denied.", safe=False)
 
 
-        data=JSONParser().parse(request)
-        event_data = data['event']
+        # data=JSONParser().parse(request)
+        print(request.data)
+        event_data = request.data.dict()
+        print(event_data)
+
         event=Event.objects.get(eventId=eventId)
 
         # print('{} : {}'.format('event_data', event_data))

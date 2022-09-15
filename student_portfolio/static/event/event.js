@@ -21,6 +21,8 @@ let eventComponent = {
                 skills: [],
                 approved:false,
                 used_for_calculation: false,
+                attachment_link: "",
+                attachment_file: "",
             },
 
 
@@ -29,7 +31,7 @@ let eventComponent = {
             skillTable:"",
             checkboxes: [],
             // PhotoFileName:"anonymous.png",
-            // PhotoPath:variables.PHOTO_URL
+            PhotoPath:variables.PHOTO_URL
         }
     },
 
@@ -50,12 +52,13 @@ let eventComponent = {
                 this.skillTable=response.data;
             });
 
+            this.event = this.getEmptyEvent()
         },
     addClick(){
 
         this.modalTitle="Add Event"
         this.addingNewEvent= true // Signal that we are adding a new event -> Create Button.
-        document.getElementById("createButton").disabled = false;
+        // document.getElementById("createButton").disabled = false;
 
         this.event = this.getEmptyEvent()
 
@@ -72,7 +75,6 @@ let eventComponent = {
 
 
         //Consider create a list of checkbox variables.
-
         if (event.approved)
             this.checkboxes.push('approved')
         if (event.used_for_calculation)
@@ -80,53 +82,122 @@ let eventComponent = {
 
     },
     createClick(){
-        this.event.skills = this.cleanSkills(this.event.skills)
-
-        delete this.event['eventId']
-        axios.post(variables.API_URL+"event",{
-            event : this.event,
-        })
-        .then((response)=>{
-            this.refreshData();
-            alert(response.data);
-        });
-
-        //if success
-        //document.getElementById("createButton").disabled = true;
-
-    },
-    updateClick(){
+        let before_altered_event = this.getEmptyEvent()
 
         this.event.skills = this.cleanSkills(this.event.skills);
-        this.event.approved = this.checkboxes.includes('approved')
-        this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
+        before_altered_event.skills = this.event.skills
 
-        outDict = {
-           event : this.event,
-        }
+        this.event.skills = JSON.stringify(this.event.skills)
 
-        if (!this.user['is_staff']){
-            delete outDict.event['approved']
-            delete outDict.event['used_for_calculation']
+        delete this.event['eventId']
+        if (this.event.attachment_file == null || typeof this.event.attachment_file === 'string' || this.event.attachment_file === '' )
+            delete this.event.attachment_file
+
+        let outDict = new FormData();
+        console.log(this.event)
+        for (const [key, value] of Object.entries(this.event)) {
+            // console.log(key, value);
+            outDict.append(key.toString(), value)
         }
 
         alert(JSON.stringify(outDict, null, 2))
 
-        axios.put(variables.API_URL+"event/" + this.event.eventId, outDict)
-        .then((response)=>{
+        // axios.post(variables.API_URL+"event", outDict,
+        //     { headers: {'Content-Type': 'multipart/form-data'}})
+        //     .then((response)=>{
+        //     this.refreshData();
+        //     alert(response.data);
+        // });
+
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+        axios({
+            method: 'post',
+            url: variables.API_URL+"event",
+            xstfCookieName: 'csrftoken',
+            xsrfHeaderName: 'X-CSRFToken',
+            data: outDict,
+            headers : {
+                'Content-Type': 'multipart/form-data',
+                'X-CSRFToken': 'csrftoken',
+            }
+        }).then((response)=>{
             this.refreshData();
             alert(response.data);
-        });
+        })
+
+
+        //if success
+        //document.getElementById("createButton").disabled = true;
+
+        this.event.skills = before_altered_event.skills
+    },
+    updateClick(){
+        //Store only altered fiels.
+        let before_altered_event = this.getEmptyEvent()
+
+        this.event.skills = this.cleanSkills(this.event.skills);
+        before_altered_event.skills = this.event.skills
+
+        this.event.approved = this.checkboxes.includes('approved')
+        this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
+
+        if (!this.user['is_staff']){
+            delete this.event['approved']
+            delete this.event['used_for_calculation']
+        }
+
+        if (this.event.attachment_file == null || typeof this.event.attachment_file === 'string' )
+            delete this.event.attachment_file
+
+
+        this.event.skills = JSON.stringify(this.event.skills)
+        alert(JSON.stringify(this.event, null, 2))
+        let outDict = new FormData();
+        for (const [key, value] of Object.entries(this.event)) {
+            outDict.append(key.toString(), value)
+        }
+
+        //Make a request.
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+        axios({
+            method: 'put',
+            url: variables.API_URL+"event/" + this.event.eventId,
+            xstfCookieName: 'csrftoken',
+            xsrfHeaderName: 'X-CSRFToken',
+            data: outDict,
+            headers : {
+                'Content-Type': 'multipart/form-data',
+                'X-CSRFToken': 'csrftoken',
+            }
+        }).then((response)=>{
+            this.refreshData();
+            alert(response.data);
+        })
+
+        //Assign some values back.
+        this.event.skills = before_altered_event.skills
     },
     deleteClick(eventId){
         if(!confirm("Are you sure?")){
             return;
         }
-        axios.delete(variables.API_URL+"event/" + eventId)
-        .then((response)=>{
+
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+        axios({
+            method: 'delete',
+            url: variables.API_URL+"event/"+ eventId,
+            xstfCookieName: 'csrftoken',
+            xsrfHeaderName: 'X-CSRFToken',
+            headers : {
+                'X-CSRFToken': 'csrftoken',
+            }
+        }).then((response)=>{
             this.refreshData();
             alert(response.data);
-        });
+        })
 
     },
     addSkillClick(){
@@ -163,11 +234,22 @@ let eventComponent = {
             skills: [],
             approved:false,
             used_for_calculation: false,
+            attachment_link: "",
+            attachment_file: "",
         }
 
         return event
     },
+    onFileSelected(event){
+        this.event.attachment_file = event.target.files[0]
 
+        let label = document.getElementById("attachment_filename");
+        label.innerText = this.event.attachment_file.name
+
+    },
+        cleanAttachment_file(attachement_file){
+
+        }
     // imageUpload(event){
     //     let formData=new FormData();
     //     formData.append('file',event.target.files[0]);

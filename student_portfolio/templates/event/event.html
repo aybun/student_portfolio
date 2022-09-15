@@ -190,19 +190,29 @@
                   <button @click="removeSkillClick()" type="button" class="btn btn-danger">Remove skill</button>
               </div>
 
-                {% if user.is_staff %}
+            {% if user.is_staff %}
                 <p></p>
+
                 <input type="checkbox" value="approved" v-model="checkboxes"/>
                 <label>&nbsp;approved&nbsp;&nbsp;</label>
                 <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
                 <label>&nbsp;Use for calculation</label>
                 <p></p>
 
-                <div class="mb-3">
-                    <label for="formFile" class="form-label"><h3>Attachment file</h3></label>
-                    <input class="form-control" type="file" id="formFile" v-model="">
+                <label v-if="!addingNewEvent"><h3>Attachment link</label>
+                <div v-if="!addingNewEvent" class="input-group mb-3">
+                    <span class="input-group-text">Attachment Link</span>
+                    <input id="attachment_link_form" type="text" class="form-control" v-model="event.attachment_link">
+
                 </div>
-                {% endif  %}
+
+                <div v-if="!addingNewEvent" class="mb-3">
+                    <label for="formFile" class="form-label"><h3>Attachment file</h3></label>
+                    <p></p>
+                    <label id="attachment_filename" for="formFile" class="form-label"><a v-if="this.event.attachment_file" v-bind:href="this.event.attachment_file"><h6>File url</h6></a></label>
+                    <input class="form-control" type="file" id="formFile" @change="onFileSelected">
+                </div>
+            {% endif  %}
 
 
 
@@ -210,13 +220,13 @@
 
         </div>
 
-        <!--
-        <div class="p-2 w-50 bd-highlight">
-            <img
-                :src="PhotoPath+PhotoFileName" />
-            <input class="m-2" type="file" @change="imageUpload">
-        </div>
-        -->
+
+<!--        <div class="p-2 w-50 bd-highlight">-->
+<!--            <img-->
+<!--                :src="PhotoPath+'events/anonymous.png'" />-->
+<!--            &lt;!&ndash;<input class="m-2" type="file" @change="imageUpload">&ndash;&gt;-->
+<!--        </div>-->
+
 
     </div>
         <button id="createButton" type="button" @click="createClick()"

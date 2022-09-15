@@ -8,4 +8,7 @@ urlpatterns=[
 
     path('api/user', views.userApi),
 
+    path('files/<str:file_id>', views.file),
+
+    path('api/files/<str:file_id>', views.fileApi),
 ]

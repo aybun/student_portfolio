@@ -1,8 +1,6 @@
 from django.db import models
 # from djongo import models
 from django.conf import settings
-from djongo.storage import GridFSStorage
-
 
 from student.models import Student
 from staff.models import Staff
@@ -11,7 +9,6 @@ from staff.models import Staff
 from django import forms
 
 # Create your models here.
-grid_fs_storage = GridFSStorage(collection='files', base_url=''.join([settings.ROOT_URLCONF, 'files/']))
 
 class Skill(models.Model):
     skillId = models.BigAutoField(primary_key=True)
@@ -20,6 +17,10 @@ class Skill(models.Model):
 
     def __str__(self):
         return self.title
+
+def event_attachment_file_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return 'events_{0}/{1}'.format(instance.eventId, filename)
 
 class Event(models.Model):
     eventId = models.BigAutoField(primary_key=True)
@@ -38,6 +39,9 @@ class Event(models.Model):
 
     approved = models.BooleanField(default=False)
     used_for_calculation = models.BooleanField(default=False)
+
+    attachment_link = models.URLField(max_length=200, blank=True, default='')
+    attachment_file = models.FileField(upload_to=event_attachment_file_directory_path, null=True, blank=True)
 
 
 class EventAttendanceOfStudents(models.Model):
