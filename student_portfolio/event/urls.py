@@ -29,6 +29,9 @@ urlpatterns=[
 
     path('api/skillTable', views.skillTableApi),
 
+    #Test Access policy
+    path('api/testEvent/<int:eventId>', views.eventWithAccessPolicyApi),
+    path('api/testListEvents', views.listEventsWithAccessPolicyApi),
 
 
 ]

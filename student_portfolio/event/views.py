@@ -5,7 +5,7 @@ from django.http.response import JsonResponse
 
 from student.models import Student
 from .models import Event, EventAttendanceOfStudents, Skill
-from .serializers import EventSerializer, EventAttendanceOfStudentsSerializer, SkillSerializer
+from .serializers import EventSerializer, EventAttendanceOfStudentsSerializer, SkillSerializer, EventAccessPolicyTestSerializer
 
 from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
@@ -352,3 +352,25 @@ def eventRegisterRequestApi(request, eventId=0):
                 return JsonResponse("Failed to Update", safe=False)
 
 
+
+
+@csrf_exempt
+def eventWithAccessPolicyApi(request, eventId=0):
+    if request.method=='GET':
+        if (eventId == 0):
+            events = Event.objects.filter(approved__in=[True])
+            events_serializer=EventAccessPolicyTestSerializer(events, many=True, context = {'request':request})
+            return JsonResponse(events_serializer.data, safe=False)
+        else:
+            event = Event.objects.get(eventId=eventId)
+            event_serializer = EventAccessPolicyTestSerializer(event, context = {'request':request})
+            print(event_serializer.data)
+            return JsonResponse(event_serializer.data, safe=False)
+
+
+@csrf_exempt
+def listEventsWithAccessPolicyApi(request):
+    if request.method =='GET':
+        events = Event.objects.filter(approved__in=[True])
+        events_serializer = EventAccessPolicyTestSerializer(events, many=True, context = {'request':request})
+        return JsonResponse(events_serializer.data, safe=False)
