@@ -1,5 +1,5 @@
 from django.urls import re_path, path
-
+from rest_framework import routers
 from . import views
 
 urlpatterns=[
@@ -33,5 +33,7 @@ urlpatterns=[
     path('api/testEvent/<int:eventId>', views.eventWithAccessPolicyApi),
     path('api/testListEvents', views.listEventsWithAccessPolicyApi),
 
-
 ]
+
+# router = routers.SimpleRouter()
+# router.register(r'api/testEvent/<int:eventId>')
