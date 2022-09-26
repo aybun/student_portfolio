@@ -1,6 +1,6 @@
 const ctx = document.getElementById('myChart').getContext('2d');
 
-const data = {
+const chart_data = {
   labels: [
     'Eating',
     'Drinking',
@@ -35,7 +35,7 @@ const data = {
 
 const config = {
   type: 'radar',
-  data: data,
+  data: chart_data,
   options: {
     elements: {
       line: {

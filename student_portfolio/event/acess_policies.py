@@ -9,12 +9,17 @@ class EventApiAccessPolicy(AccessPolicy):
             "principal": ["group:staff", "group:student"],
             "effect": "allow"
         },
+
         {
             "action": ["<method:post>", "<method:put>", "<method:delete>"],
             "principal": ["group:staff"],
             "effect": "allow"
         },
+
     ]
+
+    def is_created_by(self, request, view, action) -> bool:
+        pass
 
 
 class EventAttendanceOfStudentsApiAccessPolicy(AccessPolicy):

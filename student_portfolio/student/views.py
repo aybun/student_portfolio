@@ -24,6 +24,8 @@ def studentApi(request, id=0):
 
         return JsonResponse(data, safe=False)
     elif request.method == 'POST':
+        print('Arrived : !!!!')
+
         student_data = JSONParser().parse(request)
         student_serializer=StudentSerializer(data=student_data)
         print(student_data)

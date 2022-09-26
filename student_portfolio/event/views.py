@@ -60,16 +60,29 @@ def event(request, id=0):
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventApi(request, eventId=0):
 
+    groups = list(request.user.groups.values_list('name', flat=True))
+
     if request.method=='GET':
-        if (eventId == 0):
-            events = Event.objects.filter(approved__in=[True])
-            events_serializer=EventSerializer(events, many=True, context={'request' : request})
-            return JsonResponse(events_serializer.data, safe=False)
-        else:
-            event = Event.objects.get(eventId=eventId)
-            event_serializer = EventSerializer(event, context={'request' : request})
-            print(event_serializer.data)
-            return JsonResponse(event_serializer.data, safe=False)
+
+        if 'staff' in groups:
+            if (eventId == 0):
+                events = Event.objects.filter(approved__in=[True])
+                events_serializer=EventSerializer(events, many=True, context={'request' : request})
+                return JsonResponse(events_serializer.data, safe=False)
+            else:
+                event = Event.objects.get(eventId=eventId)
+                event_serializer = EventSerializer(event, context={'request' : request})
+                # print(event_serializer.data)
+                return JsonResponse(event_serializer.data, safe=False)
+
+        elif 'student' in groups:
+            if (eventId == 0):
+                student = Student.objects.get(userId=request.user.id)
+                events_joined_by_user = list(EventAttendanceOfStudents.objects.filter(studentId__exact=student.studentId).values_list('eventId', flat=True))
+                events = Event.objects.filter(approved__in=[True], eventId__in=events_joined_by_user)
+
+                serializer=EventSerializer(events, many=True, context={'request' : request})
+                return JsonResponse(serializer.data, safe=False)
 
     elif request.method=='POST':
 
@@ -151,20 +164,30 @@ def eventAttendanceOfStudents(request, eventId=0, studentId='0'):
 
 @csrf_exempt
 def eventAttendanceOfStudentsApi(request, eventId=0, studentId='0'):
-    # print(eventId)
-    # print(studentId)
-    if request.method=='GET':
 
-        if (studentId == '0'):
-            # print('This path. ' + studentId )
-            attendances = EventAttendanceOfStudents.objects.filter(eventId__exact=eventId)
-            serializer = EventAttendanceOfStudentsSerializer(attendances, many=True)
-            return JsonResponse(serializer.data, safe=False)
-        else:
-            # print('This path.')
-            attendance = EventAttendanceOfStudents.objects.filter(eventId__exact=eventId, studentId__exact=studentId)
-            serializer = EventAttendanceOfStudentsSerializer(attendance)
-            return JsonResponse(serializer.data, safe=False)
+    groups = list(request.user.groups.values_list('name', flat=True))
+
+    if request.method=='GET':
+        if 'staff' in groups:
+            if (studentId == '0'):
+                # print('This path. ' + studentId )
+                attendances = EventAttendanceOfStudents.objects.filter(eventId__exact=eventId)
+                serializer = EventAttendanceOfStudentsSerializer(attendances, many=True)
+                return JsonResponse(serializer.data, safe=False)
+            else:
+                # print('This path.')
+                attendance = EventAttendanceOfStudents.objects.filter(eventId__exact=eventId, studentId__exact=studentId)
+                serializer = EventAttendanceOfStudentsSerializer(attendance)
+                return JsonResponse(serializer.data, safe=False)
+
+        elif 'student' in groups:
+
+            if (eventId == 0): #Get all events this student joined.
+                student = Student.objects.get(userId=request.user.id)
+                attendances = EventAttendanceOfStudents.objects.filter(studentId=student.studentId)
+                serializer = EventAttendanceOfStudentsSerializer(attendances, many=True)
+                return JsonResponse(serializer.data, safe=False)
+
 
     elif request.method=='POST':
         attendance_data=JSONParser().parse(request)
@@ -280,13 +303,13 @@ def eventRegisterRequestApi(request, eventId=0):
         # if not request.user.is_authenticated:
         #     return JsonResponse("Permission denied.", safe=False)
 
-        if request.user.is_staff:
+        if 'staff' in groups:
 
             events = Event.objects.filter(approved__in=[False])
             serializer = EventSerializer(events, many=True, context={'request' : request})
             return JsonResponse(serializer.data, safe=False)
 
-        else: # The user is a student.
+        elif 'student' in groups:
             # The issue of djongo : https://stackoverflow.com/questions/68609027/djongo-fails-to-query-booleanfield
 
             events = Event.objects.filter(created_by=request.user.id, approved__in=[False])
@@ -353,6 +376,8 @@ def eventRegisterRequestApi(request, eventId=0):
 
     if request.method == 'DELETE':
         pass
+
+
 
 
 @api_view(("GET",))

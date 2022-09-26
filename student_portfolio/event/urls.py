@@ -24,6 +24,7 @@ urlpatterns=[
     path('api/eventRegisterRequest/<int:eventId>', views.eventRegisterRequestApi),
 
     path('eventAttendanceOfStudents/<int:eventId>', views.eventAttendanceOfStudents),
+    path('api/eventAttendanceOfStudents/', views.eventAttendanceOfStudentsApi),
     path('api/eventAttendanceOfStudents/<int:eventId>', views.eventAttendanceOfStudentsApi),
     path('api/eventAttendanceOfStudents/<int:eventId>/<str:studentId>', views.eventAttendanceOfStudentsApi),
 

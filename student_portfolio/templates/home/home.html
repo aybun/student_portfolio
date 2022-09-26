@@ -1,6 +1,11 @@
 {% extends "base/base.html" %}
 {% load static %}
 
+
+{% block additional_scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{% endblock additional_scripts %}
+
 {% block additional_body %}
     <canvas id="myChart" width="50" height="50"></canvas>
 

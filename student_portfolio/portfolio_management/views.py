@@ -3,7 +3,10 @@ from django.shortcuts import render
 # from django.views.decorators.csrf import csrf_exempt
 # from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
-#
+
+from student.models import Student
+from staff.models import Staff
+
 # from .models import Entry
 # from .serializers import BlogAuthorSerializer
 #
@@ -21,10 +24,25 @@ def logoutView(request):
     return render(request, 'registration/error.html', {})
 
 def userApi(request):
+
+    groups = list(request.user.groups.values_list('name', flat=True))
+
     data_dict = {
         'is_staff' : request.user.is_staff,
         'is_superuser': request.user.is_superuser,
+        'groups' : groups,
     }
+
+
+    if 'staff' in groups:
+        staff = Staff.objects.get(userId=request.user.id)
+        data_dict['staffId'] = staff.staffId
+
+    elif 'student' in groups:
+        student = Student.objects.get(userId=request.user.id)
+
+        data_dict['studentId'] = student.studentId
+
 
     return JsonResponse(data_dict, safe=False)
 
