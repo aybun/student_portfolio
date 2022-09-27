@@ -36,8 +36,8 @@ let chartComponent = {
     },
 
     methods:{
-        refreshData(){
-            axios.get(variables.API_URL+"event")
+        async refreshData(){
+            await axios.get(variables.API_URL+"event")
             .then((response)=>{
                 this.events=response.data;
             });
@@ -47,18 +47,8 @@ let chartComponent = {
                 this.staffs=response.data;
             });
 
-            axios.get(variables.API_URL+"skillTable")
-            .then((response)=>{
-                this.skillTable=response.data;
-            });
-
-            axios.get(variables.API_URL+"user")
-            .then((response)=>{
-                this.user=response.data;
-
-                if (this.user.groups.includes('student'))
-                    this.reloadCharts();
-            });
+            if (this.user.groups.includes('student'))
+                this.reloadCharts()
 
             this.event = this.getEmptyEvent()
 
@@ -264,33 +254,39 @@ let chartComponent = {
 
         reloadCharts(){
 
+            //Process Data
             //Handle the case where the ids of skills do not start with 1.
-            let skill_freq = {}
+            let skills_freq = {}
             for (let i=0; i<this.skillTable.length; ++i){
-                skill_freq[this.skillTable[i]] = 0
+                skills_freq[this.skillTable[i].skillId] = 0
             }
-            for (let i=0; i < this.events.length;++i){
+            for (let i=0; i < this.events.length; ++i){
                 for (let j=0; j < this.events[i].skills.length; ++j){
-                    skill_freq[this.events[i].skills[j]] += 1
+                    skills_freq[this.events[i].skills[j].skillId] += 1
                 }
             }
+            let temp_skills_freq = []
+            for (let i=0; i < this.skillTable.length; ++i){
+                temp_skills_freq.push(skills_freq[this.skillTable[i].skillId])
+            }
+            skills_freq = temp_skills_freq
 
-            console.log(skill_freq)
+            // console.log(skills_freq)
+
+            let labels = []
+            this.skillTable.forEach(function(e) {
+                    labels.push(e.title)
+                }
+            )
+            console.log(labels)
 
             const ctx = document.getElementById('myChart').getContext('2d');
             const chart_data = {
-              labels: [
-                'Eating',
-                'Drinking',
-                'Sleeping',
-                'Designing',
-                'Coding',
-                'Cycling',
-                'Running'
-              ],
+
+              labels: labels,
               datasets: [{
                 label: 'My First Dataset',
-                data: [65, 59, 90, 81, 56, 55, 40],
+                data: skills_freq,
                 fill: true,
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgb(255, 99, 132)',
@@ -298,17 +294,8 @@ let chartComponent = {
                 pointBorderColor: '#fff',
                 pointHoverBackgroundColor: '#fff',
                 pointHoverBorderColor: 'rgb(255, 99, 132)'
-              }, {
-                label: 'My Second Dataset',
-                data: [28, 48, 40, 19, 96, 27, 100],
-                fill: true,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgb(54, 162, 235)',
-                pointBackgroundColor: 'rgb(54, 162, 235)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgb(54, 162, 235)'
-              }]
+              },
+              ]
             };
             const config = {
                 type: 'radar',
@@ -316,6 +303,12 @@ let chartComponent = {
                 options: {
                     // responsive: true,
                     // maintainAspectRatio: false,
+                    scales:{
+                        r:{
+                            max:5,
+                            min:0,
+                        },
+                    },
 
                     elements: {
                         line: {
@@ -331,8 +324,17 @@ let chartComponent = {
     },
 
 
-    mounted:function(){
+    mounted:async function(){
 
+        await axios.get(variables.API_URL+"skillTable")
+        .then((response)=>{
+            this.skillTable=response.data;
+        });
+
+        await axios.get(variables.API_URL+"user")
+        .then((response)=>{
+            this.user=response.data;
+        });
 
         this.refreshData();
 
