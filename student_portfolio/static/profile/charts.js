@@ -28,7 +28,12 @@ let chartComponent = {
 
             // is_staff: true,
 
+            skillLabels:[],
             skillTable:"",
+            skillFreq:[],
+
+            radarChart:{},
+
             checkboxes: [],
             // PhotoFileName:"anonymous.png",
             PhotoPath:variables.PHOTO_URL
@@ -37,18 +42,9 @@ let chartComponent = {
 
     methods:{
         async refreshData(){
-            await axios.get(variables.API_URL+"event")
-            .then((response)=>{
-                this.events=response.data;
-            });
 
-            axios.get(variables.API_URL+"staff")
-            .then((response)=>{
-                this.staffs=response.data;
-            });
 
-            if (this.user.groups.includes('student'))
-                this.reloadCharts()
+            this.reloadCharts()
 
             this.event = this.getEmptyEvent()
 
@@ -252,41 +248,31 @@ let chartComponent = {
 
         },
 
+        submitChartDataClick(){
+            // console.log(this.radarChart)
+            // console.log(this.skillFreq)
+            // this.radarChart.config.data.datasets[0].data = this.skillFreq
+            // console.log()
+            // this.radarChart.update()
+
+            // this.radarChart.clear()
+            this.radarChart.destroy()
+            this.reloadCharts()
+            //push to DB.
+        },
         reloadCharts(){
 
             //Process Data
             //Handle the case where the ids of skills do not start with 1.
-            let skills_freq = {}
-            for (let i=0; i<this.skillTable.length; ++i){
-                skills_freq[this.skillTable[i].skillId] = 0
-            }
-            for (let i=0; i < this.events.length; ++i){
-                for (let j=0; j < this.events[i].skills.length; ++j){
-                    skills_freq[this.events[i].skills[j].skillId] += 1
-                }
-            }
-            let temp_skills_freq = []
-            for (let i=0; i < this.skillTable.length; ++i){
-                temp_skills_freq.push(skills_freq[this.skillTable[i].skillId])
-            }
-            skills_freq = temp_skills_freq
 
-            // console.log(skills_freq)
-
-            let labels = []
-            this.skillTable.forEach(function(e) {
-                    labels.push(e.title)
-                }
-            )
-            console.log(labels)
 
             const ctx = document.getElementById('myChart').getContext('2d');
             const chart_data = {
 
-              labels: labels,
+              labels: this.skillLabels,
               datasets: [{
                 label: 'My First Dataset',
-                data: skills_freq,
+                data: this.skillFreq,
                 fill: true,
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgb(255, 99, 132)',
@@ -297,6 +283,165 @@ let chartComponent = {
               },
               ]
             };
+            const config = {
+                type: 'radar',
+                data: chart_data,
+                options: {
+                    // responsive: false,
+                    // maintainAspectRatio: false,
+                    scales:{
+                        r:{
+                            max:5,
+                            min:0,
+                        },
+                    },
+
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                }
+              },
+            };
+            this.radarChart = new Chart(ctx, config);
+        },
+
+        prepareChartData(){
+            //Initialize skillFreq
+            if (this.user.is_student){
+
+                let skillFreq = {}
+                for (let i=0; i<this.skillTable.length; ++i){
+                    skillFreq[this.skillTable[i].skillId] = 0
+                }
+                for (let i=0; i < this.events.length; ++i){
+                    for (let j=0; j < this.events[i].skills.length; ++j){
+                        skillFreq[this.events[i].skills[j].skillId] += 1
+                    }
+                }
+                let temp_skillFreq = []
+                for (let i=0; i < this.skillTable.length; ++i){
+                    temp_skillFreq.push(skillFreq[this.skillTable[i].skillId])
+                }
+                this.skillFreq = temp_skillFreq
+            }
+            else if (this.user.is_staff){
+                //query from DB
+                this.skillFreq = [2, 2, 2]
+            }
+
+            //Initialize skillLabels
+            let skillLabels = []
+            this.skillTable.forEach(function(e) {
+                    skillLabels.push(e.title)
+                }
+            )
+            this.skillLabels = skillLabels
+
+        },
+
+        prepareData(){
+
+            this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
+            this.user['is_student'] = Object.values(this.user.groups).includes('student')
+
+            //Prepare chartData depends on the group of the user.
+            this.prepareChartData()
+
+            // console.log(typeof this.user.groups)
+
+            // console.log(this.user)
+        },
+
+    },
+
+    created:async function(){
+        await axios.get(variables.API_URL+"skillTable")
+        .then((response)=>{
+            this.skillTable=response.data;
+        });
+
+        await axios.get(variables.API_URL+"user")
+            .then((response)=>{
+            this.user=response.data;
+
+        });
+
+        await axios.get(variables.API_URL+"event")
+            .then((response)=>{
+                this.events=response.data;
+            });
+
+        axios.get(variables.API_URL+"staff")
+            .then((response)=>{
+                this.staffs=response.data;
+            });
+
+        this.prepareData()
+        this.refreshData()
+    },
+
+    mounted:async function(){
+
+    }
+}
+
+let goalChartComponent = {
+    template: '#goal-chart-template',
+    data(){
+        return{
+            staffs:[],
+            events:[],
+            user:{},
+
+            modalTitle:"",
+            addingNewEvent : false,
+
+            // id:0,
+            event: {
+                eventId:0,
+                title:"",
+                date:"",
+                mainStaffId:"",
+                info:"",
+                skills: [],
+                approved:false,
+                used_for_calculation: false,
+                attachment_link: "",
+                attachment_file: "",
+            },
+
+
+            // is_staff: true,
+
+            skillFreq:[3, 3, 3],
+            skillTable:"",
+            checkboxes: [],
+            // PhotoFileName:"anonymous.png",
+            PhotoPath:variables.PHOTO_URL
+        }
+    },
+
+    method:{
+        reloadCharts(){
+            const ctx = document.getElementById('goalChart').getContext('2d');
+            const chart_data = {
+
+              labels: labels,
+              datasets: [{
+                label: 'My First Dataset',
+                data: this.skillFreq,
+                fill: true,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgb(255, 99, 132)',
+                pointBackgroundColor: 'rgb(255, 99, 132)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(255, 99, 132)'
+              },
+              ]
+            };
+
             const config = {
                 type: 'radar',
                 data: chart_data,
@@ -317,36 +462,65 @@ let chartComponent = {
                 }
               },
             };
-            const myChart = new Chart(ctx, config);
-
+            const goalChart = new Chart(ctx, config);
         },
-
     },
-
-
-    mounted:async function(){
-
+    created:async function(){
         await axios.get(variables.API_URL+"skillTable")
         .then((response)=>{
             this.skillTable=response.data;
         });
 
         await axios.get(variables.API_URL+"user")
-        .then((response)=>{
+            .then((response)=>{
             this.user=response.data;
+
         });
 
-        this.refreshData();
+        await axios.get(variables.API_URL+"event")
+            .then((response)=>{
+                this.events=response.data;
+            });
 
-    }
+        axios.get(variables.API_URL+"staff")
+            .then((response)=>{
+                this.staffs=response.data;
+            });
+
+        this.refreshData();
+    },
+
+    mounted:async function(){
+
+        }
+    ,
 }
 
 const app = Vue.createApp({
-    components: {'chart-html' : chartComponent},
+    components: {
+        'chart-html' : chartComponent,
+        // 'goal-chart-html' : goalChartComponent,
+    },
+    data(){
+        return {
+            user:{},
+        }
+    },
+    created: function(){
+        axios.get(variables.API_URL+"user")
+        .then((response)=>{
+            this.user=response.data;
+        });
+    },
+
+    mounted: async function(){
+
+    }
 
 })
 
 app.mount('#app')
+
 
 
 

@@ -28,8 +28,8 @@ def userApi(request):
     groups = list(request.user.groups.values_list('name', flat=True))
 
     data_dict = {
-        'is_staff' : request.user.is_staff,
-        'is_superuser': request.user.is_superuser,
+        # 'is_staff' : 'staff' in groups,
+        # 'is_student' : 'student' in groups,
         'groups' : groups,
     }
 

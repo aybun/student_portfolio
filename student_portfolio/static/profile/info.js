@@ -1,6 +1,29 @@
+const app = Vue.createApp({
+    data(){
+        return{
+            user:{},
+        }
+    },
+    methods: {
+
+    },
+    created:async function(){
+
+       await axios.get(variables.API_URL+"user")
+                .then((response)=>{
+                this.user=response.data;
+                // console.log('In parent ')
+                // console.log(this.user)
+            });
+
+    }
+
+})
 
 let chartComponent = {
     template: '#chart-template',
+
+    // props:['user', 'test'],
 
     data(){
         return{
@@ -27,8 +50,9 @@ let chartComponent = {
 
 
             // is_staff: true,
-
-            skillTable:"",
+            skillLabels:[],
+            skillTable:[],
+            skillFreq:[],
             checkboxes: [],
             // PhotoFileName:"anonymous.png",
             PhotoPath:variables.PHOTO_URL
@@ -36,19 +60,10 @@ let chartComponent = {
     },
 
     methods:{
-        async refreshData(){
-            await axios.get(variables.API_URL+"event")
-            .then((response)=>{
-                this.events=response.data;
-            });
+        refreshData(){
 
-            axios.get(variables.API_URL+"staff")
-            .then((response)=>{
-                this.staffs=response.data;
-            });
-
-            if (this.user.groups.includes('student'))
-                this.reloadCharts()
+            // if (this.user.groups.includes('student'))
+            this.reloadCharts()
 
             this.event = this.getEmptyEvent()
 
@@ -252,41 +267,59 @@ let chartComponent = {
 
         },
 
+        prepareChartData(){
+            let skillFreq = {}
+            for (let i=0; i<this.skillTable.length; ++i){
+                skillFreq[this.skillTable[i].skillId] = 0
+            }
+            for (let i=0; i < this.events.length; ++i){
+                for (let j=0; j < this.events[i].skills.length; ++j){
+                    skillFreq[this.events[i].skills[j].skillId] += 1
+                }
+            }
+            let temp_skillFreq = []
+            for (let i=0; i < this.skillTable.length; ++i){
+                temp_skillFreq.push(skillFreq[this.skillTable[i].skillId])
+            }
+            this.skillFreq = temp_skillFreq
+
+            let skillLabels = []
+            this.skillTable.forEach(function(e) {
+                    skillLabels.push(e.title)
+                }
+            )
+
+            this.skillLabels = skillLabels
+
+        },
+        prepareData(){
+            this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
+            this.user['is_student'] = Object.values(this.user.groups).includes('student')
+
+            this.prepareChartData()
+
+            // console.log(typeof this.user.groups)
+
+            // console.log(this.user)
+        },
         reloadCharts(){
 
             //Process Data
             //Handle the case where the ids of skills do not start with 1.
-            let skills_freq = {}
-            for (let i=0; i<this.skillTable.length; ++i){
-                skills_freq[this.skillTable[i].skillId] = 0
-            }
-            for (let i=0; i < this.events.length; ++i){
-                for (let j=0; j < this.events[i].skills.length; ++j){
-                    skills_freq[this.events[i].skills[j].skillId] += 1
-                }
-            }
-            let temp_skills_freq = []
-            for (let i=0; i < this.skillTable.length; ++i){
-                temp_skills_freq.push(skills_freq[this.skillTable[i].skillId])
-            }
-            skills_freq = temp_skills_freq
+            let chartContainer = document.getElementById('chart-container')
+            if (this.user.is_staff)
+                chartContainer.style.visibility = "hidden"
 
-            // console.log(skills_freq)
-
-            let labels = []
-            this.skillTable.forEach(function(e) {
-                    labels.push(e.title)
-                }
-            )
-            console.log(labels)
+            // let chartInputs = document.getElementById('chart-inputs')
+            // if (this.user)
 
             const ctx = document.getElementById('myChart').getContext('2d');
             const chart_data = {
 
-              labels: labels,
+              labels: this.skillLabels,
               datasets: [{
                 label: 'My First Dataset',
-                data: skills_freq,
+                data: this.skillFreq,
                 fill: true,
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgb(255, 99, 132)',
@@ -317,14 +350,14 @@ let chartComponent = {
                 }
               },
             };
+
             const myChart = new Chart(ctx, config);
 
         },
 
     },
 
-
-    mounted:async function(){
+    created:async function(){
 
         await axios.get(variables.API_URL+"skillTable")
         .then((response)=>{
@@ -332,18 +365,35 @@ let chartComponent = {
         });
 
         await axios.get(variables.API_URL+"user")
-        .then((response)=>{
+            .then((response)=>{
             this.user=response.data;
+
         });
 
-        this.refreshData();
+        await axios.get(variables.API_URL+"event")
+            .then((response)=>{
+                this.events=response.data;
+            });
+
+        await axios.get(variables.API_URL+"staff")
+            .then((response)=>{
+                this.staffs=response.data;
+            });
+
+        this.prepareData()
+        this.refreshData()
+
+    },
+
+    mounted:function(){
 
     }
 }
 
-const app = Vue.createApp({
-    components: {'chart-html' : chartComponent},
+app.component('chart-html', chartComponent)
 
-})
 
 app.mount('#app')
+
+
+
