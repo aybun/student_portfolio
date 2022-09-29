@@ -1,3 +1,4 @@
+import django.db.transaction
 from django.shortcuts import render
 from django.db import IntegrityError, transaction
 from django.views.decorators.csrf import csrf_exempt
@@ -217,8 +218,7 @@ def eventAttendanceOfStudentsApi(request, eventId=0, studentId='0'):
         else:
             print(serializer.error_messages)
             print(serializer.errors)
-
-        return JsonResponse("Failed to Update", safe=False)
+            return JsonResponse("Failed to Update", safe=False)
 
     elif request.method=='DELETE': #Need to handle carefully.
 
@@ -274,6 +274,29 @@ def skillTableApi(request):
         skill_table = Skill.objects.all().order_by('skillId')
         serializer = SkillSerializer(skill_table, many=True)
         return JsonResponse(serializer.data, safe=False)
+    if request.method == 'PUT':
+
+        skillTable_data = JSONParser().parse(request)
+        skillTable_data = sorted(skillTable_data, key=lambda x: x['skillId'])
+
+        skills = Skill.objects.all().order_by('skillId')
+        # print(skills)
+        # print(skillTable_data)
+        # print("Bye")
+
+        with django.db.transaction.atomic():
+            for i in range(0, len(skills)):
+                serializer = SkillSerializer(skills[i], data=skillTable_data[i])
+
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    print(serializer.error_messages)
+                    print(serializer.errors)
+                    return JsonResponse("Failed to Update", safe=False)
+
+        return JsonResponse("Updated Successfully", safe=False)
+
 
 @csrf_exempt
 def eventRegisterRequest(request):
@@ -378,7 +401,37 @@ def eventRegisterRequestApi(request, eventId=0):
         pass
 
 
+# @csrf_exempt
+# def skillGoalApi(request, skillId=0):
+#
+#     if request.method=='GET':
+#         if skillId==0:
+#             skill_goal = SkillGoal.objects.all()
+#             serializer = SkillGoalSerializer(skill_goal, many=True)
+#             return JsonResponse(serializer.data, safe=False)
+#         else:
+#             skill_goal = SkillGoal.objects.get(skillId=skillId)
+#             serializer = SkillGoalSerializer(skill_goal, many=False)
+#             return JsonResponse(serializer.data, safe=False)
+#
+#     if request.method=='PUT':
+#
+#         data = JSONParser().parse(request)
+#         skill_goal = SkillGoal.objects.get(skillId=skillId)
+#         serializer = SkillGoalSerializer(skill_goal, data=data)
+#
+#         if serializer.is_valid():
+#             serializer.save()
+#         else:
+#             print(serializer.errors)
+#             print(serializer.error_messages)
+#             return JsonResponse("Failed to Update", safe=False)
 
+
+
+
+
+#Testing AccessPolicy
 
 @api_view(("GET",))
 @permission_classes([EventAccessPolicy,])

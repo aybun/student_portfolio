@@ -114,7 +114,7 @@ let eventComponent = {
         axios({
             method: 'post',
             url: variables.API_URL+"event",
-            xstfCookieName: 'csrftoken',
+            xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             data: outDict,
             headers : {

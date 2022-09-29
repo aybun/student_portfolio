@@ -13,10 +13,19 @@ from django import forms
 class Skill(models.Model):
     skillId = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=50)
+
+    goal_point = models.BigIntegerField(default=0)
+    type = models.IntegerField(default=0)
     # detail = models.CharField(max_length=100)
 
     def __str__(self):
         return self.title
+
+# class SkillGoal(models.Model):
+#     id = models.BigAutoField(primary_key=True)
+#     skillId = models.BigIntegerField(null=False)
+#     point = models.BigIntegerField(default=0)
+
 
 def event_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>

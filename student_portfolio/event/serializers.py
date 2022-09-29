@@ -131,12 +131,14 @@ class EventAttendanceOfStudentsSerializer(serializers.ModelSerializer):
 
 
 class SkillSerializer(serializers.ModelSerializer):
-    # skillId = serializers.IntegerField(required=False)
+    skillId = serializers.IntegerField(required=False)
     title = serializers.CharField(max_length=50, required=True)
 
+    goal_point = serializers.IntegerField(min_value=0, max_value=10,  required=False)
+    type = serializers.IntegerField(required=False)
     class Meta:
         model = Skill
-        fields = ('skillId', 'title')
+        fields = ('skillId', 'title', 'goal_point', 'type')
 
 
 
@@ -215,3 +217,12 @@ class EventAccessPolicyTestSerializer(FieldAccessMixin, serializers.ModelSeriali
     def validate_attachment_file(self, input):
 
         return input
+
+
+# class SkillGoalSerializer(serializers.ModelSerializer):
+#
+#     skillId = serializers.IntegerField(required=True)
+#     point = serializers.IntegerField(min_value=0, max_value=10)
+#     class Meta:
+#         model = SkillGoal
+#         fields = ('skillId', 'points')
