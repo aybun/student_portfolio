@@ -29,7 +29,7 @@ class Skill(models.Model):
 
 def event_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return 'events_{0}/{1}'.format(instance.eventId, filename)
+    return 'events/{0}/{1}'.format(instance.eventId, filename)
 
 class Event(models.Model):
     eventId = models.BigAutoField(primary_key=True)

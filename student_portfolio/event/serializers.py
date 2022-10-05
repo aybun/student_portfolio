@@ -4,44 +4,27 @@ from rest_framework.parsers import JSONParser
 import json
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
+from .access_policies import EventApiAccessPolicy
 
-
-class EventModelFieldAccessPolicy(AccessPolicy):
-    statements = []
-
-    @classmethod
-    def scope_fields(cls, request, fields: dict, instance=None) -> dict:
-        groups = request.user.groups.values_list('name', flat=True)
-
-        #Field Access
-        if 'staff' not in groups:
-            fields.pop('approved', None)
-            fields.pop('used_for_calculation', None)
-
-        #Cleaning data
-        if request.method == "POST":
-            #We force users to create the event first.
-            fields.pop('attachment_link', None)
-            fields.pop('attachment_file', None)
-
-        # elif request.method == "PUT":
-        #     # attachment_link = fields.get('attachment_link')
-        #     # attachment_file = fields.get('attachment_file')
-        #
-        #     atm_link = fields.get('attachment_file')
-        #     atm_file = fields.get('attachment_file')
-        #
-        #     print('{} {}'.format('attachment_link', atm_link.value))
-        #     print('{} {}'.format('attachment_file', atm_file.value))
-        #
-        #
-        #     if atm_link == '':
-        #         fields.pop('attachment_link')
-        #
-        #     if atm_file == '' or atm_file == 'null':
-        #         fields.pop('attachment_file')
-
-        return fields
+# class EventModelFieldAccessPolicy(AccessPolicy):
+#     statements = []
+#
+#     @classmethod
+#     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
+#         groups = request.user.groups.values_list('name', flat=True)
+#
+#         #Field Access
+#         if 'staff' not in groups:
+#             fields.pop('approved', None)
+#             fields.pop('used_for_calculation', None)
+#
+#         #Cleaning data
+#         if request.method == "POST":
+#             #We force users to create the event first.
+#             fields.pop('attachment_link', None)
+#             fields.pop('attachment_file', None)
+#
+#         return fields
 
 class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
@@ -54,7 +37,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
     info = serializers.CharField(max_length=200, allow_blank=True)
     skills = serializers.JSONField(default=[])
 
-    created_by = serializers.IntegerField(required=False)
+    created_by = serializers.IntegerField(required=False, read_only=True)
 
     approved = serializers.BooleanField(required=False)
     used_for_calculation = serializers.BooleanField(required=False)
@@ -68,7 +51,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills', 'created_by',
                   'approved', 'used_for_calculation', 'attachment_link', 'attachment_file')
 
-        access_policy = EventModelFieldAccessPolicy
+        access_policy = EventApiAccessPolicy
 
     def validate_skills(self, stringnified_list_of_dicts):
         skill_ids = Skill.objects.all().values_list('skillId', flat=True)
@@ -90,25 +73,23 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         return out_list
 
     @staticmethod
-    def custom_clean(data):
-        attachment_file = data.get('attachment_file', None)
-        attachment_link = data.get('attachment_link', None)
+    def custom_clean(instance=None, data=None, context=None):
 
-        if attachment_file == '' or attachment_file == 'null':
-            data.pop('attachment_file', None)
-        if attachment_link == '':
-            data.pop('attachment_file', None)
+        request = context['request']
+        method = request.method
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if method == 'PUT':
+            attachment_file = data.get('attachment_file', None)
+            attachment_link = data.get('attachment_link', None)
+
+            if attachment_file == '' or attachment_file == 'null':
+                data.pop('attachment_file', None)
+
+            if attachment_link == '':
+                data.pop('attachment_link', None)
 
         return data
-
-    # def validate_attachment_file(self, input):
-    #
-    #     if input == '':
-    #         return None
-    #
-    # def validate_attachment_link(self, input):
-    #     if input == '':
-    #         return None
 
     # def create(self, validated_data):
     #     return self.Meta.model.objects.create(**validated_data)
@@ -218,11 +199,3 @@ class EventAccessPolicyTestSerializer(FieldAccessMixin, serializers.ModelSeriali
 
         return input
 
-
-# class SkillGoalSerializer(serializers.ModelSerializer):
-#
-#     skillId = serializers.IntegerField(required=True)
-#     point = serializers.IntegerField(min_value=0, max_value=10)
-#     class Meta:
-#         model = SkillGoal
-#         fields = ('skillId', 'points')

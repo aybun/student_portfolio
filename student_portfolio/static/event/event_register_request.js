@@ -126,11 +126,22 @@ let eventRegisterRequestComponent = {
             return;
         }
 
-        axios.delete(variables.API_URL+"event/"+eventId)
-        .then((response)=>{
+        //Make a request.
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+        axios({
+            method: 'delete',
+            url: variables.API_URL+"event/" + eventId,
+            xsrfCookieName: 'csrftoken',
+            xsrfHeaderName: 'X-CSRFToken',
+            headers : {
+                'X-CSRFToken': 'csrftoken',
+            }
+        }).then((response)=>{
             this.refreshData();
             alert(response.data);
-        });
+            // window.location.reload();
+        })
 
     },
     addSkillClick(){

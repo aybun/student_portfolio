@@ -37,20 +37,6 @@ let eventComponent = {
 
     methods:{
         refreshData(){
-            axios.get(variables.API_URL+"event")
-            .then((response)=>{
-                this.events=response.data;
-            });
-
-            axios.get(variables.API_URL+"staff")
-            .then((response)=>{
-                this.staffs=response.data;
-            });
-
-            axios.get(variables.API_URL+"skillTable")
-            .then((response)=>{
-                this.skillTable=response.data;
-            });
 
             this.event = this.getEmptyEvent()
         },
@@ -58,14 +44,11 @@ let eventComponent = {
 
         this.modalTitle="Add Event"
         this.addingNewEvent= true // Signal that we are adding a new event -> Create Button.
-        // document.getElementById("createButton").disabled = false;
 
         this.event = this.getEmptyEvent()
-
         this.checkboxes=[]
-        // this.DateOfJoining="",
-        // this.PhotoFileName="anonymous.png"
     },
+
     editClick(event){
         this.modalTitle="Edit Event";
         this.addingNewEvent = false
@@ -89,7 +72,7 @@ let eventComponent = {
 
         this.event.skills = JSON.stringify(this.event.skills)
 
-        delete this.event['eventId']
+        // delete this.event['eventId']
         if (this.event.attachment_file == null || typeof this.event.attachment_file === 'string' || this.event.attachment_file === '' )
             delete this.event.attachment_file
 
@@ -99,15 +82,10 @@ let eventComponent = {
             // console.log(key, value);
             outDict.append(key.toString(), value)
         }
+        //reassign
+        this.event.skills = before_altered_event.skills
 
         alert(JSON.stringify(outDict, null, 2))
-
-        // axios.post(variables.API_URL+"event", outDict,
-        //     { headers: {'Content-Type': 'multipart/form-data'}})
-        //     .then((response)=>{
-        //     this.refreshData();
-        //     alert(response.data);
-        // });
 
         axios.defaults.xsrfCookieName = 'csrftoken';
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -125,12 +103,6 @@ let eventComponent = {
             this.refreshData();
             alert(response.data);
         })
-
-
-        //if success
-        //document.getElementById("createButton").disabled = true;
-
-        this.event.skills = before_altered_event.skills
     },
     updateClick(){
         //Store only altered fiels.
@@ -142,21 +114,18 @@ let eventComponent = {
         this.event.approved = this.checkboxes.includes('approved')
         this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
 
-        if (!this.user['is_staff']){
-            delete this.event['approved']
-            delete this.event['used_for_calculation']
-        }
-
         if (this.event.attachment_file == null || typeof this.event.attachment_file === 'string' )
             delete this.event.attachment_file
 
-
         this.event.skills = JSON.stringify(this.event.skills)
-        alert(JSON.stringify(this.event, null, 2))
+
         let outDict = new FormData();
         for (const [key, value] of Object.entries(this.event)) {
             outDict.append(key.toString(), value)
         }
+        //Assign some values back.
+        this.event.skills = before_altered_event.skills
+        console.log(this.event.skills)
 
         //Make a request.
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -164,7 +133,7 @@ let eventComponent = {
         axios({
             method: 'put',
             url: variables.API_URL+"event/" + this.event.eventId,
-            xstfCookieName: 'csrftoken',
+            xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             data: outDict,
             headers : {
@@ -172,12 +141,11 @@ let eventComponent = {
                 'X-CSRFToken': 'csrftoken',
             }
         }).then((response)=>{
-            this.refreshData();
+            // this.refreshData();
             alert(response.data);
+            window.location.reload();
         })
 
-        //Assign some values back.
-        this.event.skills = before_altered_event.skills
     },
     deleteClick(eventId){
         if(!confirm("Are you sure?")){
@@ -224,11 +192,10 @@ let eventComponent = {
     },
 
     getEmptyEvent(){
-
-        let event= {
+        return {
             eventId:0,
             title:"",
-            date:"",
+            date:(new Date()).toLocaleDateString(),
             mainStaffId:"",
             info:"",
             skills: [],
@@ -238,36 +205,49 @@ let eventComponent = {
             attachment_file: "",
         }
 
-        return event
     },
     onFileSelected(event){
         this.event.attachment_file = event.target.files[0]
 
-        let label = document.getElementById("attachment_filename");
-        label.innerText = this.event.attachment_file.name
+        // let label = document.getElementById("attachment_filename");
+        // label.innerText = this.event.attachment_file.name
 
     },
-        cleanAttachment_file(attachement_file){
 
-        }
-    // imageUpload(event){
-    //     let formData=new FormData();
-    //     formData.append('file',event.target.files[0]);
-    //     axios.post(
-    //         variables.API_URL+"employee/savefile",
-    //         formData)
-    //         .then((response)=>{
-    //             this.PhotoFileName=response.data;
-    //         });
-    // }
-
+    prepareData(){
+        // this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
+        // this.user['is_student'] = Object.values(this.user.groups).includes('student')
+        // console.log(this.user)
+    }
     },
-    mounted:function(){
-        this.refreshData();
-        axios.get(variables.API_URL+"user")
+
+
+    created:async function(){
+        await axios.get(variables.API_URL+"user")
             .then((response)=>{
                 this.user=response.data;
             });
+
+        axios.get(variables.API_URL+"event")
+            .then((response)=>{
+                this.events=response.data;
+            });
+
+        axios.get(variables.API_URL+"staff")
+        .then((response)=>{
+            this.staffs=response.data;
+        });
+
+        axios.get(variables.API_URL+"skillTable")
+        .then((response)=>{
+            this.skillTable=response.data;
+        });
+
+    },
+
+    mounted:function(){
+        this.refreshData();
+
     }
 }
 

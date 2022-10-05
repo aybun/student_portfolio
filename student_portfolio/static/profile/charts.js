@@ -9,28 +9,11 @@ let chartComponent = {
             user:{},
 
             modalTitle:"Edit goal points",
-            addingNewEvent : false,
-
-            // id:0,
-            event: {
-                eventId:0,
-                title:"",
-                date:"",
-                mainStaffId:"",
-                info:"",
-                skills: [],
-                approved:false,
-                used_for_calculation: false,
-                attachment_link: "",
-                attachment_file: "",
-            },
-
-
             // is_staff: true,
 
-            skillLabels:[],
-            skillTable:"",
+            skillTable: {},
             skillFreq:[],
+            skillLabels:[],
 
             radarCharts:[],
 
@@ -46,10 +29,7 @@ let chartComponent = {
     methods:{
         async refreshData(){
 
-
             this.reloadCharts()
-
-            this.event = this.getEmptyEvent()
 
         },
 
@@ -248,7 +228,7 @@ let chartComponent = {
         },
 
         prepareData(){
-            console.log(this.user)
+            // console.log(this.user)
             this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
             this.user['is_student'] = Object.values(this.user.groups).includes('student')
 
@@ -294,23 +274,7 @@ const app = Vue.createApp({
     components: {
         'chart-html' : chartComponent,
         // 'goal-chart-html' : goalChartComponent,
-    },
-    data(){
-        return {
-            user:{},
-        }
-    },
-    created: function(){
-        axios.get(variables.API_URL+"user")
-        .then((response)=>{
-            this.user=response.data;
-        });
-    },
-
-    mounted: async function(){
-
     }
-
 })
 
 app.mount('#app')

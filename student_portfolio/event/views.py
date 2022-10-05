@@ -1,4 +1,4 @@
-import django.db.transaction
+# import django.db.transaction
 from django.shortcuts import render
 from django.db import IntegrityError, transaction
 from django.views.decorators.csrf import csrf_exempt
@@ -15,8 +15,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 
-from rest_access_policy import FieldAccessMixin, AccessPolicy
-from .acess_policies import *
+
+from .access_policies import *
 
 
 import json
@@ -29,30 +29,12 @@ import json
 def event(request, id=0):
 
     if not request.user.is_authenticated:
-        pass
+        return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
 
-    if id == 0: #want all events
+    return render(request, 'event/event.html', {})
 
-        # events = Event.objects.all()
-        # # print(events)
-        # events_serializer = EventSerializer(events, many=True)
-        # dict_data = events_serializer.data
-        # print(dict_data)
 
-        return render(request, 'event/event.html', {'is_staff' : request.user.is_staff})
 
-    # if not request.user.is_staff: #The user is student.
-    #     student = Student.objects.get(userId__exact=request.user.id)
-    #     event_joined = EventAttendanceOfStudents.objects.filter(studentId=student.studentId)
-    #     event_serializer = EventAttendanceOfStudentsSerializer(event_joined, many=True)
-    #
-    #     dict_data = event_serializer.data[0]
-    #     dict_data['is_staff'] = False
-    #
-    #     return render(request, 'event/event.html', dict_data)
-
-    if request.user.is_staff:
-        pass
 
 
 @parser_classes([JSONParser, MultiPartParser ])
@@ -87,19 +69,9 @@ def eventApi(request, eventId=0):
 
     elif request.method=='POST':
 
-        # if not request.user.is_authenticated:
-        #     return JsonResponse("Permission denied.", safe=False)
-
-        # if request.user.is_staff:
-            # print(request.POST)
-            # data = MultiPartParser().parse(stream=request.body, parser_context={'request': request})
-            # data = MultiPartParser().parse(stream=request.body, parser_context={'request': request})
-        print(request.data)
         event_data = request.data.dict()
-        print(event_data)
-        event_data['created_by'] = request.user.id
-        event_data['approved'] = True
-        event_data['used_for_calculation'] = True
+        event_data = EventSerializer.custom_clean(data=event_data, context={'request' : request})
+
 
         serializer=EventSerializer(data=event_data, context={'request' : request})
 
@@ -112,46 +84,40 @@ def eventApi(request, eventId=0):
             return JsonResponse("Failed to Add", safe=False)
 
     elif request.method=='PUT':
-        print("In : PUT ")
-        print(request.data)
-        event_data = request.data.dict()
-        print(event_data)
 
-        event=Event.objects.get(eventId=eventId)
+        if 'staff' in groups:
+            event_data = request.data.dict()
+            event=Event.objects.get(eventId=eventId)
 
-        # print('{} : {}'.format('event_data', event_data))
-        # print('{} : {}'.format('event', event))
-        #Exclude empty inputs.
+            event_data = EventSerializer.custom_clean(instance=event, data=event_data, context={'request' : request})
+            serializer = EventSerializer(event, data=event_data, context={'request' : request})
 
-        # event_data.get('')
-        # if event_data.get(['attachment_file'] == '' or event_data['attachment_file'] == 'null':
-        #     event_data.pop('attachment_file', None)
-        # if event_data['attachment_link'] == '':
-        #     event_data.pop('attachment_file', None)
-
-        event_data = EventSerializer.custom_clean(data=event_data)
-        serializer = EventSerializer(event, data=event_data, context={'request' : request})
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse("Updated Successfully", safe=False)
-        else:
-            print(serializer.errors)
-            print(serializer.error_messages)
-            return JsonResponse("Failed to Update")
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse("Updated Successfully", safe=False)
+            else:
+                print(serializer.errors)
+                print(serializer.error_messages)
+                return JsonResponse("Failed to Update")
 
     elif request.method=='DELETE':
-        # Make it an atomic operation.
-        with transaction.atomic():
-            attendances = EventAttendanceOfStudents.objects.filter(eventId__exact=eventId)
-            attendances.delete()
 
-            event=Event.objects.get(eventId=eventId)
-            event.delete()
+        success = True
+        try:
+            with transaction.atomic():
+                attendances = EventAttendanceOfStudents.objects.get(eventId=eventId)
+                attendances_delete_report = attendances.delete()
 
+                event=Event.objects.get(eventId=eventId)
+                event_delete_report = event.delete()
+        except:
+            #handle_exception
+            success=False
+
+        if success:
             return JsonResponse("Deleted Successfully", safe=False)
-
-        return JsonResponse("Failed to delete.", safe=False)
+        else:
+            return JsonResponse("Failed to delete.", safe=False)
 
 
 def eventAttendanceOfStudents(request, eventId=0, studentId='0'):
@@ -284,7 +250,7 @@ def skillTableApi(request):
         # print(skillTable_data)
         # print("Bye")
 
-        with django.db.transaction.atomic():
+        with transaction.atomic():
             for i in range(0, len(skills)):
                 serializer = SkillSerializer(skills[i], data=skillTable_data[i])
 
@@ -301,21 +267,12 @@ def skillTableApi(request):
 @csrf_exempt
 def eventRegisterRequest(request):
 
-    # if not request.user.is_authenticated:
-    #     return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
+    if not request.user.is_authenticated:
+        return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
 
-    if request.user.is_staff:
-        stuff_for_frontend = {
-            'is_staff': request.user.is_staff
-        }
-        return render(request, 'event/event_register_request.html', stuff_for_frontend)
-    else: # The user is a student.
+    stuff_for_frontend = {}
 
-        stuff_for_frontend = {
-            'is_staff': request.user.is_staff
-        }
-
-        return render(request, 'event/event_register_request.html', stuff_for_frontend)
+    return render(request, 'event/event_register_request.html', stuff_for_frontend)
 
 @csrf_exempt
 def eventRegisterRequestApi(request, eventId=0):
