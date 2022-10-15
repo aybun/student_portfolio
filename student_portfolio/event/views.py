@@ -105,12 +105,12 @@ def eventApi(request, eventId=0):
         success = True
         try:
             with transaction.atomic():
-                attendances = EventAttendanceOfStudents.objects.get(eventId=eventId)
+                attendances = EventAttendanceOfStudents.objects.filter(eventId=eventId)
                 attendances_delete_report = attendances.delete()
 
                 event=Event.objects.get(eventId=eventId)
                 event_delete_report = event.delete()
-        except:
+        except IntegrityError:
             #handle_exception
             success=False
 

@@ -5,7 +5,7 @@ from .models import Project
 from event.models import Skill
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
-from access_policies import ProjectApiAccessPolicy
+from .access_policies import ProjectApiAccessPolicy
 
 
 
@@ -24,10 +24,10 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
     skills = serializers.JSONField(default=[])
 
     # user_id
-    proposed_by = serializers.IntegerField(required=False, read_only=True)
+    proposed_by = serializers.IntegerField(required=False)
 
     approved = serializers.BooleanField(required=False)
-    approved_by = serializers.IntegerField(required=False, read_only=True)
+    approved_by = serializers.IntegerField(required=False)
     used_for_calculation = serializers.BooleanField(required=False)
 
     attachment_link = serializers.URLField(required=False, max_length=200, allow_blank=True)
@@ -39,8 +39,6 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         access_policy = ProjectApiAccessPolicy
 
-    def validate_start_date(self, input):
-        pass
     def validate_skills(self, stringnified_list_of_dicts):
         skill_ids = Skill.objects.all().values_list('skillId', flat=True)
 
@@ -67,23 +65,25 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
         method = request.method
         groups = request.user.groups.values_list('name', flat=True)
 
+        #Clean data
+        attachment_file = data.get('attachment_file', None)
+        if attachment_file == '' or attachment_file == 'null':
+            data.pop('attachment_file', None)
+
+        attachment_link = data.get('attachment_link', None)
+        if attachment_link == '':
+            data.pop('attachment_link', None)
+
         if method == 'POST':
 
-            attachment_file = data.get('attachment_file', None)
-            if attachment_file == '' or attachment_file == 'null':
-                data.pop('attachment_file', None)
-
-            attachment_link = data.get('attachment_link', None)
-            if attachment_link == '':
-                data.pop('attachment_link', None)
-
+            data['proposed_by'] = request.user.id
 
         elif method == 'PUT':
             if 'staff' in groups:
                 if instance.approved: #If the project has already been approved. We won't reassign this user to approved_by.
                     data.pop('approved')
-
-                if data['approved']:
-                    data['approved_by'] = request.user.id
+                else:
+                    if data['approved']:
+                        data['approved_by'] = request.user.id
 
         return data

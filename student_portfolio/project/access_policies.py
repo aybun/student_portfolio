@@ -9,7 +9,7 @@ class ProjectApiAccessPolicy(AccessPolicy):
             "effect": "allow"
         },
     ]
-    
+
     @classmethod
     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
 
@@ -25,6 +25,7 @@ class ProjectApiAccessPolicy(AccessPolicy):
         # Cleaning data
         if method == "POST":
             # We force users to create the project first.
+            fields.pop('projectId', None)
             fields.pop('approved', None)
             fields.pop('approved_by', None)
             fields.pop('used_for_calculation', None)

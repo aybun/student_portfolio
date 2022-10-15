@@ -1,6 +1,5 @@
 from django.db import models
 
-# Create your models here.
 
 def project_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
@@ -23,7 +22,7 @@ class Project(models.Model):
     proposed_by = models.BigIntegerField(null=False, editable=False)
 
     approved = models.BooleanField(default=False)
-    approved_by = models.BigIntegerField(null=True)
+    approved_by = models.BigIntegerField(null=True, editable=False)
     used_for_calculation = models.BooleanField(default=False)
 
     attachment_link = models.URLField(max_length=200, blank=True, default='')

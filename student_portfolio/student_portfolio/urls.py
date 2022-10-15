@@ -28,6 +28,7 @@ urlpatterns = [
     path('', include('event.urls')),
     path('', include('portfolio_management.urls')),
     path('', include('user_profile.urls')),
+    path('', include('project.urls')),
 
     path('admin/', admin.site.urls),
     path('', include('django.contrib.auth.urls')),

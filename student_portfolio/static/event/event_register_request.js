@@ -99,26 +99,36 @@ let eventRegisterRequestComponent = {
     },
     updateClick(){
 
-        this.event.skills = this.cleanSkills(this.event.skills)
-        this.event.approved =    this.checkboxes.includes('approved')
-        this.event.used_for_calculation =  this.checkboxes.includes('used_for_calculation')
+        this.event.skills = this.cleanSkills(this.event.skills);
 
-        outDict = {
-            event : this.event,
+        this.event.approved = this.checkboxes.includes('approved')
+        this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
+
+        let outDict = new FormData();
+        for (const [key, value] of Object.entries(this.event)) {
+            outDict.append(key.toString(), value)
         }
+        outDict.set('skills', JSON.stringify(this.event.skills))
 
-        if (!this.user['is_staff']){
-            delete outDict.event['approved']
-            delete outDict.event['used_for_calculation']
-        }
 
-        alert(JSON.stringify(outDict, null, 2))
-
-        axios.put(variables.API_URL+"eventRegisterRequest/" + this.event.eventId, outDict)
-        .then((response)=>{
-            this.refreshData();
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+        axios({
+            method: 'put',
+            url: variables.API_URL+"event/" + this.event.eventId,
+            xsrfCookieName: 'csrftoken',
+            xsrfHeaderName: 'X-CSRFToken',
+            data: outDict,
+            headers : {
+                'Content-Type': 'multipart/form-data',
+                'X-CSRFToken': 'csrftoken',
+            }
+        }).then((response)=>{
+            // this.refreshData();
             alert(response.data);
-        });
+            window.location.reload();
+        })
+
 
     },
     deleteClick(eventId){

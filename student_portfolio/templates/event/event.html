@@ -156,11 +156,13 @@
 
 
                 <p></p>
+                <div v-if="!addingNewEvent" class="mb-3">
+                    <input type="checkbox" value="approved" v-model="checkboxes"/>
+                    <label>&nbsp;approved&nbsp;&nbsp;</label>
+                    <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
+                    <label>&nbsp;Use for calculation</label>
+                </div>
 
-                <input type="checkbox" value="approved" v-model="checkboxes"/>
-                <label>&nbsp;approved&nbsp;&nbsp;</label>
-                <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
-                <label>&nbsp;Use for calculation</label>
                 <p></p>
 
                 <label v-if="!addingNewEvent"><h3>Attachment link</h3></label>

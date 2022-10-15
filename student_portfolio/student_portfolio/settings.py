@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'staff',
     'event',
     'profile',
+    'project',
+
 ]
 
 REST_FRAMEWORK = {

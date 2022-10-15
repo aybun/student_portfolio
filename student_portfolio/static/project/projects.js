@@ -1,11 +1,15 @@
 let projectComponent = {
 
-    template : 'project-template',
+    template : '#project-template',
 
     data(){
         return {
             modalTitle:"",
             addingNewProject:false,
+
+            showApproved:true,
+            // showUnapproved:false,
+            // showOptions:true,
 
             staffs:[],
             user:{},
@@ -21,11 +25,14 @@ let projectComponent = {
     methods:{
 
         refreshData(){
-
+            axios.get(variables.API_URL + "project").
+             then((response)=>{
+                this.projects=response.data;
+            })
         },
 
         addClick(){
-
+            console.log(this.projects)
             this.modalTitle="Add Project"
             this.addingNewProject= true // Signal that we are adding new project.
 
@@ -34,12 +41,8 @@ let projectComponent = {
 
         },
         createClick(){
-            let before_altered_project = this.getEmptyProject()
 
             this.project.skills = this.cleanSkills(this.project.skills);
-            before_altered_project.skills = this.project.skills
-
-            this.project.skills = JSON.stringify(this.project.skills)
 
             // if (this.project.attachment_file == null || typeof this.project.attachment_file === 'string' || this.project.attachment_file === '' )
             //     delete this.project.attachment_file
@@ -49,8 +52,8 @@ let projectComponent = {
             for (const [key, value] of Object.entries(this.project)) {
                 outDict.append(key.toString(), value)
             }
-
-            this.project.skills = before_altered_project.skills
+            outDict.set('skills', JSON.stringify(this.project.skills))
+            // console.log(outDict.skills)
 
             alert(JSON.stringify(outDict, null, 2))
 
@@ -95,8 +98,8 @@ let projectComponent = {
 
             // this.project.skills = JSON.stringify(this.project.skills)
 
-            this.event.approved = this.checkboxes.includes('approved')
-            this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
+            this.project.approved = this.checkboxes.includes('approved')
+            this.project.used_for_calculation = this.checkboxes.includes('used_for_calculation')
 
             // if (this.project.attachment_file == null || typeof this.project.attachment_file === 'string' || this.project.attachment_file === '' )
             //     delete this.project.attachment_file
@@ -106,7 +109,7 @@ let projectComponent = {
             for (const [key, value] of Object.entries(this.project)) {
                 outDict.append(key.toString(), value)
             }
-            outDict['skills'] = JSON.stringify(this.project.skills)
+            outDict.set('skills', JSON.stringify(this.project.skills))
             // this.project.skills = before_altered_project.skills
 
             alert(JSON.stringify(outDict, null, 2))
@@ -114,8 +117,8 @@ let projectComponent = {
             axios.defaults.xsrfCookieName = 'csrftoken';
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
             axios({
-                method: 'post',
-                url: variables.API_URL+"project",
+                method: 'put',
+                url: variables.API_URL+"project/" + this.project.projectId,
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 data: outDict,
@@ -129,6 +132,27 @@ let projectComponent = {
             })
 
         },
+        deleteClick(projectId){
+            if(!confirm("Are you sure?")){
+                return;
+            }
+
+            axios.defaults.xsrfCookieName = 'csrftoken';
+            axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+            axios({
+                method: 'delete',
+                url: variables.API_URL+"project/"+ projectId,
+                xstfCookieName: 'csrftoken',
+                xsrfHeaderName: 'X-CSRFToken',
+                headers : {
+                    'X-CSRFToken': 'csrftoken',
+                }
+            }).then((response)=>{
+                this.refreshData();
+                alert(response.data);
+            })
+        },
+
         addSkillClick(){
             this.project.skills.push({
                 skillId: '',
@@ -157,8 +181,8 @@ let projectComponent = {
             return {
                 projectId:0,
                 title:"",
-                start_date: (new Date()).toLocaleDateString(),
-                end_date: (new Date()).toLocaleDateString(),
+                start_date: (new Date()).toISOString().split('T')[0],
+                end_date: (new Date()).toISOString().split('T')[0],
                 mainStaffId:"",
                 info:"",
 
@@ -178,6 +202,9 @@ let projectComponent = {
         },
         prepareData(){
             this.project = this.getEmptyProject()
+            // if (this.user.is_student)
+            //     this.showOptions = false
+
         }
     },
 
@@ -188,9 +215,9 @@ let projectComponent = {
             })
 
          axios.get(variables.API_URL + "project").
-             then(function (response){
-                 this.projects = response.data
-         } )
+             then((response)=>{
+                this.projects=response.data;
+            })
 
         axios.get(variables.API_URL+"staff")
         .then((response)=>{
@@ -212,6 +239,7 @@ let projectComponent = {
 }
 
 const app = Vue.createApp({
+
     components:{
         'project-html' : projectComponent,
     }

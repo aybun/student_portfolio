@@ -41,7 +41,7 @@ let eventComponent = {
             this.event = this.getEmptyEvent()
         },
     addClick(){
-
+        console.log(this.events)
         this.modalTitle="Add Event"
         this.addingNewEvent= true // Signal that we are adding a new event -> Create Button.
 
@@ -106,26 +106,18 @@ let eventComponent = {
     },
     updateClick(){
         //Store only altered fiels.
-        let before_altered_event = this.getEmptyEvent()
 
         this.event.skills = this.cleanSkills(this.event.skills);
-        before_altered_event.skills = this.event.skills
 
         this.event.approved = this.checkboxes.includes('approved')
         this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
 
-        if (this.event.attachment_file == null || typeof this.event.attachment_file === 'string' )
-            delete this.event.attachment_file
-
-        this.event.skills = JSON.stringify(this.event.skills)
 
         let outDict = new FormData();
         for (const [key, value] of Object.entries(this.event)) {
             outDict.append(key.toString(), value)
         }
-        //Assign some values back.
-        this.event.skills = before_altered_event.skills
-        console.log(this.event.skills)
+        outDict.set('skills', JSON.stringify(this.event.skills))
 
         //Make a request.
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -195,7 +187,7 @@ let eventComponent = {
         return {
             eventId:0,
             title:"",
-            date:(new Date()).toLocaleDateString(),
+            date: (new Date()).toISOString().split('T')[0],
             mainStaffId:"",
             info:"",
             skills: [],
@@ -231,6 +223,7 @@ let eventComponent = {
         axios.get(variables.API_URL+"event")
             .then((response)=>{
                 this.events=response.data;
+                console.log(this.events)
             });
 
         axios.get(variables.API_URL+"staff")
