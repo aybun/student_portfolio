@@ -66,6 +66,18 @@ def eventApi(request, eventId=0):
 
                 serializer=EventSerializer(events, many=True, context={'request' : request})
                 return JsonResponse(serializer.data, safe=False)
+            else:
+                student = Student.objects.get(userId=request.user.id)
+                event_attended = EventAttendanceOfStudents.objects.filter(studentId__exact=student.studentId, eventId=eventId)
+
+                if event_attended is not None:
+                    event = Event.objects.get(eventId=eventId)
+                    serializer = EventSerializer(event, context={'request': request})
+                    return JsonResponse(serializer.data, safe=False)
+                else:
+                    return JsonResponse("Event not found.", safe=False)
+
+
 
     elif request.method=='POST':
 
