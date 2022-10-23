@@ -21,11 +21,6 @@ class Skill(models.Model):
     def __str__(self):
         return self.title
 
-# class SkillGoal(models.Model):
-#     id = models.BigAutoField(primary_key=True)
-#     skillId = models.BigIntegerField(null=False)
-#     point = models.BigIntegerField(default=0)
-
 
 def event_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>

@@ -81,19 +81,19 @@ def eventApi(request, eventId=0):
 
     elif request.method=='POST':
 
-        event_data = request.data.dict()
-        event_data = EventSerializer.custom_clean(data=event_data, context={'request' : request})
+        if 'staff' in groups or 'student' in groups:
+            event_data = request.data.dict()
+            event_data = EventSerializer.custom_clean(data=event_data, context={'request' : request})
 
+            serializer=EventSerializer(data=event_data, context={'request' : request})
 
-        serializer=EventSerializer(data=event_data, context={'request' : request})
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse("Added Successfully",safe=False)
-        else:
-            print(serializer.error_messages)
-            print(serializer.errors)
-            return JsonResponse("Failed to Add", safe=False)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse("Added Successfully",safe=False)
+            else:
+                print(serializer.error_messages)
+                print(serializer.errors)
+                return JsonResponse("Failed to Add", safe=False)
 
     elif request.method=='PUT':
 
@@ -313,8 +313,6 @@ def eventRegisterRequestApi(request, eventId=0):
 
         event_data = JSONParser().parse(request)
         event_data['created_by'] = request.user.id
-        event_data['approved'] = False
-        event_data['used_for_calculated'] = False
 
         events_serializer = EventSerializer(data=event_data, context={'request' : request})
 

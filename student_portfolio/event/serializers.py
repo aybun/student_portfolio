@@ -6,26 +6,6 @@ import json
 from rest_access_policy import FieldAccessMixin, AccessPolicy
 from .access_policies import EventApiAccessPolicy
 
-# class EventModelFieldAccessPolicy(AccessPolicy):
-#     statements = []
-#
-#     @classmethod
-#     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
-#         groups = request.user.groups.values_list('name', flat=True)
-#
-#         #Field Access
-#         if 'staff' not in groups:
-#             fields.pop('approved', None)
-#             fields.pop('used_for_calculation', None)
-#
-#         #Cleaning data
-#         if request.method == "POST":
-#             #We force users to create the event first.
-#             fields.pop('attachment_link', None)
-#             fields.pop('attachment_file', None)
-#
-#         return fields
-
 class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     eventId = serializers.IntegerField(required=False, read_only=True)
@@ -37,7 +17,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
     info = serializers.CharField(max_length=200, allow_blank=True)
     skills = serializers.JSONField(default=[])
 
-    created_by = serializers.IntegerField(required=False, read_only=True)
+    created_by = serializers.IntegerField(required=False)
 
     approved = serializers.BooleanField(required=False)
     used_for_calculation = serializers.BooleanField(required=False)
@@ -79,16 +59,19 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         method = request.method
         groups = request.user.groups.values_list('name', flat=True)
 
-        if method == 'PUT':
-            attachment_file = data.get('attachment_file', None)
-            attachment_link = data.get('attachment_link', None)
 
-            if attachment_file == '' or attachment_file == 'null':
-                data.pop('attachment_file', None)
+        attachment_file = data.get('attachment_file', None)
+        attachment_link = data.get('attachment_link', None)
+        if attachment_file == '' or attachment_file == 'null':
+            data.pop('attachment_file', None)
 
-            if attachment_link == '':
-                data.pop('attachment_link', None)
+        if attachment_link == '':
+            data.pop('attachment_link', None)
 
+        if method == 'POST':
+            print('at post')
+            data['created_by'] = request.user.id
+            print(data)
         return data
 
     # def create(self, validated_data):
