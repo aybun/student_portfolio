@@ -10,20 +10,10 @@ let eventComponent = {
 
             modalTitle:"",
             addingNewEvent : false,
+            showApproved: true,
 
             // id:0,
-            event: {
-                eventId:0,
-                title:"",
-                date:"",
-                mainStaffId:"",
-                info:"",
-                skills: [],
-                approved:false,
-                used_for_calculation: false,
-                attachment_link: "",
-                attachment_file: "",
-            },
+            event: {},
 
 
             // is_staff: true,
@@ -37,8 +27,12 @@ let eventComponent = {
 
     methods:{
         refreshData(){
+            axios.get(variables.API_URL+"event")
+            .then((response)=>{
+                this.events=response.data;
+                console.log(this.events)
+            });
 
-            this.event = this.getEmptyEvent()
         },
     addClick(){
         console.log(this.events)
@@ -205,6 +199,10 @@ let eventComponent = {
         // label.innerText = this.event.attachment_file.name
 
     },
+    openNewWindow(url){
+            window.open(url);
+
+    },
 
     prepareData(){
         // this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
@@ -239,7 +237,7 @@ let eventComponent = {
     },
 
     mounted:function(){
-        this.refreshData();
+        this.event = this.getEmptyEvent()
 
     }
 }

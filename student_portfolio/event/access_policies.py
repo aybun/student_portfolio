@@ -4,17 +4,10 @@ from rest_access_policy import FieldAccessMixin, AccessPolicy
 class EventApiAccessPolicy(AccessPolicy):
     statements = [
         {
-            "action": ["<method:get>"],
+            "action": ["<method:get>", "<method:post>", "<method:put>", "<method:delete>"],
             "principal": ["group:staff", "group:student"],
             "effect": "allow"
         },
-
-        {
-            "action": ["<method:post>", "<method:put>", "<method:delete>"],
-            "principal": ["group:staff"],
-            "effect": "allow"
-        },
-
     ]
 
     @classmethod
@@ -32,6 +25,14 @@ class EventApiAccessPolicy(AccessPolicy):
             # We force the user to create an event first.
             fields.pop('attachment_link', None)
             fields.pop('attachment_file', None)
+            fields.pop('used_for_calculation', None)
+            fields.pop('approved', None)
+
+        elif method == "PUT":
+
+            if 'student' in groups:
+                fields.pop('used_for_calculation', None)
+                fields.pop('approved', None)
 
         return fields
 

@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.db import IntegrityError, transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
+from django.db.models import Q
 
 from student.models import Student
 from .models import Event, EventAttendanceOfStudents, Skill
@@ -49,7 +50,8 @@ def eventApi(request, eventId=0):
 
         if 'staff' in groups:
             if (eventId == 0):
-                events = Event.objects.filter(approved__in=[True])
+                # events = Event.objects.filter(approved__in=[True])
+                events = Event.objects.all()
                 events_serializer=EventSerializer(events, many=True, context={'request' : request})
                 return JsonResponse(events_serializer.data, safe=False)
             else:
@@ -62,7 +64,7 @@ def eventApi(request, eventId=0):
             if (eventId == 0):
                 student = Student.objects.get(userId=request.user.id)
                 events_joined_by_user = list(EventAttendanceOfStudents.objects.filter(studentId__exact=student.studentId).values_list('eventId', flat=True))
-                events = Event.objects.filter(approved__in=[True], eventId__in=events_joined_by_user)
+                events = Event.objects.filter(Q(eventId__in=events_joined_by_user) | Q(created_by=request.user.id))
 
                 serializer=EventSerializer(events, many=True, context={'request' : request})
                 return JsonResponse(serializer.data, safe=False)
@@ -97,7 +99,7 @@ def eventApi(request, eventId=0):
 
     elif request.method=='PUT':
 
-        if 'staff' in groups:
+        if 'staff' in groups or 'student' in groups:
             event_data = request.data.dict()
             event=Event.objects.get(eventId=eventId)
 
@@ -114,22 +116,32 @@ def eventApi(request, eventId=0):
 
     elif request.method=='DELETE':
 
-        success = True
-        try:
-            with transaction.atomic():
-                attendances = EventAttendanceOfStudents.objects.filter(eventId=eventId)
-                attendances_delete_report = attendances.delete()
+        event = Event.objects.get(eventId=eventId)
 
-                event=Event.objects.get(eventId=eventId)
-                event_delete_report = event.delete()
-        except IntegrityError:
-            #handle_exception
-            success=False
-
-        if success:
-            return JsonResponse("Deleted Successfully", safe=False)
-        else:
+        if event is None:
             return JsonResponse("Failed to delete.", safe=False)
+
+        created_by_the_user = (event.created_by == request.user.id)
+        print(event)
+        if 'staff' in groups or ('student' in groups and created_by_the_user and (not event.approved)):
+            success = True
+            try:
+                with transaction.atomic():
+                    attendances = EventAttendanceOfStudents.objects.filter(eventId=eventId)
+
+                    attendances_delete_report = attendances.delete()
+
+                    event=Event.objects.filter(eventId=eventId)
+                    event_delete_report = event.delete()
+
+            except IntegrityError:
+                #handle_exception
+                success=False
+
+            if success:
+                return JsonResponse("Deleted Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to delete.", safe=False)
 
 
 def eventAttendanceOfStudents(request, eventId=0, studentId='0'):
@@ -366,36 +378,6 @@ def eventRegisterRequestApi(request, eventId=0):
 
     if request.method == 'DELETE':
         pass
-
-
-# @csrf_exempt
-# def skillGoalApi(request, skillId=0):
-#
-#     if request.method=='GET':
-#         if skillId==0:
-#             skill_goal = SkillGoal.objects.all()
-#             serializer = SkillGoalSerializer(skill_goal, many=True)
-#             return JsonResponse(serializer.data, safe=False)
-#         else:
-#             skill_goal = SkillGoal.objects.get(skillId=skillId)
-#             serializer = SkillGoalSerializer(skill_goal, many=False)
-#             return JsonResponse(serializer.data, safe=False)
-#
-#     if request.method=='PUT':
-#
-#         data = JSONParser().parse(request)
-#         skill_goal = SkillGoal.objects.get(skillId=skillId)
-#         serializer = SkillGoalSerializer(skill_goal, data=data)
-#
-#         if serializer.is_valid():
-#             serializer.save()
-#         else:
-#             print(serializer.errors)
-#             print(serializer.error_messages)
-#             return JsonResponse("Failed to Update", safe=False)
-
-
-
 
 
 #Testing AccessPolicy

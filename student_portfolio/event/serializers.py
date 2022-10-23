@@ -69,9 +69,15 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
             data.pop('attachment_link', None)
 
         if method == 'POST':
-            print('at post')
             data['created_by'] = request.user.id
-            print(data)
+        elif method == 'PUT':
+
+            if 'student' in groups:
+                if instance.approved: #Do not update if the event is already approved.
+                    data = {}
+
+
+
         return data
 
     # def create(self, validated_data):

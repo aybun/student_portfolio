@@ -9,15 +9,15 @@
           <li class="nav-item">
             <a class="nav-link active" id="home-tab" data-toggle="tab" href="/event" role="tab" aria-controls="home" aria-selected="true">Events</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" id="profile-tab" data-toggle="tab" href="/event/eventRegisterRequest" role="tab" aria-controls="profile" aria-selected="false">Event register requests</a>
-          </li>
+<!--          <li class="nav-item">-->
+<!--            <a class="nav-link" id="profile-tab" data-toggle="tab" href="/event/eventRegisterRequest" role="tab" aria-controls="profile" aria-selected="false">Event register requests</a>-->
+<!--          </li>-->
 
         </ul>
 
         <div class="tab-content" id="myTabContent">
           <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab"><event-html></event-html></div>
-          <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">...</div>
+<!--          <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">...</div>-->
 
         </div>
 
@@ -27,13 +27,20 @@
     <script type="text/x-template" id="event-template">
     <div>
 
-        <button v-if="user.is_staff" type="button"
+        <button type="button"
             class="btn btn-primary m-2 fload-end"
             data-bs-toggle="modal"
             data-bs-target="#edit-info-modal"
             @click="addClick()">
          Add Event
-         </button>
+        </button>
+
+        <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = true">
+            show approved
+        </button>
+        <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = false">
+             show unapproved
+        </button>
 
 <table class="table table-striped">
 <thead>
@@ -58,26 +65,27 @@
 <tbody>
 
     <tr v-for="eve in events">
-        <td><a v-bind:href="'/eventAttendanceOfStudents/' + eve.eventId">{% verbatim block %}{{eve.eventId}}{% endverbatim block %}</a></td>
+        <td v-if="showApproved && eve.approved || !showApproved && !eve.approved">{% verbatim block %}{{eve.eventId}}{% endverbatim block %}</td>
 
-        <td>{% verbatim block %}{{eve.title}}{% endverbatim block %}</td>
-        <td>{% verbatim block %}{{eve.date}}{% endverbatim block %}</td>
-        <td>{% verbatim block %}{{eve.mainStaffId}}{% endverbatim block %}</td>
+        <td v-if="showApproved && eve.approved || !showApproved && !eve.approved">{% verbatim block %}{{eve.title}}{% endverbatim block %}</td>
+        <td v-if="showApproved && eve.approved || !showApproved && !eve.approved">{% verbatim block %}{{eve.date}}{% endverbatim block %}</td>
+        <td v-if="showApproved && eve.approved || !showApproved && !eve.approved">{% verbatim block %}{{eve.mainStaffId}}{% endverbatim block %}</td>
 
-        <td>
-            <button v-if="user.is_staff" type="button"
-            class="btn btn-light mr-1"
-            data-bs-toggle="modal"
-            data-bs-target="#edit-info-modal"
-            @click="editClick(eve)">
+        <td v-if="showApproved && eve.approved || !showApproved && !eve.approved">
+
+            <button v-if="user.is_staff || !showApproved" type="button"
+                class="btn btn-light mr-1"
+                data-bs-toggle="modal"
+                data-bs-target="#edit-info-modal"
+                @click="editClick(eve)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                 <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
                 <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
                 </svg>
             </button>
 
-            <button v-if="user.is_staff" type="button" @click="deleteClick(eve.eventId)"
-            class="btn btn-light mr-1">
+            <button v-if="user.is_staff || !showApproved" type="button" @click="deleteClick(eve.eventId)"
+                class="btn btn-light mr-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                 <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
                 </svg>
@@ -110,7 +118,9 @@
                 <input type="text" class="form-control" v-model="eventId">
             </div>
             -->
-
+            <button v-if="!addingNewEvent" type="button" class="btn btn-primary m-2 fload-end" v-on:click="openNewWindow('/eventAttendanceOfStudents/' + event.eventId)">
+                Show Attendances
+            </button>
             <div class="input-group mb-3">
                 <span class="input-group-text">Title</span>
                 <input type="text" class="form-control" v-model="event.title">
@@ -121,7 +131,7 @@
                 <input type="date" class="form-control" v-model="event.date">
             </div>
 
-            <div class="input-group mb-3">
+            <div v-if="!addingNewEvent" class="input-group mb-3">
                 <span class="input-group-text">Main Staff Id</span>
                 <select class="form-select" v-model="event.mainStaffId">
                     <option v-for="staff in staffs">
@@ -131,15 +141,15 @@
             </div>
 
 
-            <div class="input-group mb-3">
+            <div v-if="!addingNewEvent" class="input-group mb-3">
                 <span class="input-group-text">info</span>
                 <input type="text" class="form-control" v-model="event.info">
             </div>
 
 
-                <h3>Skills</h3>
-                <div class="skill">
 
+                <div v-if="!addingNewEvent" class="skill">
+                    <h3>Skills</h3>
                     <div class="form-row" v-for="(skill, index) in event.skills" :key="index">
                         <select v-model="skill.skillId" class="form-control sl">
                             <option v-for="e in skillTable" v-bind:value="e.skillId">
@@ -147,12 +157,13 @@
                             </option>
                         </select>
                     </div>
+                    <div class="form-group">
+                      <button @click="addSkillClick()" type="button" class="btn btn-secondary">Add skill</button>
+                      <button @click="removeSkillClick()" type="button" class="btn btn-danger">Remove skill</button>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                  <button @click="addSkillClick()" type="button" class="btn btn-secondary">Add skill</button>
-                  <button @click="removeSkillClick()" type="button" class="btn btn-danger">Remove skill</button>
-                </div>
+
 
 
                 <p></p>
