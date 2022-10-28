@@ -36,8 +36,6 @@ def event(request, id=0):
 
 
 
-
-
 @parser_classes([JSONParser, MultiPartParser ])
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes((EventApiAccessPolicy,))
@@ -122,7 +120,7 @@ def eventApi(request, eventId=0):
             return JsonResponse("Failed to delete.", safe=False)
 
         created_by_the_user = (event.created_by == request.user.id)
-        print(event)
+        # print(event)
         if 'staff' in groups or ('student' in groups and created_by_the_user and (not event.approved)):
             success = True
             try:
@@ -143,10 +141,11 @@ def eventApi(request, eventId=0):
             else:
                 return JsonResponse("Failed to delete.", safe=False)
 
-
 def eventAttendanceOfStudents(request, eventId=0, studentId='0'):
 
-    if request.user.is_staff:
+    groups = list(request.user.groups.values_list('name', flat=True))
+
+    if 'staff' in groups:
         if studentId == '0': #get all students joined the event.
             stuff_for_frontend = { 'eventId' : eventId }
             return render(request, 'event/event_attendance_of_students.html', stuff_for_frontend)
@@ -257,7 +256,11 @@ def syncStudentAttendanceByStudentId(request, eventId=0):
 
         return JsonResponse("Failed to sync", safe=False)
 
-@csrf_exempt
+
+@parser_classes([JSONParser, MultiPartParser ])
+@api_view(['GET', 'PUT'])
+@permission_classes((SkillTableApiAccessPolicy,))
+@authentication_classes((SessionAuthentication, BasicAuthentication))
 def skillTableApi(request):
 
     if request.method == 'GET':
@@ -382,8 +385,10 @@ def eventRegisterRequestApi(request, eventId=0):
 
 #Testing AccessPolicy
 
+# @permission_classes((EventAccessPolicy,))
+# @authentication_classes((SessionAuthentication, BasicAuthentication))
 @api_view(("GET",))
-@permission_classes([EventAccessPolicy,])
+@permission_classes((EventAccessPolicy,))
 def eventWithAccessPolicyApi(request, eventId=0):
 
     if request.method=='GET':
@@ -392,9 +397,9 @@ def eventWithAccessPolicyApi(request, eventId=0):
         print(event_serializer.data)
         return JsonResponse(event_serializer.data, safe=False)
 
-
-@api_view(("GET",))
 @permission_classes((EventAccessPolicy,))
+@api_view(("GET",))
+@authentication_classes((SessionAuthentication, BasicAuthentication))
 def listEventsWithAccessPolicyApi(request):
     if request.method =='GET':
         events = Event.objects.filter(approved__in=[True])

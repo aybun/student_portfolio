@@ -7,6 +7,7 @@ class EventApiAccessPolicy(AccessPolicy):
             "action": ["<method:get>", "<method:post>", "<method:put>", "<method:delete>"],
             "principal": ["group:staff", "group:student"],
             "effect": "allow"
+
         },
     ]
 
@@ -43,15 +44,20 @@ class EventApiAccessPolicy(AccessPolicy):
 class EventAttendanceOfStudentsApiAccessPolicy(AccessPolicy):
     statements = [
         {
-            "action": ["<method:get>"],
+            "action": ["<method:get>", "<method:post>", "<method:put>", "<method:delete>"],
             "principal": ["group:staff"],
             "effect": "allow"
         },
         {
-            "action": ["<method:post|put|delete>"],
-            "principal": ["group:staff"],
-            "effect": "allow"
+            "action": ["eventAttendanceOfStudents"],
+            "principal" : ["group:staff"],
+            "effect": "allow",
         },
+        {
+            "action": ["eventAttendanceOfStudents"],
+            "principal": ["group:student"],
+            "effect": "deny",
+        }
     ]
 
 class SyncStudentAttendanceByStudentIdAccessPolicy(AccessPolicy):
@@ -70,20 +76,10 @@ class SkillTableApiAccessPolicy(AccessPolicy):
             "principal": ["*"],
             "effect": "allow"
         },
-    ]
-
-class EventRegisterRequestApiAccessPolicy(AccessPolicy):
-    statements = [
         {
-            "action": ["<method:get|post|put>"],
-            "principal": ["group:staff", "group:student"],
+            "action": ["<method:put>"],
+            "principal": ["staff"],
             "effect": "allow"
         },
-        #Hadle DELETE
-        # {
-        #     "action": ["<method:delete>"],
-        #     "principal": ["group:staff", "group:student"],
-        #     "effect": "allow"
-        # },
     ]
 

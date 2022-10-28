@@ -118,7 +118,7 @@
                 <input type="text" class="form-control" v-model="eventId">
             </div>
             -->
-            <button v-if="!addingNewEvent" type="button" class="btn btn-primary m-2 fload-end" v-on:click="openNewWindow('/eventAttendanceOfStudents/' + event.eventId)">
+            <button v-if="!addingNewEvent && user.is_staff" type="button" class="btn btn-primary m-2 fload-end" v-on:click="openNewWindow('/eventAttendanceOfStudents/' + event.eventId)">
                 Show Attendances
             </button>
             <div class="input-group mb-3">
@@ -167,7 +167,7 @@
 
 
                 <p></p>
-                <div v-if="!addingNewEvent" class="mb-3">
+                <div v-if="!addingNewEvent && user.is_staff" class="mb-3">
                     <input type="checkbox" value="approved" v-model="checkboxes"/>
                     <label>&nbsp;approved&nbsp;&nbsp;</label>
                     <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>

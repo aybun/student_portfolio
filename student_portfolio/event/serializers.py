@@ -116,8 +116,13 @@ class EventAccessPolicy(AccessPolicy):
     statements = [
         {
             "action": ["eventWithAccessPolicyApi"],
-            "principal": ["group:gods", "group:laymen"],
+            "principal": ["group:student", "group:staff"],
             "effect": "allow"
+        },
+        {
+            "action": ["eventWithAccessPolicyApi"],
+            "principal": ["group:student"],
+            "effect": "deny"
         },
         {
             "action": ["listEventsWithAccessPolicyApi"],

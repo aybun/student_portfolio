@@ -86,7 +86,7 @@ def projectApi(request, projectId=0):
             project_data = request.data.dict()
 
             project = Project.objects.get(projectId=projectId)
-            print(project)
+            # print(project)
             project_data = ProjectSerializer.custom_clean(instance=project, data=project_data, context={'request': request})
             serializer = ProjectSerializer(project, data=project_data, context={'request': request})
 
@@ -94,6 +94,10 @@ def projectApi(request, projectId=0):
             project_data = request.data.dict()
 
             project = Project.objects.get(projectId=projectId, proposed_by=request.user.id)
+            if not ( project is not None and project.proposed_by == request.user.id and not project.approved):
+                return JsonResponse("Failed to Update", safe=False)
+
+            project_data = ProjectSerializer.custom_clean(instance=project, data=project_data, context={'request': request})
             serializer = ProjectSerializer(project, data=project_data, context={'request': request})
 
         if serializer.is_valid():
@@ -102,16 +106,22 @@ def projectApi(request, projectId=0):
         else:
             print(serializer.error_messages)
             print(serializer.errors)
-            return JsonResponse("Failed to Add", safe=False)
+            return JsonResponse("Failed to Update", safe=False)
 
 
     elif request.method == 'DELETE':
         #Only staff can delete the approved project.
-        if 'staff' in groups:
+
+        project = Project.objects.get(projectId=projectId)
+        if project is None:
+            return JsonResponse("Failed to delete.", safe=False)
+
+        proposed_by_the_user = (project.proposed_by == request.user.id)
+
+        if 'staff' in groups or ('student' in groups and proposed_by_the_user and (not project.approved)):
             success = True
             try:
                 with transaction.atomic():
-                    project = Project.objects.filter(projectId=projectId)
                     project_delete_report = project.delete()
 
             except IntegrityError:
@@ -123,5 +133,4 @@ def projectApi(request, projectId=0):
             else:
                 return JsonResponse("Failed to delete.", safe=False)
 
-        # elif 'student' in groups:
-        #     pass
+
