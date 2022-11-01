@@ -62,7 +62,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         attachment_file = data.get('attachment_file', None)
         attachment_link = data.get('attachment_link', None)
-        if attachment_file == '' or attachment_file == 'null':
+        if isinstance(attachment_file, str):
             data.pop('attachment_file', None)
 
         if attachment_link == '':

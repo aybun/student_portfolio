@@ -97,9 +97,13 @@ def eventApi(request, eventId=0):
 
     elif request.method=='PUT':
 
-        if 'staff' in groups or 'student' in groups:
+        event = Event.objects.get(eventId=eventId)
+        if event is None:
+            return JsonResponse("Failed to delete.", safe=False)
+
+        if 'staff' in groups or ('student' in groups and event.created_by == request.user.id and (not event.approved)):
             event_data = request.data.dict()
-            event=Event.objects.get(eventId=eventId)
+            # print(event_data)
 
             event_data = EventSerializer.custom_clean(instance=event, data=event_data, context={'request' : request})
             serializer = EventSerializer(event, data=event_data, context={'request' : request})

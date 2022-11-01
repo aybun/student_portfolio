@@ -84,7 +84,7 @@ def projectApi(request, projectId=0):
 
         if 'staff' in groups:
             project_data = request.data.dict()
-
+            # print(project_data)
             project = Project.objects.get(projectId=projectId)
             # print(project)
             project_data = ProjectSerializer.custom_clean(instance=project, data=project_data, context={'request': request})
@@ -92,13 +92,11 @@ def projectApi(request, projectId=0):
 
         elif 'student' in groups:
             project_data = request.data.dict()
-
             project = Project.objects.get(projectId=projectId, proposed_by=request.user.id)
-            if not ( project is not None and project.proposed_by == request.user.id and not project.approved):
-                return JsonResponse("Failed to Update", safe=False)
 
-            project_data = ProjectSerializer.custom_clean(instance=project, data=project_data, context={'request': request})
-            serializer = ProjectSerializer(project, data=project_data, context={'request': request})
+            if (project.proposed_by == request.user.id) and not (project.approved):
+                project_data = ProjectSerializer.custom_clean(instance=project, data=project_data, context={'request': request})
+                serializer = ProjectSerializer(project, data=project_data, context={'request': request})
 
         if serializer.is_valid():
             serializer.save()
@@ -117,7 +115,6 @@ def projectApi(request, projectId=0):
             return JsonResponse("Failed to delete.", safe=False)
 
         proposed_by_the_user = (project.proposed_by == request.user.id)
-
         if 'staff' in groups or ('student' in groups and proposed_by_the_user and (not project.approved)):
             success = True
             try:
