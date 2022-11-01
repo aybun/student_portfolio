@@ -185,9 +185,14 @@ def eventAttendanceOfStudentsApi(request, eventId=0, studentId='0'):
 
     elif request.method=='POST':
         attendance_data=JSONParser().parse(request)
-        print(attendance_data)
-        serializer=EventAttendanceOfStudentsSerializer(data=attendance_data)
-        # print(serializer.is_valid())
+        # print(attendance_data)
+        attendance = EventAttendanceOfStudents.objects.filter(studentId=attendance_data['studentId'])
+
+        if attendance is None:
+            serializer=EventAttendanceOfStudentsSerializer(data=attendance_data)
+        else:
+            return JsonResponse("Failed to Add", safe=False)
+
         if serializer.is_valid():
             serializer.save()
             return JsonResponse("Added Successfully",safe=False)
@@ -216,7 +221,7 @@ def eventAttendanceOfStudentsApi(request, eventId=0, studentId='0'):
     elif request.method=='DELETE': #Need to handle carefully.
 
         attendance = EventAttendanceOfStudents.objects.get(eventId=eventId, studentId=studentId)
-        print(attendance)
+        # print(attendance)
         if attendance is not None:
             attendance.delete()
             return JsonResponse("Deleted Successfully", safe=False)
