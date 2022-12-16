@@ -24,14 +24,17 @@ class EventApiAccessPolicy(AccessPolicy):
         # Cleaning data
         if method == "POST":
             # We force the user to create an event first.
-            fields.pop('attachment_link', None)
-            fields.pop('attachment_file', None)
-            fields.pop('used_for_calculation', None)
-            fields.pop('approved', None)
+
+            fields = {'title' : fields['title'],
+                      'created_by' : fields['created_by']
+                      }
+
 
         elif method == "PUT":
+            fields.pop('created_by')
+            fields.pop('approved_by')
 
-            if 'student' in groups:
+            if 'staff' not in groups: #The user is a student or lower level users.
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
 

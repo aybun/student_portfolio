@@ -20,7 +20,9 @@ let eventComponent = {
 
             skillTable:"",
             checkboxes: [],
+            // skills:{},
             // PhotoFileName:"anonymous.png",
+
             PhotoPath:variables.PHOTO_URL
         }
     },
@@ -34,6 +36,7 @@ let eventComponent = {
             });
 
         },
+
     addClick(){
         console.log(this.events)
         this.modalTitle="Add Event"
@@ -44,12 +47,15 @@ let eventComponent = {
     },
 
     editClick(event){
+
+        console.log(event);
         this.modalTitle="Edit Event";
         this.addingNewEvent = false
 
         this.event = event
-        this.checkboxes = []
+        this.event.skills = []
 
+        this.checkboxes = []
 
         //Consider create a list of checkbox variables.
         if (event.approved)
@@ -59,16 +65,13 @@ let eventComponent = {
 
     },
     createClick(){
-        let before_altered_event = this.getEmptyEvent()
 
-        this.event.skills = this.cleanSkills(this.event.skills);
-        before_altered_event.skills = this.event.skills
-
-        this.event.skills = JSON.stringify(this.event.skills)
+        // this.event.skills = this.cleanSkills(this.event.skills);
+        // let skillIds = this.getSkillIds(this.event.skills)
 
         // delete this.event['eventId']
-        if (this.event.attachment_file == null || typeof this.event.attachment_file === 'string' || this.event.attachment_file === '' )
-            delete this.event.attachment_file
+        // if (this.event.attachment_file == null || typeof this.event.attachment_file === 'string' || this.event.attachment_file === '' )
+        //     delete this.event.attachment_file
 
         let outDict = new FormData();
         console.log(this.event)
@@ -76,8 +79,6 @@ let eventComponent = {
             // console.log(key, value);
             outDict.append(key.toString(), value)
         }
-        //reassign
-        this.event.skills = before_altered_event.skills
 
         alert(JSON.stringify(outDict, null, 2))
 
@@ -100,25 +101,25 @@ let eventComponent = {
     },
     updateClick(){
         //Store only altered fiels.
-
+        // console.log(this.event.skills)
         this.event.skills = this.cleanSkills(this.event.skills);
 
         this.event.approved = this.checkboxes.includes('approved')
         this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
 
-
+        console.log(this.event)
         let outDict = new FormData();
         for (const [key, value] of Object.entries(this.event)) {
             outDict.append(key.toString(), value)
         }
-        outDict.set('skills', JSON.stringify(this.event.skills))
+        // outDict.set('skills', JSON.stringify(this.event.skills))
 
         //Make a request.
         axios.defaults.xsrfCookieName = 'csrftoken';
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
         axios({
             method: 'put',
-            url: variables.API_URL+"event/" + this.event.eventId,
+            url: variables.API_URL+"event/" + this.event.id,
             xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             data: outDict,
@@ -127,22 +128,22 @@ let eventComponent = {
                 'X-CSRFToken': 'csrftoken',
             }
         }).then((response)=>{
-            // this.refreshData();
+            this.refreshData();
             alert(response.data);
-            window.location.reload();
+            // window.location.reload();
         })
 
     },
-    deleteClick(eventId){
+    deleteClick(event_id){
         if(!confirm("Are you sure?")){
             return;
         }
-
+        console.log(event_id)
         axios.defaults.xsrfCookieName = 'csrftoken';
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
         axios({
             method: 'delete',
-            url: variables.API_URL+"event/"+ eventId,
+            url: variables.API_URL+"event/"+ event_id,
             xstfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             headers : {
@@ -156,7 +157,7 @@ let eventComponent = {
     },
     addSkillClick(){
         this.event.skills.push({
-            skillId: '',
+            skill_id: '',
         })
     },
     removeSkillClick(){
@@ -176,19 +177,38 @@ let eventComponent = {
         }
         return nonEmpty
     },
+    getSkillIds(){
+        // nonEmpty = []
+        skillIds = []
+        for (i=0;i<skills.length; ++i) {
+            id = skills[i]['skillId']
+
+            if ( id !== "" && !skillIds.includes(id)){
+                // nonEmpty.push(skills[i]);
+                skillIds.push(id)
+            }
+        }
+        return skillIds
+    },
 
     getEmptyEvent(){
         return {
-            eventId:0,
+            id:0,
             title:"",
-            date: (new Date()).toISOString().split('T')[0],
-            mainStaffId:"",
+            start_datetime: (new Date()).toLocaleString(),
+            end_datetime: (new Date()).toLocaleString(),
             info:"",
-            skills: [],
+
+            created_by:"",
             approved:false,
+            approved_by:"",
             used_for_calculation: false,
+            arranged_inside: false,
             attachment_link: "",
             attachment_file: "",
+
+            //Additional data.
+            skills: [],
         }
 
     },
@@ -210,7 +230,6 @@ let eventComponent = {
         // console.log(this.user)
     }
     },
-
 
     created:async function(){
         await axios.get(variables.API_URL+"user")

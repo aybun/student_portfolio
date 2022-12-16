@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
-from djongo.storage import GridFSStorage
 from pathlib import Path
 import os
 
@@ -50,8 +49,8 @@ INSTALLED_APPS = [
     'student',
     'staff',
     'event',
-    'profile',
-    'project',
+    # 'profile',
+    # 'project',
 
 ]
 
@@ -112,41 +111,41 @@ WSGI_APPLICATION = 'student_portfolio.wsgi.application'
 DATABASES = {
     # 'default': {},
 
-    # 'default': {
-    #
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #
-    #     'NAME': 'postgres',
-    #
-    #     'USER': 'postgres',
-    #
-    #     'PASSWORD': 'postgres',
-    #
-    #     'HOST': '127.0.0.1',
-    #
-    #     'PORT': '174',
-    #
-    # },
-
     'default': {
 
-        'ENGINE': 'djongo',
+        'ENGINE': 'django.db.backends.postgresql',
 
-        'NAME': 'student_portfolio-mongo',
+        'NAME': 'postgres',
 
-        'ENFORCE_SCHEMA': False,
+        'USER': 'postgres',
 
-        'CLIENT': {
-                'host': '127.0.0.1',
-                'port': 175,
-                'username': 'root',
-                'password': 'password',
+        'PASSWORD': 'postgres',
 
-                'authSource': 'admin',
-                'authMechanism': 'SCRAM-SHA-1',
+        'HOST': '127.0.0.1',
 
-            },
-    }
+        'PORT': '174',
+
+    },
+
+    # 'default': {
+    #
+    #     'ENGINE': 'djongo',
+    #
+    #     'NAME': 'student_portfolio-mongo',
+    #
+    #     'ENFORCE_SCHEMA': False,
+    #
+    #     'CLIENT': {
+    #             'host': '127.0.0.1',
+    #             'port': 175,
+    #             'username': 'root',
+    #             'password': 'password',
+    #
+    #             'authSource': 'admin',
+    #             'authMechanism': 'SCRAM-SHA-1',
+    #
+    #         },
+    # }
 }
 
 

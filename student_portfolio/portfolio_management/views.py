@@ -35,13 +35,12 @@ def userApi(request):
 
 
     if 'staff' in groups:
-        staff = Staff.objects.get(userId=request.user.id)
-        data_dict['staffId'] = staff.staffId
+        staff = Staff.objects.get(user_id_fk=request.user.id)
+        data_dict['staff_id'] = staff.staff_id
 
-    elif 'student' in groups:
-        student = Student.objects.get(userId=request.user.id)
-
-        data_dict['studentId'] = student.studentId
+    if 'student' in groups:
+        student = Student.objects.get(user_id_fk=request.user.id)
+        data_dict['student_id'] = student.student_id
 
 
     return JsonResponse(data_dict, safe=False)
