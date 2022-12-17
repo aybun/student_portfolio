@@ -6,7 +6,7 @@ from django.http.response import JsonResponse
 from django.db.models import Q
 
 from student.models import Student
-from .models import Event, StudentAttendEvent, Skill, EventSkill
+from .models import Event, StudentAttendEvent, Skill
 from .serializers import EventSerializer, SkillSerializer, EventAccessPolicyTestSerializer, EventAccessPolicy, \
     EventSkillSerializer
 
@@ -64,11 +64,12 @@ def eventApi(request, event_id=0):
                 event_serializer = EventSerializer(event, context={'request' : request})
                 # print(event_serializer.data)
 
-                event_skills = EventSkill.objects.filter(event_id_fk=event_id)
-                event_skill_serializer = EventSkillSerializer(event_skills, many=True)
-
-                out_data = event_serializer.data
-                out_data['skills'] = event_skill_serializer.data
+                # event_skills = EventSkill.objects.filter(event_id_fk=event_id)
+                # event_skill_serializer = EventSkillSerializer(event_skills, many=True)
+                #
+                # out_data = event_serializer.data
+                # out_data['skills'] = event_skill_serializer.data
+                # print(event_serializer.data)
                 return JsonResponse(event_serializer.data, safe=False)
 
         # elif 'student' in groups:
@@ -98,12 +99,12 @@ def eventApi(request, event_id=0):
 
             event_data = request.data.dict()
             event_data = EventSerializer.custom_clean(data=event_data, context={'request':request})
-
+            print(event_data)
             event_serializer = EventSerializer(data=event_data, context={'request':request})
 
             if event_serializer.is_valid():
                 event_serializer.save(created_by=request.user)
-                return JsonResponse("Added Successfully",safe=False)
+                return JsonResponse("Added Successfully", safe=False)
             else:
                 print(event_serializer.error_messages)
                 print(event_serializer.errors)
@@ -121,31 +122,18 @@ def eventApi(request, event_id=0):
             data = request.data.dict()
             # print(data)
             event_data = EventSerializer.custom_clean(instance=event, data=data, context={'request' : request})
-            event_serializer = EventSerializer(event, data=event_data, context={'request' : request})
-
-            # event_skill_data = EventSkillSerializer.custom_clean(data=event_skill_data, context={'request' : request})
-            # EventSkillSerializer
-            skill_data = data['skills']
+            print(event_data)
+            event_serializer = EventSerializer(event, data=event_data, context={'request': request})
 
             if event_serializer.is_valid():
-                #Update Staff
+
                 success = True
                 try:
                     with transaction.atomic():
-
-                        if data['approved']:
-                            event_serializer.save(approved_by=request.user)
-                        else:
-                            event_serializer.save()
-
-                        EventSkill.objects.filter(event_id_fk__id=event_id).delete()
-                        for skill_id in skill_data:
-                            event_skill_serializer = EventSkillSerializer(data={'skill_id_fk': skill_id, 'event_id_fk': event_id})
-                            if event_skill_serializer.is_valid():
-                                event_skill_serializer.save()
+                        event_serializer.save()
 
                 except IntegrityError:
-                    # handle_exception
+
                     success = False
 
                 if success:

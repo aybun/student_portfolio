@@ -53,7 +53,7 @@ let eventComponent = {
         this.addingNewEvent = false
 
         this.event = event
-        this.event.skills = []
+        // this.event.skills = []
 
         this.checkboxes = []
 
@@ -112,7 +112,7 @@ let eventComponent = {
         for (const [key, value] of Object.entries(this.event)) {
             outDict.append(key.toString(), value)
         }
-        // outDict.set('skills', JSON.stringify(this.event.skills))
+        outDict.set('skills', JSON.stringify(this.event.skills))
 
         //Make a request.
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -157,7 +157,7 @@ let eventComponent = {
     },
     addSkillClick(){
         this.event.skills.push({
-            skill_id: '',
+            id: '',
         })
     },
     removeSkillClick(){
@@ -167,12 +167,16 @@ let eventComponent = {
         //Remove empty or redundant inputs.
         nonEmpty = []
         skillIds = []
-        for (i=0;i<skills.length; ++i) {
-            id = skills[i]['skillId']
+        for (let i=0;i<skills.length; ++i) {
+            id = skills[i]['id']
 
             if ( id !== "" && !skillIds.includes(id)){
-                nonEmpty.push(skills[i]);
-                skillIds.push(id)
+                skillIds.push(skills[i]);
+
+                for (let j=0; j < this.skillTable.length; ++j){
+                    if (id === this.skillTable[j].id)
+                        nonEmpty.push(this.skillTable[j])
+                }
             }
         }
         return nonEmpty
@@ -181,7 +185,7 @@ let eventComponent = {
         // nonEmpty = []
         skillIds = []
         for (i=0;i<skills.length; ++i) {
-            id = skills[i]['skillId']
+            id = skills[i]['id']
 
             if ( id !== "" && !skillIds.includes(id)){
                 // nonEmpty.push(skills[i]);

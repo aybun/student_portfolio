@@ -10,6 +10,17 @@ from .access_policies import EventApiAccessPolicy
 from datetime import datetime
 import json
 
+class SkillSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    title = serializers.CharField(max_length=50, required=True)
+    goal_point = serializers.IntegerField(min_value=0, max_value=10,  required=False)
+
+    # events = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), many=True)
+
+    class Meta:
+        model = Skill
+        fields = ('id', 'title', 'goal_point')
+
 class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     id = serializers.IntegerField(required=False, read_only=True)
@@ -21,7 +32,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     created_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, queryset=User.objects.all())
     approved = serializers.BooleanField(required=False)
-    approved_by = serializers.PrimaryKeyRelatedField(required=False, read_only=False, allow_null=True, queryset=User.objects.all())
+    approved_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, queryset=User.objects.all())
 
     used_for_calculation = serializers.BooleanField(required=False)
     arranged_inside = serializers.BooleanField(required=False)
@@ -30,72 +41,100 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     attachment_file = serializers.FileField(required=False, allow_null=True)
 
+    skills = SkillSerializer(many=True, read_only=False, allow_null=True, required=False)
+
     class Meta:
         model = Event
         fields = ('id', 'title', 'start_datetime', 'end_datetime', 'info', 'created_by',
                   'approved', 'approved_by', 'used_for_calculation', 'arranged_inside', 'attachment_link',
-                  'attachment_file')
+                  'attachment_file', 'skills')
 
         access_policy = EventApiAccessPolicy
 
-    # def validate_skills(self, stringnified_list_of_dicts):
-    #     skill_ids = Skill.objects.all().values_list('skillId', flat=True)
-    #
-    #     list_of_dicts = json.loads(stringnified_list_of_dicts)
-    #
-    #     unique_ids = []
-    #     out_list = []
-    #     for e in list_of_dicts:
-    #
-    #         id = e['skillId']
-    #         if id not in skill_ids:
-    #             raise serializers.ValidationError("The skillId is not present in the Skill table : " + str(e['skillId']) )
-    #
-    #         if id not in unique_ids:
-    #             unique_ids.append(id)
-    #             out_list.append(e)
-    #
-    #     return out_list
+    def update(self, instance, validated_data):
+
+        instance.title = validated_data.get('title', instance.title)
+        instance.start_datetime = validated_data.get('start_datetime', instance.start_datetime)
+        instance.end_datetime = validated_data.get('end_datetime', instance.end_datetime)
+        instance.info = validated_data.get('info', instance.info)
+        instance.created_by = validated_data.get('created_by', instance.created_by)
+        instance.approved = validated_data.get('approved', instance.approved)
+        instance.approved_by = validated_data.get('approved_by', instance.approved_by)
+        instance.used_for_calculation = validated_data.get('used_for_calculation', instance.used_for_calculation)
+        instance.arranged_inside = validated_data.get('arranged_inside', instance.arranged_inside)
+        instance.attachment_link = validated_data.get('attachment_link', instance.attachment_link)
+        instance.attachment_file = validated_data.get('attachment_file', instance.attachment_file)
+
+        #Update many-to-many relationships
+        instance.skills.clear()
+        if 'skills' in validated_data:
+            for e in validated_data.get('skills'):
+                instance.skills.add(Skill.objects.get(id=e['id']))
+
+        instance.save()
+        return instance
+
+
+    @staticmethod
+    def custom_clean_skills(instance=None, data=None, context=None):
+
+        #Assume that data is a stringnified object.
+
+
+        skill_ids = Skill.objects.all().values_list('id', flat=True)
+
+        list_of_dicts = json.loads(data)
+
+        if not(isinstance(list_of_dicts, list)) or len(list_of_dicts) == 0: # If it is not a list, return an empty string ''. So that we could pop this field.
+            return ''
+
+        unique_ids = []
+        out_list = []
+        for e in list_of_dicts:
+
+            id = e['id']
+            if id not in skill_ids:
+                raise serializers.ValidationError(
+                    "The skillId is not present in the Skill table : " + str(e['id']))
+
+            if id not in unique_ids:
+                unique_ids.append(id)
+                out_list.append(e)
+
+        return out_list
+
 
     @staticmethod
     def custom_clean(instance=None, data=None, context=None):
-        print(data)
+        # print(data)
         request = context['request']
         method = request.method
         groups = request.user.groups.values_list('name', flat=True)
 
 
-        attachment_file = data.get('attachment_file', None)
-        attachment_link = data.get('attachment_link', None)
-        if isinstance(attachment_file, str):
-            data.pop('attachment_file', None)
-
-        if attachment_link == '':
-            data.pop('attachment_link', None)
-
         if method == 'POST':
-            pass
-            # data['created_by'] = request.user.id
+            data['created_by'] = request.user.id
+
         elif method == 'PUT':
-            pass
-            # if 'staff' in groups:
-            #     if data['approved']:
-            #         data['approved_by'] = request.user.id
+
+            attachment_file = data.get('attachment_file', None)
+            attachment_link = data.get('attachment_link', None)
+            if isinstance(attachment_file, str):
+                data.pop('attachment_file', None)
+
+            if attachment_link == '':
+                data.pop('attachment_link', None)
+
+            if 'skills' in data.keys():
+                data['skills'] = EventSerializer.custom_clean_skills(data=data['skills']) #If it contains errors, the function will return a string, might be ''.
+                if isinstance(data.get('skills', None), str):
+                    data.pop('skills', None)
+
+            if 'staff' in groups:
+                if data['approved'] == 'true':
+                    data['approved_by'] = request.user.id
 
         return data
-
-    def validate_created_by(self, value):
-        print('hello from created_by')
-        if isinstance(value, User):
-            return value.id
-
-        return value
-
-    def validate_approved_by(self, value):
-        if isinstance(value, User):
-            return value.id
-
-        return value
 
     # def update(self, instance, validated_data):
     #     fields = ('id', 'title', 'start_datetime', 'end_datetime', 'info', 'created_by',
@@ -124,19 +163,14 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 #         # fields = '__all__'
 
 
-class SkillSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
-    title = serializers.CharField(max_length=50, required=True)
-    goal_point = serializers.IntegerField(min_value=0, max_value=10,  required=False)
 
-    class Meta:
-        model = Skill
-        fields = ('id', 'title', 'goal_point')
 
 class EventSkillSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     skill_id_fk = serializers.IntegerField(required=False)
     event_id_fk = serializers.IntegerField(required=False)
+
+    # serializers.PrimaryKeyRelatedField(required=False, read_only=False, allow_null=True, queryset=User.objects.all())
 
     class Meta:
         model = Skill

@@ -16,6 +16,16 @@ def event_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     return 'events/{0}/{1}'.format(instance.id, filename)
 
+class Skill(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    title = models.CharField(max_length=50)
+
+    goal_point = models.BigIntegerField(default=0)
+    # info = models.CharField(max_length=200, default='')
+    # detail = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.title
 
 class Event(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -41,6 +51,10 @@ class Event(models.Model):
     attachment_link = models.URLField(max_length=200, blank=True, default='')
     attachment_file = models.FileField(upload_to=event_attachment_file_directory_path, null=True, blank=True)
 
+    skills = models.ManyToManyField(Skill, related_name='event_skill_set', null=True)
+
+    def __str__(self):
+        return "{} {}".format(self.id, self.title)
 #should we let it record staff?????
 class StudentAttendEvent(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -67,22 +81,10 @@ class StaffManageEvent(models.Model):
     is_main_staff = models.BooleanField(default=False)
 
 
-class Skill(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    title = models.CharField(max_length=50)
-
-    goal_point = models.BigIntegerField(default=0)
-    # info = models.CharField(max_length=200, default='')
-    # detail = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.title
-
-
-class EventSkill(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    skill_id_fk = models.ForeignKey(Skill, on_delete=models.CASCADE)
-    event_id_fk = models.ForeignKey(Event, on_delete=models.CASCADE)
+# class EventSkill(models.Model):
+#     id = models.BigAutoField(primary_key=True)
+#     skill_id_fk = models.ForeignKey(Skill, on_delete=models.CASCADE)
+#     event_id_fk = models.ForeignKey(Event, on_delete=models.CASCADE)
 
 
 class SkillGroup(models.Model):

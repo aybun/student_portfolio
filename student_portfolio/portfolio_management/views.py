@@ -33,7 +33,6 @@ def userApi(request):
         'groups' : groups,
     }
 
-
     if 'staff' in groups:
         staff = Staff.objects.get(user_id_fk=request.user.id)
         data_dict['staff_id'] = staff.staff_id

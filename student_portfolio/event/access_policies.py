@@ -32,7 +32,6 @@ class EventApiAccessPolicy(AccessPolicy):
 
         elif method == "PUT":
             fields.pop('created_by')
-            fields.pop('approved_by')
 
             if 'staff' not in groups: #The user is a student or lower level users.
                 fields.pop('used_for_calculation', None)
