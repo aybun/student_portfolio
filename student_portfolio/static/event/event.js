@@ -171,12 +171,13 @@ let eventComponent = {
             id = skills[i]['id']
 
             if ( id !== "" && !skillIds.includes(id)){
-                skillIds.push(skills[i]);
+                skillIds.push(skills[i].id);
+                nonEmpty.push(skills[i])
 
-                for (let j=0; j < this.skillTable.length; ++j){
-                    if (id === this.skillTable[j].id)
-                        nonEmpty.push(this.skillTable[j])
-                }
+                // for (let j=0; j < this.skillTable.length; ++j){
+                //     if (id === this.skillTable[j].id)
+                //         nonEmpty.push(this.skillTable[j])
+                // }
             }
         }
         return nonEmpty

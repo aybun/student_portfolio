@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from staff.models import Staff
 from .models import Event, StudentAttendEvent, Skill
 from rest_framework.parsers import JSONParser
 from django.contrib.auth.models import User
@@ -11,7 +13,7 @@ from datetime import datetime
 import json
 
 class SkillSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
+    id = serializers.IntegerField(required=True)
     title = serializers.CharField(max_length=50, required=True)
     goal_point = serializers.IntegerField(min_value=0, max_value=10,  required=False)
 
@@ -20,6 +22,20 @@ class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = ('id', 'title', 'goal_point')
+
+class EventSkillSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Skill
+        fields = ('id',)
+
+class EventStaffSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Staff
+        fields = ('id',)
 
 class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
@@ -41,13 +57,14 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     attachment_file = serializers.FileField(required=False, allow_null=True)
 
-    skills = SkillSerializer(many=True, read_only=False, allow_null=True, required=False)
+    skills = EventSkillSerializer(many=True, read_only=False, allow_null=True, required=False)
+    staffs = EventStaffSerializer(many=True, read_only=False, allow_null=True, required=False)
 
     class Meta:
         model = Event
         fields = ('id', 'title', 'start_datetime', 'end_datetime', 'info', 'created_by',
                   'approved', 'approved_by', 'used_for_calculation', 'arranged_inside', 'attachment_link',
-                  'attachment_file', 'skills')
+                  'attachment_file', 'skills', 'staffs')
 
         access_policy = EventApiAccessPolicy
 
@@ -70,6 +87,11 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         if 'skills' in validated_data:
             for e in validated_data.get('skills'):
                 instance.skills.add(Skill.objects.get(id=e['id']))
+        
+        instance.staffs.clear()
+        if 'staffs' in validated_data:
+            for e in validated_data.get('staffs'):
+                instance.skills.add(Staff.objects.get(id=e['id']))
 
         instance.save()
         return instance
@@ -79,8 +101,6 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
     def custom_clean_skills(instance=None, data=None, context=None):
 
         #Assume that data is a stringnified object.
-
-
         skill_ids = Skill.objects.all().values_list('id', flat=True)
 
         list_of_dicts = json.loads(data)
@@ -88,6 +108,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         if not(isinstance(list_of_dicts, list)) or len(list_of_dicts) == 0: # If it is not a list, return an empty string ''. So that we could pop this field.
             return ''
 
+        #Do We really need this???
         unique_ids = []
         out_list = []
         for e in list_of_dicts:
@@ -103,6 +124,18 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         return out_list
 
+    @staticmethod
+    def custom_clean_staffs(instance=None, data=None, context=None):
+        # staff_id_fks = Staff.objects.all().values_list('id', flat=True)
+
+        list_of_dicts = json.loads(data)
+
+        if not (isinstance(list_of_dicts, list)) or len(
+                list_of_dicts) == 0:  # If it is not a list, return an empty string ''. So that we could pop this field.
+            return ''
+
+        return list_of_dicts
+
 
     @staticmethod
     def custom_clean(instance=None, data=None, context=None):
@@ -117,18 +150,18 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         elif method == 'PUT':
 
-            attachment_file = data.get('attachment_file', None)
-            attachment_link = data.get('attachment_link', None)
-            if isinstance(attachment_file, str):
+            if isinstance(data.get('attachment_file', None), str):
                 data.pop('attachment_file', None)
 
-            if attachment_link == '':
-                data.pop('attachment_link', None)
-
-            if 'skills' in data.keys():
+            if 'skills' in data:
                 data['skills'] = EventSerializer.custom_clean_skills(data=data['skills']) #If it contains errors, the function will return a string, might be ''.
                 if isinstance(data.get('skills', None), str):
                     data.pop('skills', None)
+
+            if 'staffs' in data:
+                data['staffs'] = EventSerializer.custom_clean_staffs(data=data['staffs'])
+                if isinstance(data.get('staffs', None), str):
+                    data.pop('staffs', None)
 
             if 'staff' in groups:
                 if data['approved'] == 'true':
@@ -161,36 +194,6 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 #         model = EventAttendanceOfStudents
 #         fields = ('eventId', 'studentId', 'firstname', 'middlename', 'lastname', 'synced')
 #         # fields = '__all__'
-
-
-
-
-class EventSkillSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
-    skill_id_fk = serializers.IntegerField(required=False)
-    event_id_fk = serializers.IntegerField(required=False)
-
-    # serializers.PrimaryKeyRelatedField(required=False, read_only=False, allow_null=True, queryset=User.objects.all())
-
-    class Meta:
-        model = Skill
-        fields = '__all__'
-
-    # @staticmethod
-    # def custom_clean(instance=None, data=None, context=None):
-    #
-    #     request = context['request']
-    #     method = request.method
-    #     groups = request.user.groups.values_list('name', flat=True)
-    #
-    #     # data = list of skill_ids.
-    #     event_id = request.data['id']
-    #
-    #     list_of_pairs = [] #(skill_id, event_id)
-    #     for skill_id in data:
-    #         list_of_pairs.append((skill_id))
-
-
 
 
 class EventAccessPolicy(AccessPolicy):

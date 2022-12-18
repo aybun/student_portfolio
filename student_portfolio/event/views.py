@@ -22,10 +22,6 @@ from .access_policies import *
 
 import json
 
-
-
-
-
 # Create your views here.
 def event(request, id=0):
 

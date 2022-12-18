@@ -29,7 +29,6 @@ class EventApiAccessPolicy(AccessPolicy):
                       'created_by' : fields['created_by']
                       }
 
-
         elif method == "PUT":
             fields.pop('created_by')
 

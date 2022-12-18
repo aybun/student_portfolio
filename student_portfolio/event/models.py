@@ -41,7 +41,7 @@ class Event(models.Model):
     # skills = models.JSONField(default=dict)
 
     #user_id
-    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='event_created_by_set')
+    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='event_created_by_set', editable=False)
     approved = models.BooleanField(default=False)
     approved_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='event_approved_by_set')
 
@@ -52,9 +52,11 @@ class Event(models.Model):
     attachment_file = models.FileField(upload_to=event_attachment_file_directory_path, null=True, blank=True)
 
     skills = models.ManyToManyField(Skill, related_name='event_skill_set', null=True)
+    staffs = models.ManyToManyField(Staff, related_name='event_staff_set', null=True)
 
     def __str__(self):
         return "{} {}".format(self.id, self.title)
+
 #should we let it record staff?????
 class StudentAttendEvent(models.Model):
     id = models.BigAutoField(primary_key=True)
