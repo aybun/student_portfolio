@@ -132,14 +132,14 @@
                 <input type="datetime-local" class="form-control" v-model="event.end_datetime">
             </div>
 
-            <div v-if="!addingNewEvent" class="input-group mb-3">
-                <span class="input-group-text">Main Staff Id</span>
-                <select class="form-select" v-model="event.mainStaffId">
-                    <option v-for="staff in staffs">
-                        {% verbatim block %}{{staff.staffId}}{% endverbatim block %}
-                    </option>
-                </select>
-            </div>
+<!--            <div v-if="!addingNewEvent" class="input-group mb-3">-->
+<!--                <span class="input-group-text">Main Staff Id</span>-->
+<!--                <select class="form-select" v-model="event.mainStaffId">-->
+<!--                    <option v-for="staff in staffs">-->
+<!--                        {% verbatim block %}{{staff.staffId}}{% endverbatim block %}-->
+<!--                    </option>-->
+<!--                </select>-->
+<!--            </div>-->
 
 
             <div v-if="!addingNewEvent" class="input-group mb-3">
@@ -164,12 +164,29 @@
                     </div>
                 </div>
 
+                <div v-if="!addingNewEvent" class="staff">
+                    <h3>Staffs</h3>
+                    <div class="form-row" v-for="(staff, index) in event.staffs" :key="index">
+                        <select v-model="staff.id" class="form-control sl">
+                            <option v-for="e in staffTable" v-bind:value="e.id">
+                                {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                      <button @click="addStaffClick()" type="button" class="btn btn-secondary">Add staff</button>
+                      <button @click="removeStaffClick()" type="button" class="btn btn-danger">Remove staff</button>
+                    </div>
+                </div>
+
                 <p></p>
                 <div v-if="!addingNewEvent && user.is_staff" class="mb-3">
                     <input type="checkbox" value="approved" v-model="checkboxes"/>
                     <label>&nbsp;approved&nbsp;&nbsp;</label>
                     <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
                     <label>&nbsp;Use for calculation</label>
+                    <input type="checkbox" value="arranged_inside" v-model="checkboxes"/>
+                    <label>&nbsp;arranged inside</label>
                 </div>
 
                 <p></p>

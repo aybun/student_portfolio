@@ -4,7 +4,7 @@ let eventComponent = {
 
     data(){
         return{
-            staffs:[],
+
             events:[],
             user:{},
 
@@ -18,8 +18,11 @@ let eventComponent = {
 
             // is_staff: true,
 
-            skillTable:"",
+            skillTable:[],
+            staffTable:[],
             checkboxes: [],
+            checkboxFields : ['approved', 'used_for_calculation', 'arranged_inside'],
+
             // skills:{},
             // PhotoFileName:"anonymous.png",
 
@@ -28,17 +31,38 @@ let eventComponent = {
     },
 
     methods:{
+        getEmptyEvent(){
+            return {
+                id:0,
+                title:"",
+                start_datetime: (new Date()).toLocaleString(),
+                end_datetime: (new Date()).toLocaleString(),
+                info:"",
+
+                created_by:"",
+                approved:false,
+                approved_by:"",
+                used_for_calculation: false,
+                arranged_inside: false,
+                attachment_link: "",
+                attachment_file: "",
+
+                //Additional data.
+                skills: [],
+                staffs: [],
+            }
+        },
         refreshData(){
             axios.get(variables.API_URL+"event")
             .then((response)=>{
                 this.events=response.data;
-                console.log(this.events)
             });
 
+            this.event=this.getEmptyEvent()
+            this.checkboxes = []
         },
 
     addClick(){
-        console.log(this.events)
         this.modalTitle="Add Event"
         this.addingNewEvent= true // Signal that we are adding a new event -> Create Button.
 
@@ -48,7 +72,6 @@ let eventComponent = {
 
     editClick(event){
 
-        console.log(event);
         this.modalTitle="Edit Event";
         this.addingNewEvent = false
 
@@ -57,26 +80,16 @@ let eventComponent = {
 
         this.checkboxes = []
 
-        //Consider create a list of checkbox variables.
-        if (event.approved)
-            this.checkboxes.push('approved')
-        if (event.used_for_calculation)
-            this.checkboxes.push('used_for_calculation')
+        for(let i=0; i<this.checkboxFields.length; ++i){
+            if (this.event[this.checkboxFields[i]])
+                this.checkboxes.push(this.checkboxFields[i])
+        }
 
     },
     createClick(){
 
-        // this.event.skills = this.cleanSkills(this.event.skills);
-        // let skillIds = this.getSkillIds(this.event.skills)
-
-        // delete this.event['eventId']
-        // if (this.event.attachment_file == null || typeof this.event.attachment_file === 'string' || this.event.attachment_file === '' )
-        //     delete this.event.attachment_file
-
         let outDict = new FormData();
-        console.log(this.event)
         for (const [key, value] of Object.entries(this.event)) {
-            // console.log(key, value);
             outDict.append(key.toString(), value)
         }
 
@@ -100,19 +113,19 @@ let eventComponent = {
         })
     },
     updateClick(){
-        //Store only altered fiels.
-        // console.log(this.event.skills)
-        this.event.skills = this.cleanSkills(this.event.skills);
 
-        this.event.approved = this.checkboxes.includes('approved')
-        this.event.used_for_calculation = this.checkboxes.includes('used_for_calculation')
+        this.event.skills = this.cleanSkills(this.event.skills)
+        this.event.staffs = this.cleanStaffs(this.event.staffs)
 
-        console.log(this.event)
+        for (let i=0;i<this.checkboxFields.length; ++i)
+            this.event[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
+
         let outDict = new FormData();
         for (const [key, value] of Object.entries(this.event)) {
             outDict.append(key.toString(), value)
         }
         outDict.set('skills', JSON.stringify(this.event.skills))
+        outDict.set('staffs', JSON.stringify(this.event.staffs))
 
         //Make a request.
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -130,7 +143,7 @@ let eventComponent = {
         }).then((response)=>{
             this.refreshData();
             alert(response.data);
-            // window.location.reload();
+
         })
 
     },
@@ -138,7 +151,7 @@ let eventComponent = {
         if(!confirm("Are you sure?")){
             return;
         }
-        console.log(event_id)
+
         axios.defaults.xsrfCookieName = 'csrftoken';
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
         axios({
@@ -163,59 +176,42 @@ let eventComponent = {
     removeSkillClick(){
         this.event.skills.pop()
     },
-    cleanSkills(skills){
+
+    addStaffClick(){
+        this.event.staffs.push({
+            id: '',
+        })
+    },
+    removeStaffClick(){
+        this.event.staffs.pop()
+    },
+
+    cleanSkills(list){
         //Remove empty or redundant inputs.
         nonEmpty = []
-        skillIds = []
-        for (let i=0;i<skills.length; ++i) {
-            id = skills[i]['id']
+        ids = []
+        for (let i=0;i<list.length; ++i) {
+            id = list[i]['id']
 
-            if ( id !== "" && !skillIds.includes(id)){
-                skillIds.push(skills[i].id);
-                nonEmpty.push(skills[i])
-
-                // for (let j=0; j < this.skillTable.length; ++j){
-                //     if (id === this.skillTable[j].id)
-                //         nonEmpty.push(this.skillTable[j])
-                // }
+            if ( id !== '' && !ids.includes(id)){
+                ids.push(list[i].id);
+                nonEmpty.push(list[i])
             }
         }
         return nonEmpty
     },
-    getSkillIds(){
-        // nonEmpty = []
-        skillIds = []
-        for (i=0;i<skills.length; ++i) {
-            id = skills[i]['id']
+    cleanStaffs(list){
+        nonEmpty = []
+        ids = []
+        for (let i=0;i<list.length; ++i) {
+            id = list[i]['id']
 
-            if ( id !== "" && !skillIds.includes(id)){
-                // nonEmpty.push(skills[i]);
-                skillIds.push(id)
+            if ( id !== '' && !ids.includes(id)){
+                ids.push(list[i].id);
+                nonEmpty.push(list[i])
             }
         }
-        return skillIds
-    },
-
-    getEmptyEvent(){
-        return {
-            id:0,
-            title:"",
-            start_datetime: (new Date()).toLocaleString(),
-            end_datetime: (new Date()).toLocaleString(),
-            info:"",
-
-            created_by:"",
-            approved:false,
-            approved_by:"",
-            used_for_calculation: false,
-            arranged_inside: false,
-            attachment_link: "",
-            attachment_file: "",
-
-            //Additional data.
-            skills: [],
-        }
-
+        return nonEmpty
     },
     onFileSelected(event){
         this.event.attachment_file = event.target.files[0]
@@ -226,13 +222,11 @@ let eventComponent = {
     },
     openNewWindow(url){
             window.open(url);
-
     },
 
     prepareData(){
         // this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
         // this.user['is_student'] = Object.values(this.user.groups).includes('student')
-        // console.log(this.user)
     }
     },
 
@@ -245,12 +239,11 @@ let eventComponent = {
         axios.get(variables.API_URL+"event")
             .then((response)=>{
                 this.events=response.data;
-                console.log(this.events)
             });
 
         axios.get(variables.API_URL+"staff")
         .then((response)=>{
-            this.staffs=response.data;
+            this.staffTable=response.data;
         });
 
         axios.get(variables.API_URL+"skillTable")

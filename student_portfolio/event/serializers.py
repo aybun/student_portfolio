@@ -87,11 +87,11 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         if 'skills' in validated_data:
             for e in validated_data.get('skills'):
                 instance.skills.add(Skill.objects.get(id=e['id']))
-        
+
         instance.staffs.clear()
         if 'staffs' in validated_data:
             for e in validated_data.get('staffs'):
-                instance.skills.add(Staff.objects.get(id=e['id']))
+                instance.staffs.add(Staff.objects.get(id=e['id']))
 
         instance.save()
         return instance

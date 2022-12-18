@@ -12,7 +12,7 @@ from django.core.files.storage import default_storage
 # Create your views here.
 @csrf_exempt
 def staffApi(request, id=0):
-    if request.method=='GET':
+    if request.method=='GET': #case : id !=0
         staffs = Staff.objects.all()
         staff_serializer = StaffSerializer(staffs, many=True)
         data = staff_serializer.data

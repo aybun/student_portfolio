@@ -116,7 +116,7 @@ def eventApi(request, event_id=0):
             #Note : Update Staff.
 
             data = request.data.dict()
-            # print(data)
+            print(data)
             event_data = EventSerializer.custom_clean(instance=event, data=data, context={'request' : request})
             print(event_data)
             event_serializer = EventSerializer(event, data=event_data, context={'request': request})
