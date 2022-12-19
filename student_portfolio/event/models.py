@@ -61,15 +61,14 @@ class Event(models.Model):
 class StudentAttendEvent(models.Model):
     id = models.BigAutoField(primary_key=True)
 
-    event_id_fk = models.ForeignKey(Event, on_delete=models.CASCADE)
+    event_id_fk = models.ForeignKey(Event, on_delete=models.CASCADE, null=False)
     student_id = models.CharField(max_length=11)
 
-    #student
     firstname = models.CharField(max_length=50, blank=True, default='')
     middlename = models.CharField(max_length=50, blank=True, default='')
     lastname = models.CharField(max_length=50, blank=True, default='')
 
-    user_id_fk = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    student_id_fk = models.ForeignKey(Student, null=True, on_delete=models.SET_NULL)
 
     synced = models.BooleanField(default=False)
     used_for_calculation = models.BooleanField(default=False)

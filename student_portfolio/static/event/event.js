@@ -93,7 +93,7 @@ let eventComponent = {
             outDict.append(key.toString(), value)
         }
 
-        alert(JSON.stringify(outDict, null, 2))
+        // alert(JSON.stringify(outDict, null, 2))
 
         axios.defaults.xsrfCookieName = 'csrftoken';
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';

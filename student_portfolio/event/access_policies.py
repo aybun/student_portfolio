@@ -42,7 +42,7 @@ class EventApiAccessPolicy(AccessPolicy):
         pass
 
 
-class EventAttendanceOfStudentsApiAccessPolicy(AccessPolicy):
+class StudentAttendEventAccessPolicy(AccessPolicy):
     statements = [
         {
             "action": ["<method:get>", "<method:post>", "<method:put>", "<method:delete>"],
@@ -60,6 +60,24 @@ class EventAttendanceOfStudentsApiAccessPolicy(AccessPolicy):
             "effect": "deny",
         }
     ]
+
+    @classmethod
+    def scope_fields(cls, request, fields: dict, instance=None) -> dict:
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if request.method == "POST":
+            fields.pop('id', None)
+
+        elif request.method == "PUT":
+            fields.pop('event_id', None)
+
+        return fields
+
+
+
+
+
+
 
 class SyncStudentAttendanceByStudentIdAccessPolicy(AccessPolicy):
     statements = [

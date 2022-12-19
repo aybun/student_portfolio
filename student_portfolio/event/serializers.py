@@ -1,13 +1,14 @@
 from rest_framework import serializers
 
 from staff.models import Staff
+from student.models import Student
 from .models import Event, StudentAttendEvent, Skill
 from rest_framework.parsers import JSONParser
 from django.contrib.auth.models import User
 
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
-from .access_policies import EventApiAccessPolicy
+from .access_policies import EventApiAccessPolicy, StudentAttendEventAccessPolicy
 
 from datetime import datetime
 import json
@@ -46,9 +47,9 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     info = serializers.CharField(max_length=200, allow_blank=True)
 
-    created_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, queryset=User.objects.all())
+    created_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=User.objects.all())
     approved = serializers.BooleanField(required=False)
-    approved_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, queryset=User.objects.all())
+    approved_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=User.objects.all())
 
     used_for_calculation = serializers.BooleanField(required=False)
     arranged_inside = serializers.BooleanField(required=False)
@@ -127,7 +128,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
     @staticmethod
     def custom_clean_staffs(instance=None, data=None, context=None):
         # staff_id_fks = Staff.objects.all().values_list('id', flat=True)
-
+        #Need to check for correctness and redundancies.
         list_of_dicts = json.loads(data)
 
         if not (isinstance(list_of_dicts, list)) or len(
@@ -166,34 +167,48 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
             if 'staff' in groups:
                 if data['approved'] == 'true':
                     data['approved_by'] = request.user.id
+                else:
+                    data.pop('approved_by', None)
 
         return data
 
-    # def update(self, instance, validated_data):
-    #     fields = ('id', 'title', 'start_datetime', 'end_datetime', 'info', 'created_by',
-    #               'approved', 'approved_by', 'used_for_calculation', 'arranged_inside', 'attachment_link',
-    #               'attachment_file')
-    #
-    #     instance.title = validated_data['']
 
-    # def create(self, validated_data):
-    #     return self.Meta.model.objects.create(**validated_data)
+class StudentAttendEventSerializer(FieldAccessMixin, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    event_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=True, queryset=Event.objects.all())
+
+    student_id = serializers.CharField(min_length=11, max_length=11, required=True)
+
+    firstname = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    middlename = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    lastname = serializers.CharField(max_length=50, required=False, allow_blank=True)
+
+    student_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=Student.objects.all())
+
+    synced = serializers.BooleanField(required=False)
+    used_for_calculation = serializers.BooleanField( required=False)
+
+    class Meta:
+        model = StudentAttendEvent
+        fields = ('id', 'event_id_fk', 'student_id', 'firstname', 'middlename', 'lastname', 'student_id_fk', 'synced', 'used_for_calculation')
+
+        access_policy = StudentAttendEventAccessPolicy
+
+    @staticmethod
+    def custom_clean(instance=None, data=None, context=None):
+        request = context['request']
+        groups = request.user.groups.values_list('name', flat=True)
 
 
-# class EventAttendanceOfStudentsSerializer(serializers.ModelSerializer):
-#     eventId = serializers.IntegerField(required=True)
-#     studentId = serializers.CharField(min_length=11, max_length=11, required=True)
-#
-#     firstname = serializers.CharField(max_length=50, required=False, allow_blank=True)
-#     middlename = serializers.CharField(max_length=50, required=False, allow_blank=True)
-#     lastname = serializers.CharField(max_length=50, required=False, allow_blank=True)
-#
-#     synced = serializers.BooleanField(default=False, required=False)
-#
-#     class Meta:
-#         model = EventAttendanceOfStudents
-#         fields = ('eventId', 'studentId', 'firstname', 'middlename', 'lastname', 'synced')
-#         # fields = '__all__'
+        if request.method == "PUT":
+
+            student_id_fk = data['student_id_fk']
+            if student_id_fk == '' or student_id_fk == 'null':
+                data.pop('student_id_fk', None)
+
+
+        return data
+
 
 
 class EventAccessPolicy(AccessPolicy):

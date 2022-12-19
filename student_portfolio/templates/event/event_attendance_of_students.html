@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block additional_body %}
-    {{ eventId|json_script:"eventId-data" }}
+    {{ event_id|json_script:"event_id-data" }}
 
     <div id="app" class="container">
 
@@ -18,40 +18,40 @@
         <script type="text/x-template" id="event-attendance-template">
         <div>
 
-            <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>
-                        Event Id
-                    </th>
-                    <th>
-                        Title
-                    </th>
-                    <th>
-                        Date
-                    </th>
-                    <th>
-                        Main Staff Id
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{event.eventId}}</td>
-                    <td>{{event.title}}</td>
-                    <td>{{event.date}}</td>
-                    <td>{{event.mainStaffId}}</td>
-                </tr>
-            </tbody>
-            </thead>
-            </table>
+<!--            <table class="table table-striped">-->
+<!--            <thead>-->
+<!--                <tr>-->
+<!--                    <th>-->
+<!--                        Event Id-->
+<!--                    </th>-->
+<!--                    <th>-->
+<!--                        Title-->
+<!--                    </th>-->
+<!--                    <th>-->
+<!--                        Date-->
+<!--                    </th>-->
+<!--                    <th>-->
+<!--                        Main Staff Id-->
+<!--                    </th>-->
+<!--                </tr>-->
+<!--            </thead>-->
+<!--            <tbody>-->
+<!--                <tr>-->
+<!--                    <td>{{event.eventId}}</td>-->
+<!--                    <td>{{event.title}}</td>-->
+<!--                    <td>{{event.date}}</td>-->
+<!--                    <td>{{event.mainStaffId}}</td>-->
+<!--                </tr>-->
+<!--            </tbody>-->
+<!--            </thead>-->
+<!--            </table>-->
 
             <button type="button"
             class="btn btn-primary m-2 fload-end"
             data-bs-toggle="modal"
             data-bs-target="#exampleModal"
             @click="addClick()">
-             Add Student to The Event
+                Add Student to The Event
             </button>
 
             <button type="button"
@@ -87,7 +87,7 @@
             </thead>
             <tbody>
                 <tr v-for="att in studentAttendances">
-                    <td>{{att.studentId}}</td>
+                    <td>{{att.student_id}}</td>
                     <td>{{att.firstname}}</td>
                     <td>{{att.middlename}}</td>
                     <td>{{att.lastname}}</td>
@@ -104,7 +104,7 @@
                             </svg>
                         </button>
                         <button type="button"
-                        @click="deleteClick(att.studentId)"
+                        @click="deleteClick(att.id)"
                         class="btn btn-light mr-1">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                             <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
@@ -114,7 +114,7 @@
                     </td>
                 </tr>
             </tbody>
-            </thead>
+
             </table>
 
             <div class="modal fade" id="exampleModal" tabindex="-1"
@@ -131,59 +131,38 @@
                 <div class="d-flex flex-row bd-highlight mb-3">
                     <div class="p-2 w-50 bd-highlight">
 
-                        <div class="input-group mb-3" >
-                            <span class="input-group-text">Student Id</span>
-                            <input v-bind:disabled="!addingNewStudent" type="text" class="form-control" v-model="studentId">
-                        </div>
+<!--                        <div class="input-group mb-3" >-->
+<!--                            <span class="input-group-text">Student Id</span>-->
+<!--                            <input v-bind:disabled="!addingNewStudent" type="text" class="form-control" v-model="studentAttendEvent.student_id">-->
+<!--                        </div>-->
 
-                        <div class="input-group mb-3" v-if="!addingNewStudent">
-                            <span class="input-group-text">New Id</span>
-                            <input type="text" class="form-control" v-model="newStudentId">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Student Id</span>
+                            <input type="text" class="form-control" v-model="studentAttendEvent.student_id">
                         </div>
 
                         <div class="input-group mb-3">
                             <span class="input-group-text">Firstname</span>
-                            <input type="text" class="form-control" v-model="firstname">
+                            <input type="text" class="form-control" v-model="studentAttendEvent.firstname">
                         </div>
 
                         <div class="input-group mb-3">
                             <span class="input-group-text">Middlename</span>
-                            <input type="text" class="form-control" v-model="middlename">
+                            <input type="text" class="form-control" v-model="studentAttendEvent.middlename">
                         </div>
 
                         <div class="input-group mb-3">
                             <span class="input-group-text">Lastname</span>
-                            <input type="text" class="form-control" v-model="lastname">
+                            <input type="text" class="form-control" v-model="studentAttendEvent.lastname">
                         </div>
 
+                        <div v-if="!addingNewStudent" class="mb-3">
+                            <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
+                            <label>&nbsp;Use for calculation</label>
 
-                        <!--
-                        <div class="input-group mb-3">
-                            <span class="input-group-text">Department</span>
-                            <select class="form-select" v-model="Department">
-                                <option v-for="dep in departments">
-                                {{dep.DepartmentName}}
-                                </option>
-                            </select>
                         </div>
-                        -->
-
-                        <!--
-                        <div class="input-group mb-3">
-                            <span class="input-group-text">DOJ</span>
-                            <input type="date" class="form-control" v-model="DateOfJoining">
-                        </div>
-                        -->
 
                     </div>
-
-                    <!--
-                    <div class="p-2 w-50 bd-highlight">
-                        <img
-                            :src="PhotoPath+PhotoFileName" />
-                        <input class="m-2" type="file" @change="imageUpload">
-                    </div>
-                    -->
 
                 </div>
                     <button type="button" @click="createClick()"
