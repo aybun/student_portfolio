@@ -13,4 +13,4 @@ class Student(models.Model):
     lastname    = models.CharField(max_length=50, blank=True, default='')
 
     def __str__(self):
-        return "{} {} {}".format(self.student_id, self.firstname, self.lastname)
+        return "{} {} {} {}".format(self.id, self.student_id, self.firstname, self.lastname)

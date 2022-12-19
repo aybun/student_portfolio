@@ -1,5 +1,5 @@
 from rest_access_policy import FieldAccessMixin, AccessPolicy
-
+from django.db.models import Q
 
 class EventApiAccessPolicy(AccessPolicy):
     statements = [
@@ -36,13 +36,33 @@ class EventApiAccessPolicy(AccessPolicy):
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
 
+
         return fields
 
     def is_created_by(self, request, view, action) -> bool:
         pass
 
+    # @classmethod
+    # def scope_queryset(cls, request, qs):
+    #     groups = request.user.groups.values_list('name', flat=True)
+    #
+    #     if 'staff' in groups:
+    #         return qs
+    #
+    #     elif 'student' in groups:
+    #         return qs.filter(Q(approved=True) | Q(created_by=request.user.id))
 
-class StudentAttendEventAccessPolicy(AccessPolicy):
+    @classmethod
+    def scope_query_object(cls, request):
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if 'staff' in groups:
+            return Q()
+
+        elif 'student' in groups:
+            return Q(approved=True) | Q(created_by=request.user.id)
+
+class StudentAttendEventApiAccessPolicy(AccessPolicy):
     statements = [
         {
             "action": ["<method:get>", "<method:post>", "<method:put>", "<method:delete>"],
@@ -73,6 +93,12 @@ class StudentAttendEventAccessPolicy(AccessPolicy):
 
         return fields
 
+    @classmethod
+    def scope_query_object(cls, request):
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if 'staff' in groups:
+            return Q()
 
 
 

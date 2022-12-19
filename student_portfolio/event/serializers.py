@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
-from .access_policies import EventApiAccessPolicy, StudentAttendEventAccessPolicy
+from .access_policies import EventApiAccessPolicy, StudentAttendEventApiAccessPolicy
 
 from datetime import datetime
 import json
@@ -68,6 +68,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                   'attachment_file', 'skills', 'staffs')
 
         access_policy = EventApiAccessPolicy
+
 
     def update(self, instance, validated_data):
 
@@ -192,7 +193,7 @@ class StudentAttendEventSerializer(FieldAccessMixin, serializers.ModelSerializer
         model = StudentAttendEvent
         fields = ('id', 'event_id_fk', 'student_id', 'firstname', 'middlename', 'lastname', 'student_id_fk', 'synced', 'used_for_calculation')
 
-        access_policy = StudentAttendEventAccessPolicy
+        access_policy = StudentAttendEventApiAccessPolicy
 
     @staticmethod
     def custom_clean(instance=None, data=None, context=None):
@@ -206,9 +207,7 @@ class StudentAttendEventSerializer(FieldAccessMixin, serializers.ModelSerializer
             if student_id_fk == '' or student_id_fk == 'null':
                 data.pop('student_id_fk', None)
 
-
         return data
-
 
 
 class EventAccessPolicy(AccessPolicy):
