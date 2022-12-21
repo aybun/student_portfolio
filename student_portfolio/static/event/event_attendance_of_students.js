@@ -29,13 +29,13 @@ methods:{
             return {
                 id:0,
                 event_id_fk:'',
-                student_id: '',
+                university_id: '',
 
                 firstname:'',
                 middlename:'',
                 lastname:'',
 
-                student_id_fk:'',
+                user_id_fk:'',
                 synced:false,
 
                 used_for_calculation: false,
@@ -46,6 +46,7 @@ methods:{
         axios.get(variables.API_URL+"eventAttendanceOfStudents/" + this.event_id)
         .then((response)=>{
             this.studentAttendances=response.data;
+            console.log(this.studentAttendances)
         });
 
     },

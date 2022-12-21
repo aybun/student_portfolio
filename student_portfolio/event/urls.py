@@ -23,9 +23,9 @@ urlpatterns=[
     # path('api/eventRegisterRequest/<int:event_id>', views.eventRegisterRequestApi),
 
     path('eventAttendanceOfStudents/<int:event_id>', views.eventAttendanceOfStudents),
-    path('api/eventAttendanceOfStudents/', views.eventAttendanceOfStudentsApi),
-    path('api/eventAttendanceOfStudents/<int:event_id>', views.eventAttendanceOfStudentsApi),
-    path('api/eventAttendanceOfStudents/<int:event_id>/<int:attendance_id>', views.eventAttendanceOfStudentsApi),
+    path('api/eventAttendanceOfStudents/', views.eventAttendanceApi),
+    path('api/eventAttendanceOfStudents/<int:event_id>', views.eventAttendanceApi),
+    path('api/eventAttendanceOfStudents/<int:event_id>/<int:attendance_id>', views.eventAttendanceApi),
 #SYNC
     path('api/syncStudentAttendanceByStudentId/<int:event_id>', views.syncStudentAttendanceByStudentId),
 

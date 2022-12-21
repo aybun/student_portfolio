@@ -56,13 +56,29 @@ class EventApiAccessPolicy(AccessPolicy):
     def scope_query_object(cls, request):
         groups = request.user.groups.values_list('name', flat=True)
 
-        if 'staff' in groups:
-            return Q()
+        if request.method == "GET":
+            if 'staff' in groups:
+                return Q()
 
-        elif 'student' in groups:
-            return Q(approved=True) | Q(created_by=request.user.id)
+            elif 'student' in groups:
+                return Q(approved=True) | Q(created_by=request.user.id)
 
-class StudentAttendEventApiAccessPolicy(AccessPolicy):
+        elif request.method == "PUT":
+            if 'staff' in groups:
+                return Q()
+
+            elif 'student' in groups:
+                return Q(approved=False) & Q(created_by=request.user.id)
+
+        elif request.method == "DELETE":
+
+            if 'staff' in groups:
+                return Q()
+
+            elif 'student' in groups:
+                return Q(approved=False) & Q(created_by=request.user.id)
+
+class EventAttendanceApiAccessPolicy(AccessPolicy):
     statements = [
         {
             "action": ["<method:get>", "<method:post>", "<method:put>", "<method:delete>"],

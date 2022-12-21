@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'student',
     'staff',
     'event',
-    # 'profile',
+    'user_profile',
     # 'project',
 
 ]

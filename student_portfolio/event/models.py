@@ -3,8 +3,8 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 
-from student.models import Student
-from staff.models import Staff
+# from student.models import Student
+# from staff.models import Staff
 
 # from djongo import models
 from django import forms
@@ -34,8 +34,6 @@ class Event(models.Model):
     start_datetime = models.DateTimeField(null=True, blank=False)
     end_datetime = models.DateTimeField(null=True, blank=False)
 
-    # mainStaffId = models.CharField(max_length=11, blank=True, default='')
-
     info = models.CharField(max_length=200, blank=True, default='')
 
     # skills = models.JSONField(default=dict)
@@ -52,58 +50,56 @@ class Event(models.Model):
     attachment_file = models.FileField(upload_to=event_attachment_file_directory_path, null=True, blank=True)
 
     skills = models.ManyToManyField(Skill, related_name='event_skill_set', null=True)
-    staffs = models.ManyToManyField(Staff, related_name='event_staff_set', null=True)
+    staffs = models.ManyToManyField(User, related_name='event_staff_set', null=True)
 
     def __str__(self):
         return "{} {}".format(self.id, self.title)
 
-#should we let it record staff?????
-class StudentAttendEvent(models.Model):
+class EventAttendance(models.Model):
     id = models.BigAutoField(primary_key=True)
 
     event_id_fk = models.ForeignKey(Event, on_delete=models.CASCADE, null=False)
-    student_id = models.CharField(max_length=11)
+    university_id = models.CharField(max_length=11)
 
     firstname = models.CharField(max_length=50, blank=True, default='')
     middlename = models.CharField(max_length=50, blank=True, default='')
     lastname = models.CharField(max_length=50, blank=True, default='')
 
-    student_id_fk = models.ForeignKey(Student, null=True, on_delete=models.SET_NULL)
+    user_id_fk = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     synced = models.BooleanField(default=False)
     used_for_calculation = models.BooleanField(default=False)
 
 
-class StaffManageEvent(models.Model):
-    id = models.BigAutoField(primary_key=True)
-
-    event_id_fk = models.ForeignKey(Event, on_delete=models.CASCADE)
-    user_id_fk = models.ForeignKey(User, on_delete=models.CASCADE)
-    is_main_staff = models.BooleanField(default=False)
-
-
-# class EventSkill(models.Model):
+# class StaffManageEvent(models.Model):
 #     id = models.BigAutoField(primary_key=True)
-#     skill_id_fk = models.ForeignKey(Skill, on_delete=models.CASCADE)
+#
 #     event_id_fk = models.ForeignKey(Event, on_delete=models.CASCADE)
+#     user_id_fk = models.ForeignKey(User, on_delete=models.CASCADE)
+#     is_main_staff = models.BooleanField(default=False)
+
 
 
 class SkillGroup(models.Model):
     id = models.BigAutoField(primary_key=True)
-    title = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
     info = models.CharField(max_length=200, default='')
 
+    skills = models.ManyToManyField(Skill, related_name='skillgroup_skill_set', null=True)
 
-class AssignSkillToSkillGroup(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    skill_id_fk = models.ForeignKey(Skill, on_delete=models.CASCADE)
-    skill_group_id_fk = models.ForeignKey(SkillGroup, on_delete=models.CASCADE)
+    def __str__(self):
+        return "{} {}".format(self.id, self.name)
+
+
+# class AssignSkillToSkillGroup(models.Model):
+#     id = models.BigAutoField(primary_key=True)
+#     skill_id_fk = models.ForeignKey(Skill, on_delete=models.CASCADE)
+#     skill_group_id_fk = models.ForeignKey(SkillGroup, on_delete=models.CASCADE)
 
 
 def curriculum_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     return 'curriculums/{0}/{1}'.format(instance.id, filename)
-
 
 class Curriculum(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -114,7 +110,12 @@ class Curriculum(models.Model):
     info = models.CharField(max_length=200, default='')
     attachment_file = models.FileField(upload_to=curriculum_attachment_file_directory_path, null=True, blank=True)
 
-class CurriculumSKillGroup(models.Model):
-    curriculum_id_fk = models.ForeignKey(Curriculum, on_delete=models.CASCADE)
-    skill_group_id_fk = models.ForeignKey(SkillGroup, on_delete=models.CASCADE)
+    skillgroups = models.ManyToManyField(SkillGroup, related_name='curriculum_skillgroup_set', null=True)
+
+    def __str__(self):
+        return "{} {}".format(self.id, self.th_name)
+
+# class CurriculumSKillGroup(models.Model):
+#     curriculum_id_fk = models.ForeignKey(Curriculum, on_delete=models.CASCADE)
+#     skill_group_id_fk = models.ForeignKey(SkillGroup, on_delete=models.CASCADE)
 

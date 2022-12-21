@@ -4,14 +4,14 @@ from django.shortcuts import render
 # from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 
-from student.models import Student
-from staff.models import Staff
 
 # from .models import Entry
 # from .serializers import BlogAuthorSerializer
 #
 # from django.core.files.storage import default_storage
 #
+from user_profile.models import UserProfile
+
 
 def home(request):
 
@@ -33,14 +33,8 @@ def userApi(request):
         'groups' : groups,
     }
 
-    if 'staff' in groups:
-        staff = Staff.objects.get(user_id_fk=request.user.id)
-        data_dict['staff_id'] = staff.staff_id
-
-    if 'student' in groups:
-        student = Student.objects.get(user_id_fk=request.user.id)
-        data_dict['student_id'] = student.student_id
-
+    user_profile = UserProfile.objects.get(user_id_fk=request.user.id)
+    data_dict['uservisity_id'] = user_profile.university_id
 
     return JsonResponse(data_dict, safe=False)
 

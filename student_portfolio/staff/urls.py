@@ -8,6 +8,6 @@ urlpatterns=[
     # re_path(r'^employee/savefile',views.SaveFile)
 
 
-    path('api/staff', views.staffApi),
-    path('api/staff/<int:id>', views.staffApi),
+    # path('api/staff', views.staffApi),
+    # path('api/staff/<int:id>', views.staffApi),
 ]

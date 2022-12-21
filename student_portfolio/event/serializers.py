@@ -1,14 +1,13 @@
 from rest_framework import serializers
 
-from staff.models import Staff
-from student.models import Student
-from .models import Event, StudentAttendEvent, Skill
+#
+from .models import Event, EventAttendance, Skill
 from rest_framework.parsers import JSONParser
 from django.contrib.auth.models import User
 
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
-from .access_policies import EventApiAccessPolicy, StudentAttendEventApiAccessPolicy
+from .access_policies import EventApiAccessPolicy, EventAttendanceApiAccessPolicy
 
 from datetime import datetime
 import json
@@ -35,7 +34,7 @@ class EventStaffSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
 
     class Meta:
-        model = Staff
+        model = User
         fields = ('id',)
 
 class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
@@ -93,7 +92,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.staffs.clear()
         if 'staffs' in validated_data:
             for e in validated_data.get('staffs'):
-                instance.staffs.add(Staff.objects.get(id=e['id']))
+                instance.staffs.add(User.objects.get(id=e['id']))
 
         instance.save()
         return instance
@@ -174,26 +173,27 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         return data
 
 
-class StudentAttendEventSerializer(FieldAccessMixin, serializers.ModelSerializer):
+class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     event_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=True, queryset=Event.objects.all())
 
-    student_id = serializers.CharField(min_length=11, max_length=11, required=True)
+    university_id = serializers.CharField(min_length=11, max_length=11, required=True)
 
     firstname = serializers.CharField(max_length=50, required=False, allow_blank=True)
     middlename = serializers.CharField(max_length=50, required=False, allow_blank=True)
     lastname = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
-    student_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=Student.objects.all())
+    user_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=User.objects.all())
 
     synced = serializers.BooleanField(required=False)
     used_for_calculation = serializers.BooleanField( required=False)
 
     class Meta:
-        model = StudentAttendEvent
-        fields = ('id', 'event_id_fk', 'student_id', 'firstname', 'middlename', 'lastname', 'student_id_fk', 'synced', 'used_for_calculation')
+        model = EventAttendance
+        fields = ('id', 'event_id_fk', 'university_id', 'firstname', 'middlename', 'lastname',
+                  'user_id_fk', 'synced', 'used_for_calculation')
 
-        access_policy = StudentAttendEventApiAccessPolicy
+        access_policy = EventAttendanceApiAccessPolicy
 
     @staticmethod
     def custom_clean(instance=None, data=None, context=None):

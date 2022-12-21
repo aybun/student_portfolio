@@ -4,11 +4,13 @@ from django.db import IntegrityError, transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
 from django.db.models import Q
+from django.contrib.auth.models import User
 
-from student.models import Student
-from .models import Event, StudentAttendEvent, Skill
+# from student.models import Student
+from user_profile.models import UserProfile
+from .models import Event, EventAttendance, Skill
 from .serializers import EventSerializer, SkillSerializer, EventAccessPolicyTestSerializer, EventAccessPolicy, \
-    EventSkillSerializer, StudentAttendEventSerializer
+    EventSkillSerializer, EventAttendanceSerializer
 
 from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes, action
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
@@ -118,17 +120,15 @@ def eventApi(request, event_id=0):
 
     elif request.method=='PUT':
 
-        event = Event.objects.get(id=event_id)
-        if event is None:
-            return JsonResponse("Failed to update.", safe=False)
+        if 'staff' in groups or 'student' in groups:
 
-        if 'staff' in groups or ('student' in groups and event.created_by == request.user.id and (not event.approved)):
-            #Note : Update Staff.
+            query_object = EventApiAccessPolicy.scope_query_object(request=request)
+            event = Event.objects.filter(Q(id=event_id) & query_object).first()
+            if event is None:
+                return JsonResponse("Failed to update.", safe=False)
 
             data = request.data.dict()
-            print(data)
             event_data = EventSerializer.custom_clean(instance=event, data=data, context={'request' : request})
-            print(event_data)
             event_serializer = EventSerializer(event, data=event_data, context={'request': request})
 
             if event_serializer.is_valid():
@@ -154,21 +154,19 @@ def eventApi(request, event_id=0):
 
     elif request.method=='DELETE':
 
-        event = Event.objects.filter(id=event_id).first()
+        if 'staff' in groups or 'student' in groups:
 
+            query_object = EventApiAccessPolicy.scope_query_object(request=request)
+            event = Event.objects.filter(Q(id=event_id) & query_object).first()
 
-        if event is None:
-            return JsonResponse("Failed to delete.", safe=False)
-
-        # print('student' in groups and (event.created_by == request.user.id) and (not event.approved))
-        if 'staff' in groups or \
-                ('student' in groups and (event.created_by.id == request.user.id) and (not event.approved)):
+            if event is None:
+                return JsonResponse("Failed to delete.", safe=False)
 
             success = True
             try:
                 with transaction.atomic():
 
-                    Event.objects.filter(id=event_id).delete()
+                    event.delete()
 
             except IntegrityError:
                 success=False
@@ -191,10 +189,10 @@ def eventAttendanceOfStudents(request, event_id=0):
 
 
 @parser_classes((JSONParser,))
-@permission_classes((StudentAttendEventApiAccessPolicy,))
+@permission_classes((EventAttendanceApiAccessPolicy,))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @authentication_classes((SessionAuthentication, BasicAuthentication))
-def eventAttendanceOfStudentsApi(request, event_id=0, attendance_id=0):
+def eventAttendanceApi(request, event_id=0, attendance_id=0):
 
     groups = list(request.user.groups.values_list('name', flat=True))
 
@@ -202,25 +200,25 @@ def eventAttendanceOfStudentsApi(request, event_id=0, attendance_id=0):
         if 'staff' in groups:
             if (attendance_id == 0):
 
-                query_object = StudentAttendEventApiAccessPolicy.scope_query_object(request=request)
-                attendances = StudentAttendEvent.objects.filter( Q(event_id_fk=event_id) & query_object ).order_by('id')
-                serializer = StudentAttendEventSerializer(attendances, many=True, context={'request' : request})
+                query_object = EventAttendanceApiAccessPolicy.scope_query_object(request=request)
+                attendances = EventAttendance.objects.filter( Q(event_id_fk=event_id) & query_object ).order_by('id')
+                serializer = EventAttendanceSerializer(attendances, many=True, context={'request' : request})
 
                 return JsonResponse(serializer.data, safe=False)
             else:
-                query_object = StudentAttendEventApiAccessPolicy.scope_query_object(request=request)
-                attendance = StudentAttendEvent.objects.filter(Q(id=attendance_id) & query_object).first()
+                query_object = EventAttendanceApiAccessPolicy.scope_query_object(request=request)
+                attendance = EventAttendance.objects.filter(Q(id=attendance_id) & query_object).first()
 
                 if attendance is None:
                     return JsonResponse("The object does not exist.", safe=False)
 
-                serializer = StudentAttendEventSerializer(attendance, context={'request' : request})
+                serializer = EventAttendanceSerializer(attendance, context={'request' : request})
                 return JsonResponse(serializer.data, safe=False)
 
 
         elif 'student' in groups:
-            student = Student.objects.get(user_id_fk=request.user.id)
-            attendances = StudentAttendEvent.objects.filter(student_id_fk=student.id)
+            # student = Student.objects.get(user_id_fk=request.user.id)
+            attendances = EventAttendance.objects.filter(user_id_fk=request.user.id)
 
             if not attendances.exists():
                 return JsonResponse("The objects do not exist.", safe=False)
@@ -235,25 +233,16 @@ def eventAttendanceOfStudentsApi(request, event_id=0, attendance_id=0):
             else:
                 return JsonResponse("The objects do not exist.", safe=False)
 
-        # elif 'student' in groups:
-        #
-        #     if (eventId == 0): #Get all events this student joined.
-        #         student = Student.objects.get(userId=request.user.id)
-        #         attendances = EventAttendanceOfStudents.objects.filter(studentId=student.studentId)
-        #         serializer = EventAttendanceOfStudentsSerializer(attendances, many=True)
-        #         return JsonResponse(serializer.data, safe=False)
-
-
     elif request.method=='POST':
         if 'staff' in groups:
 
             attendance_data = request.data.dict()
-            print(attendance_data)
-            attendance = StudentAttendEvent.objects.filter(event_id_fk=attendance_data['event_id_fk'],
-                                                           student_id=attendance_data['student_id'])
+            # print(attendance_data)
+            attendance = EventAttendance.objects.filter(event_id_fk=attendance_data['event_id_fk'],
+                                                        university_id=attendance_data['university_id'])
 
             if not attendance.exists():
-                serializer = StudentAttendEventSerializer(data=attendance_data, context={'request' : request})
+                serializer = EventAttendanceSerializer(data=attendance_data, context={'request' : request})
             else:
                 return JsonResponse("The student is present in the attendance table.", safe=False)
 
@@ -270,14 +259,14 @@ def eventAttendanceOfStudentsApi(request, event_id=0, attendance_id=0):
         if 'staff' in groups:
             attendance_data = request.data.dict()
 
-            attendance_data = StudentAttendEventSerializer.custom_clean(data=attendance_data, context={'request' : request})
+            attendance_data = EventAttendanceSerializer.custom_clean(data=attendance_data, context={'request' : request})
 
             print(attendance_data)
-            attendance = StudentAttendEvent.objects.filter(id=attendance_data['id']).first()
+            attendance = EventAttendance.objects.filter(id=attendance_data['id']).first()
             if attendance is None:
                 return JsonResponse("Failed to Update", safe=False)
 
-            serializer=StudentAttendEventSerializer(attendance, data=attendance_data, context={'request' : request})
+            serializer=EventAttendanceSerializer(attendance, data=attendance_data, context={'request' : request})
 
             if serializer.is_valid():
                 serializer.save()
@@ -290,7 +279,7 @@ def eventAttendanceOfStudentsApi(request, event_id=0, attendance_id=0):
     elif request.method=='DELETE': #Need to handle carefully.
 
         if 'staff' in groups:
-            attendance = StudentAttendEvent.objects.get(id=attendance_id)
+            attendance = EventAttendance.objects.get(id=attendance_id)
 
             if attendance is not None:
                 attendance.delete()
@@ -305,39 +294,35 @@ def syncStudentAttendanceByStudentId(request, event_id=0):
     if request.method == 'PUT':
 
         #Make queries.
-        attendances = StudentAttendEvent.objects.filter(event_id_fk=event_id)
-        student_id_of_attendees_list = attendances.values_list('student_id', flat=True)
-        first_two_letters_set = set([e[:2] for e in student_id_of_attendees_list])
+        attendances = EventAttendance.objects.filter(event_id_fk=event_id)
+        university_id_list_of_attendees = attendances.values_list('university_id', flat=True)
+        first_two_letters_set = set([e[:2] for e in university_id_list_of_attendees])
         query_string = Q()
         for e in first_two_letters_set:
-            query_string = query_string | Q(student_id__startswith=e)
+            query_string = query_string | Q(university_id__startswith=e)
 
-        students = Student.objects.filter(query_string).values_list('student_id', 'id')
-        print(students)
-        student_ids = [e[0] for e in students]
-        student_id_fks = [e[1] for e in students]
-        print(student_ids)
-        print(student_id_fks)
+        user_profiles = UserProfile.objects.filter(query_string).values_list('university_id', 'user_id_fk')
+
+        university_ids = [e[0] for e in user_profiles]
+        user_id_fks = [e[1] for e in user_profiles]
+
         #Delete Duplications.
         to_be_saved = []
-        unique_student_ids = []
+        unique_user_ids = []
         for attendance in attendances:
-            if attendance.student_id not in unique_student_ids:
-                unique_student_ids.append(attendance.student_id)
+            if attendance.university_id not in unique_user_ids:
+                unique_user_ids.append(attendance.university_id)
                 to_be_saved.append(attendance)
             else:
                 attendance.delete()
 
-        #Set synced=True and Set student_id_fk.
+        #Set synced=True and Set user_id_fk.
         attendances = to_be_saved
         for attendance in attendances:
-            for i in range(0, len(student_ids)):
-                if attendance.student_id == student_ids[i]:
+            for i in range(0, len(university_ids)):
+                if attendance.university_id == university_ids[i]:
                     attendance.synced = True
-                    attendance.student_id_fk = Student.objects.get(id=student_id_fks[i])
-
-                    # print(attendance)
-                    # print(attendance.)
+                    attendance.user_id_fk = User.objects.get(id=user_id_fks[i])
 
         #Save to the database.
         success = True
@@ -355,7 +340,7 @@ def syncStudentAttendanceByStudentId(request, event_id=0):
             return JsonResponse("Failed to sync.", safe=False)
 
 
-@parser_classes([JSONParser, MultiPartParser ])
+@parser_classes([JSONParser, MultiPartParser])
 @api_view(['GET', 'PUT'])
 @permission_classes((SkillTableApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))

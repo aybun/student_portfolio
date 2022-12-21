@@ -1,23 +1,9 @@
 from django.contrib import admin
-from.models import Event, Skill, StudentAttendEvent
+from.models import Event, Skill, EventAttendance, Curriculum, SkillGroup
 
 # Register your models here.
 admin.site.register(Event)
 admin.site.register(Skill)
-admin.site.register(StudentAttendEvent)
-
-# class EventSkillInline(admin.TabularInline):
-#     model = Event.skills.through
-#
-#
-# class SkillAdmin(admin.ModelAdmin):
-#     inlines = [
-#         EventSkillInline,
-#     ]
-#
-#
-# class EventAdmin(admin.ModelAdmin):
-#     inlines = [
-#         EventSkillInline,
-#     ]
-#     exclude = ('skills',)
+admin.site.register(EventAttendance)
+admin.site.register(Curriculum)
+admin.site.register(SkillGroup)

@@ -168,7 +168,7 @@
                     <h3>Staffs</h3>
                     <div class="form-row" v-for="(staff, index) in event.staffs" :key="index">
                         <select v-model="staff.id" class="form-control sl">
-                            <option v-for="e in staffTable" v-bind:value="e.id">
+                            <option v-for="e in staffTable" v-bind:value="e.user_id_fk">
                                 {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
                             </option>
                         </select>

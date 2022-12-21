@@ -58,7 +58,7 @@
             class="btn btn-primary m-2 fload-end"
 
             @click="syncByStudentIdClick()">
-             Sync by StudentId
+             Sync by university id
             </button>
 
             <table class="table table-striped">
@@ -87,7 +87,7 @@
             </thead>
             <tbody>
                 <tr v-for="att in studentAttendances">
-                    <td>{{att.student_id}}</td>
+                    <td>{{att.university_id}}</td>
                     <td>{{att.firstname}}</td>
                     <td>{{att.middlename}}</td>
                     <td>{{att.lastname}}</td>
@@ -137,8 +137,8 @@
 <!--                        </div>-->
 
                         <div class="input-group mb-3">
-                            <span class="input-group-text">Student Id</span>
-                            <input type="text" class="form-control" v-model="studentAttendEvent.student_id">
+                            <span class="input-group-text">University Id</span>
+                            <input type="text" class="form-control" v-model="studentAttendEvent.university_id">
                         </div>
 
                         <div class="input-group mb-3">
