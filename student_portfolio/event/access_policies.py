@@ -181,7 +181,7 @@ class SkillGroupApiAccessPolicy(AccessPolicy):
     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
 
         if request.method == "POST":
-            fields = {'name': fields['name']}
+            fields = {'name': fields.get('name', None)}
 
         elif request.method == "PUT":
             pass

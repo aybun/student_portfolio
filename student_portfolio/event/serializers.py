@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 #
-from .models import Event, EventAttendance, Skill, SkillGroup, Curriculum
+from .models import Event, EventAttendance, Skill, Skillgroup, Curriculum
 from rest_framework.parsers import JSONParser
 from django.contrib.auth.models import User
 
@@ -226,26 +226,25 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
 class CurriculumSkillGroupSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
 
-    class meta:
-        model = SkillGroup
+    class Meta:
+        model = Skillgroup
         fields = ('id',)
 
 class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     th_name = serializers.CharField(max_length=50, allow_blank=True, required=False)
     en_name = serializers.CharField(max_length=50, allow_blank=True, required=False)
-    start_date = serializers.DateField(required=False)
-    end_date = serializers.DateField(required=False)
-    info = serializers.CharField(max_length=200, allow_blank=True)
+    start_date = serializers.DateField(required=False, format="%Y-%m-%d")
+    end_date = serializers.DateField(required=False, format="%Y-%m-%d")
+    info = serializers.CharField(max_length=200, allow_blank=True, required=False)
 
-    attachment_file = serializers.FileField(required=False, allow_null=True, blank=True)
+    attachment_file = serializers.FileField(required=False, allow_null=True)
 
     skillgroups = CurriculumSkillGroupSerializer(many=True, read_only=False, allow_null=True, required=False)
 
     class Meta:
         model = Curriculum
         fields = ('id', 'th_name', 'en_name', 'start_date', 'end_date', 'info', 'attachment_file', 'skillgroups')
-
         access_policy = CurriculumApiAccessPolicy
 
     def update(self, instance, validated_data):
@@ -260,7 +259,7 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.skillgroups.clear()
         if 'skillgroups' in validated_data:
             for e in validated_data.get('skillgroups'):
-                instance.skills.add(SkillGroup.objects.get(id=e['id']))
+                instance.skillgroups.add(Skillgroup.objects.get(id=e['id']))
 
         instance.save()
         return instance
@@ -268,9 +267,11 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
     @staticmethod
     def custom_clean_skillgroups(instance=None, data=None, context=None):
 
-        skill_group_ids = SkillGroup.objects.all().values_list('id', flat=True)
+        skill_group_ids = Skillgroup.objects.all().values_list('id', flat=True)
 
+        print(data)
         list_of_dicts = json.loads(data)
+        print("list_of_dicts : {}".format(list_of_dicts))
 
         if not (isinstance(list_of_dicts, list)) or len(list_of_dicts) == 0: #Pop from the caller.
             return ''
@@ -291,7 +292,7 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
         return out_list
 
     @staticmethod
-    def custom_clean(instance, data=None, context=None):
+    def custom_clean(instance=None, data=None, context=None):
         request = context['request']
 
         if request.method == "POST":
@@ -302,16 +303,20 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 data.pop('attachment_file', None)
 
             if 'skillgroups' in data:
-                data['skillgroups'] = CurriculumSerializer.custom_clean_skillgroups(data['skillgroups'])
-                if isinstance(data.get('staffs', None), str):
-                    data.pop('staffs', None)
+
+                skillgroup = CurriculumSerializer.custom_clean_skillgroups(data=data.get('skillgroups'))
+
+                if isinstance(skillgroup, str):
+                    data.pop('skillgroups', None)
+                else:
+                    data['skillgroups'] = skillgroup
 
         return data
 
 class SkillAssignedToSkillGroup(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
 
-    class meta:
+    class Meta:
         model = Skill
         fields = ('id',)
 
@@ -323,8 +328,8 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     skills = SkillAssignedToSkillGroup(many=True, read_only=False, allow_null=True, required=False)
 
-    class meta:
-        model = Skill
+    class Meta:
+        model = Skillgroup
         fields = ('id', 'name', 'info', 'skills')
 
         access_policy = SkillGroupApiAccessPolicy
@@ -334,6 +339,7 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.info = validated_data.get('info', instance.info)
 
+        instance.skills.clear()
         if 'skills' in validated_data:
             for e in validated_data.get('skills'):
                 instance.skills.add(Skill.objects.get(id=e['id']))
@@ -347,6 +353,7 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         if request.method == "POST":
             pass
+
         elif request.method == "PUT":
 
             if 'skills' in data:
@@ -354,6 +361,7 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 if isinstance(data.get('skills', None), str):
                     data.pop('skills', None)
 
+        return data
 
 
 
@@ -391,53 +399,53 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
 
 
-class EventAccessPolicyTestSerializer(FieldAccessMixin, serializers.ModelSerializer):
-
-    eventId = serializers.IntegerField(required=False, read_only=True)
-    title = serializers.CharField(max_length=100, required=True)
-    date = serializers.DateField(required=True)
-
-    mainStaffId = serializers.CharField(max_length=11, allow_blank=True)
-
-    info = serializers.CharField(max_length=200, allow_blank=True)
-    skills = serializers.JSONField(default=[])
-
-    created_by = serializers.IntegerField(required=False)
-
-    approved = serializers.BooleanField(required=False)
-    used_for_calculation = serializers.BooleanField(required=False)
-
-    attachment_link = serializers.URLField(required=False, max_length=200, allow_blank=True)
-    # Validate attachment_file
-    attachment_file = serializers.FileField(required=False, allow_null=True)
-
-    class Meta:
-        model = Event
-        fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills', 'created_by',
-                  'approved', 'used_for_calculation', 'attachment_link', 'attachment_file')
-
-        # access_policy = EventAccessPolicy
-
-    def validate_skills(self, stringnified_list_of_dicts):
-        skill_ids = Skill.objects.all().values_list('skillId', flat=True)
-
-        list_of_dicts = json.loads(stringnified_list_of_dicts)
-
-        unique_ids = []
-        out_list = []
-        for e in list_of_dicts:
-
-            id = e['skillId']
-            if id not in skill_ids:
-                raise serializers.ValidationError("The skillId is not present in the Skill table : " + str(e['skillId']) )
-
-            if id not in unique_ids:
-                unique_ids.append(id)
-                out_list.append(e)
-
-        return out_list
-
-    def validate_attachment_file(self, input):
-
-        return input
+# class EventAccessPolicyTestSerializer(FieldAccessMixin, serializers.ModelSerializer):
+#
+#     eventId = serializers.IntegerField(required=False, read_only=True)
+#     title = serializers.CharField(max_length=100, required=True)
+#     date = serializers.DateField(required=True)
+#
+#     mainStaffId = serializers.CharField(max_length=11, allow_blank=True)
+#
+#     info = serializers.CharField(max_length=200, allow_blank=True)
+#     skills = serializers.JSONField(default=[])
+#
+#     created_by = serializers.IntegerField(required=False)
+#
+#     approved = serializers.BooleanField(required=False)
+#     used_for_calculation = serializers.BooleanField(required=False)
+#
+#     attachment_link = serializers.URLField(required=False, max_length=200, allow_blank=True)
+#     # Validate attachment_file
+#     attachment_file = serializers.FileField(required=False, allow_null=True)
+#
+#     class Meta:
+#         model = Event
+#         fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills', 'created_by',
+#                   'approved', 'used_for_calculation', 'attachment_link', 'attachment_file')
+#
+#         # access_policy = EventAccessPolicy
+#
+#     def validate_skills(self, stringnified_list_of_dicts):
+#         skill_ids = Skill.objects.all().values_list('skillId', flat=True)
+#
+#         list_of_dicts = json.loads(stringnified_list_of_dicts)
+#
+#         unique_ids = []
+#         out_list = []
+#         for e in list_of_dicts:
+#
+#             id = e['skillId']
+#             if id not in skill_ids:
+#                 raise serializers.ValidationError("The skillId is not present in the Skill table : " + str(e['skillId']) )
+#
+#             if id not in unique_ids:
+#                 unique_ids.append(id)
+#                 out_list.append(e)
+#
+#         return out_list
+#
+#     def validate_attachment_file(self, input):
+#
+#         return input
 

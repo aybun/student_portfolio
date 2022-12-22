@@ -29,12 +29,21 @@ urlpatterns=[
 #SYNC
     path('api/syncStudentAttendanceByStudentId/<int:event_id>', views.syncStudentAttendanceByStudentId),
 
+    path('profile/curriculum', views.curriculum),
+    path('api/curriculum', views.curriculumApi),
+    path('api/curriculum/<int:curriculum_id>', views.curriculumApi),
+
+    path('profile/skillgroup', views.skillgroup),
+    path('api/skillgroup', views.skillGroupApi),
+    path('api/skillgroup/<int:skillgroup_id>', views.skillGroupApi),
 
     path('api/skillTable', views.skillTableApi),
 
+
+
     #Test Access policy
-    path('api/testEvent/<int:eventId>', views.eventWithAccessPolicyApi),
-    path('api/testListEvents', views.listEventsWithAccessPolicyApi),
+    # path('api/testEvent/<int:eventId>', views.eventWithAccessPolicyApi),
+    # path('api/testListEvents', views.listEventsWithAccessPolicyApi),
 
 ]
 

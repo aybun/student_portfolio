@@ -79,7 +79,7 @@ class EventAttendance(models.Model):
 #     is_main_staff = models.BooleanField(default=False)
 
 
-class SkillGroup(models.Model):
+class Skillgroup(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=50)
     info = models.CharField(max_length=200, default='')
@@ -109,7 +109,7 @@ class Curriculum(models.Model):
     info = models.CharField(max_length=200, default='')
     attachment_file = models.FileField(upload_to=curriculum_attachment_file_directory_path, null=True, blank=True)
 
-    skillgroups = models.ManyToManyField(SkillGroup, related_name='curriculum_skillgroup_set', null=True)
+    skillgroups = models.ManyToManyField(Skillgroup, related_name='curriculum_skillgroup_set', null=True)
 
     def __str__(self):
         return "{} {}".format(self.id, self.th_name)

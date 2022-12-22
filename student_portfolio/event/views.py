@@ -8,9 +8,8 @@ from django.contrib.auth.models import User
 
 # from student.models import Student
 from user_profile.models import UserProfile
-from .models import Event, EventAttendance, Skill, Curriculum, SkillGroup
-from .serializers import EventSerializer, SkillSerializer, EventAccessPolicyTestSerializer, EventAccessPolicy, \
-    EventSkillSerializer, EventAttendanceSerializer, CurriculumSerializer, SkillGroupSerializer
+from .models import Event, EventAttendance, Skill, Curriculum, Skillgroup
+from .serializers import EventSerializer, SkillSerializer, EventSkillSerializer, EventAttendanceSerializer, CurriculumSerializer, SkillGroupSerializer
 
 from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes, action
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
@@ -367,6 +366,9 @@ def skillTableApi(request):
         return JsonResponse("Updated Successfully", safe=False)
 
 
+def curriculum(request):
+    return render(request, 'profile/curriculum.html', {})
+
 @parser_classes([JSONParser, MultiPartParser ])
 @permission_classes((CurriculumApiAccessPolicy,))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
@@ -464,6 +466,9 @@ def curriculumApi(request, curriculum_id=0):
             return JsonResponse("Failed to delete.", safe=False)
 
 
+def skillgroup(request):
+    return render(request, 'profile/skillgroup.html', {})
+
 @parser_classes([JSONParser, MultiPartParser])
 @permission_classes((SkillGroupApiAccessPolicy,))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
@@ -472,7 +477,7 @@ def skillGroupApi(request, skillgroup_id=0):
 
     Serializer = SkillGroupSerializer
     AccessPolicyClass = SkillGroupApiAccessPolicy
-    Model = SkillGroup
+    Model = Skillgroup
 
     if request.method == "GET":
         if skillgroup_id == 0:
@@ -483,6 +488,7 @@ def skillGroupApi(request, skillgroup_id=0):
                 return JsonResponse("The objects do not exist.", safe=False)
 
             serializer = Serializer(objects, many=True, context={'request': request})
+            print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
             query_object = AccessPolicyClass.scope_query_object(request=request)
@@ -516,16 +522,16 @@ def skillGroupApi(request, skillgroup_id=0):
             print(serializer.errors)
             return JsonResponse("Failed to Add", safe=False)
     elif request.method == "PUT":
-        query_object = CurriculumApiAccessPolicy.scope_query_object(request=request)
-        object = Curriculum.objects.filter(Q(id=skillgroup_id) & query_object).first()
+        query_object = AccessPolicyClass.scope_query_object(request=request)
+        object = Model.objects.filter(Q(id=skillgroup_id) & query_object).first()
 
         if object is None:
             return JsonResponse("Failed to update.", safe=False)
 
         data = request.data.dict()
-        data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
+        data = Serializer.custom_clean(data=data, context={'request': request})
         serializer = Serializer(object, data=data, context={'request': request})
-
+        print(data)
         if serializer.is_valid():
             success = True
             try:
@@ -567,21 +573,21 @@ def skillGroupApi(request, skillgroup_id=0):
 
 # @permission_classes((EventAccessPolicy,))
 # @authentication_classes((SessionAuthentication, BasicAuthentication))
-@api_view(("GET",))
-@permission_classes((EventAccessPolicy,))
-def eventWithAccessPolicyApi(request, eventId=0):
-
-    if request.method=='GET':
-        event = Event.objects.get(eventId=eventId)
-        event_serializer = EventAccessPolicyTestSerializer(event, context = {'request':request})
-        print(event_serializer.data)
-        return JsonResponse(event_serializer.data, safe=False)
-
-@permission_classes((EventAccessPolicy,))
-@api_view(("GET",))
-@authentication_classes((SessionAuthentication, BasicAuthentication))
-def listEventsWithAccessPolicyApi(request):
-    if request.method =='GET':
-        events = Event.objects.filter(approved__in=[True])
-        events_serializer = EventAccessPolicyTestSerializer(events, many=True, context = {'request':request})
-        return JsonResponse(events_serializer.data, safe=False)
+# @api_view(("GET",))
+# @permission_classes((EventAccessPolicy,))
+# def eventWithAccessPolicyApi(request, eventId=0):
+#
+#     if request.method=='GET':
+#         event = Event.objects.get(eventId=eventId)
+#         event_serializer = EventAccessPolicyTestSerializer(event, context = {'request':request})
+#         print(event_serializer.data)
+#         return JsonResponse(event_serializer.data, safe=False)
+#
+# @permission_classes((EventAccessPolicy,))
+# @api_view(("GET",))
+# @authentication_classes((SessionAuthentication, BasicAuthentication))
+# def listEventsWithAccessPolicyApi(request):
+#     if request.method =='GET':
+#         events = Event.objects.filter(approved__in=[True])
+#         events_serializer = EventAccessPolicyTestSerializer(events, many=True, context = {'request':request})
+#         return JsonResponse(events_serializer.data, safe=False)
