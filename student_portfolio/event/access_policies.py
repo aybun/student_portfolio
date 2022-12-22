@@ -117,8 +117,92 @@ class EventAttendanceApiAccessPolicy(AccessPolicy):
             return Q()
 
 
+class CurriculumApiAccessPolicy(AccessPolicy):
+    statements = [
+        {
+            "action": ["<method:post>", "<method:put>", "<method:delete>"],
+            "principal": ["group:staff"],
+            "effect": "allow"
 
+        },
 
+        {
+            "action": ["<method:get>"],
+            "principal": ["group:staff", "group:student"],
+            "effect": "allow"
+        },
+
+    ]
+
+    @classmethod
+    def scope_fields(cls, request, fields: dict, instance=None) -> dict:
+
+        if request.method == "POST":
+            fields = {'th_name': fields['th_name']}
+
+        elif request.method == "PUT":
+            pass
+
+        return fields
+
+    @classmethod
+    def scope_query_object(cls, request):
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if request.method == "GET":
+            if 'staff' in groups:
+                return Q()
+            elif 'student' in groups:
+                return Q()
+
+        elif request.method == "PUT":
+            return Q()
+
+        elif request.method == "DELETE":
+            return Q()
+
+class SkillGroupApiAccessPolicy(AccessPolicy):
+    statements = [
+        {
+            "action": ["<method:post>", "<method:put>", "<method:delete>"],
+            "principal": ["group:staff"],
+            "effect": "allow"
+
+        },
+
+        {
+            "action": ["<method:get>"],
+            "principal": ["group:staff", "group:student"],
+            "effect": "allow"
+        },
+    ]
+
+    @classmethod
+    def scope_fields(cls, request, fields: dict, instance=None) -> dict:
+
+        if request.method == "POST":
+            fields = {'name': fields['name']}
+
+        elif request.method == "PUT":
+            pass
+
+        return fields
+
+    @classmethod
+    def scope_query_object(cls, request):
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if request.method == "GET":
+            if 'staff' in groups:
+                return Q()
+            elif 'student' in groups:
+                return Q()
+
+        elif request.method == "PUT":
+            return Q()
+
+        elif request.method == "DELETE":
+            return Q()
 
 
 class SyncStudentAttendanceByStudentIdAccessPolicy(AccessPolicy):

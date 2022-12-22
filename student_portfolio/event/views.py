@@ -8,9 +8,9 @@ from django.contrib.auth.models import User
 
 # from student.models import Student
 from user_profile.models import UserProfile
-from .models import Event, EventAttendance, Skill
+from .models import Event, EventAttendance, Skill, Curriculum, SkillGroup
 from .serializers import EventSerializer, SkillSerializer, EventAccessPolicyTestSerializer, EventAccessPolicy, \
-    EventSkillSerializer, EventAttendanceSerializer
+    EventSkillSerializer, EventAttendanceSerializer, CurriculumSerializer, SkillGroupSerializer
 
 from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes, action
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
@@ -49,10 +49,10 @@ def eventApi(request, event_id=0):
                 query_object = EventApiAccessPolicy.scope_query_object(request=request)
                 events = Event.objects.filter(query_object).order_by('id')
 
-                if events is None:
+                if not events.exists():
                     return JsonResponse({}, safe=False)
 
-                event_serializer=EventSerializer(events, many=True, context={'request': request})
+                event_serializer = EventSerializer(events, many=True, context={'request': request})
                 # print(event_serializer.data)
                 return JsonResponse(event_serializer.data, safe=False)
             else:
@@ -97,21 +97,17 @@ def eventApi(request, event_id=0):
             event_serializer = EventSerializer(data=event_data, context={'request':request})
 
             if event_serializer.is_valid():
-                event_serializer.save()
-                return JsonResponse("Added Successfully", safe=False)
 
-                # success = True
-                # try:
-                #     with transaction.atomic():
-                #         event_serializer.save()
-                # except IntegrityError:
-                #
-                #     success = False
-                #
-                # if success:
-                #     return JsonResponse("Added Successfully", safe=False)
-                # else:
-                #     return JsonResponse("Failed to add.", safe=False)
+                success = True
+                try:
+                    with transaction.atomic():
+                        event_serializer.save()
+                except IntegrityError:
+                    success = False
+                if success:
+                    return JsonResponse("Added Successfully", safe=False)
+                else:
+                    return JsonResponse("Failed to add.", safe=False)
 
             else:
                 print(event_serializer.error_messages)
@@ -165,12 +161,9 @@ def eventApi(request, event_id=0):
             success = True
             try:
                 with transaction.atomic():
-
                     event.delete()
-
             except IntegrityError:
                 success=False
-
             if success:
                 return JsonResponse("Deleted Successfully", safe=False)
             else:
@@ -373,6 +366,201 @@ def skillTableApi(request):
 
         return JsonResponse("Updated Successfully", safe=False)
 
+
+@parser_classes([JSONParser, MultiPartParser ])
+@permission_classes((CurriculumApiAccessPolicy,))
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def curriculumApi(request, curriculum_id=0):
+
+    if request.method == "GET":
+        if curriculum_id == 0:
+            query_object = CurriculumApiAccessPolicy.scope_query_object(request=request)
+            curriculums = Curriculum.objects.filter(query_object).order_by('id')
+
+            if not curriculums.exists():
+                return JsonResponse("The objects do not exist.", safe=False)
+
+            curriculum_serializer = CurriculumSerializer(curriculums, many=True, context={'request': request})
+            return JsonResponse(curriculum_serializer.data, safe=False)
+
+        else:
+            query_object = CurriculumApiAccessPolicy.scope_query_object(request=request)
+            curriculum = Curriculum.objects.filter(Q(id=curriculum_id) & query_object).first()
+
+            if curriculum is None:
+                return JsonResponse("The object does not exist.", safe=False)
+
+            curriculum_serializer = CurriculumSerializer(event, context={'request': request})
+            return JsonResponse(curriculum_serializer.data, safe=False)
+
+    elif request.method == "POST":
+        curriculum_data = request.data.dict()
+        curriculum_data = CurriculumSerializer.custom_clean(data=curriculum_data, context={'request': request})
+        curriculum_serializer = CurriculumSerializer(data=curriculum_data, context={'request': request})
+
+        if curriculum_serializer.is_valid():
+            success = True
+            try:
+                with transaction.atomic():
+                    curriculum_serializer.save()
+            except IntegrityError:
+                success = False
+            if success:
+                return JsonResponse("Added Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to add.", safe=False)
+
+        else:
+            print(curriculum_serializer.error_messages)
+            print(curriculum_serializer.errors)
+            return JsonResponse("Failed to Add", safe=False)
+
+    elif request.method == "PUT":
+        query_object = CurriculumApiAccessPolicy.scope_query_object(request=request)
+        curriculum = Curriculum.objects.filter(Q(id=curriculum_id) & query_object).first()
+
+        if curriculum is None:
+            return JsonResponse("Failed to update.", safe=False)
+
+        curriculum_data = request.data.dict()
+        curriculum_data = CurriculumSerializer.custom_clean(instance=curriculum, data=curriculum_data, context={'request': request})
+        curriculum_serializer = CurriculumSerializer(curriculum, data=curriculum_data, context={'request': request})
+
+        if curriculum_serializer.is_valid():
+            success = True
+            try:
+                with transaction.atomic():
+                    curriculum_serializer.save()
+            except IntegrityError:
+                success = False
+            if success:
+                return JsonResponse("Updated Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to delete.", safe=False)
+
+        else:
+            print(curriculum_serializer.errors)
+            print(curriculum_serializer.error_messages)
+            return JsonResponse("Failed to Update")
+
+
+    elif request.method == "DELETE":
+        query_object = CurriculumApiAccessPolicy.scope_query_object(request=request)
+        curriculum = Curriculum.objects.filter(Q(id=curriculum_id) & query_object).first()
+
+        if curriculum is None:
+            return JsonResponse("Failed to delete.", safe=False)
+
+        success = True
+        try:
+            with transaction.atomic():
+                curriculum.delete()
+        except IntegrityError:
+            success = False
+        if success:
+            return JsonResponse("Deleted Successfully", safe=False)
+        else:
+            return JsonResponse("Failed to delete.", safe=False)
+
+
+@parser_classes([JSONParser, MultiPartParser])
+@permission_classes((SkillGroupApiAccessPolicy,))
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def skillGroupApi(request, skillgroup_id=0):
+
+    Serializer = SkillGroupSerializer
+    AccessPolicyClass = SkillGroupApiAccessPolicy
+    Model = SkillGroup
+
+    if request.method == "GET":
+        if skillgroup_id == 0:
+            query_object = AccessPolicyClass.scope_query_object(request=request)
+            objects = Model.objects.filter(query_object).order_by('id')
+
+            if not objects.exists():
+                return JsonResponse("The objects do not exist.", safe=False)
+
+            serializer = Serializer(objects, many=True, context={'request': request})
+            return JsonResponse(serializer.data, safe=False)
+        else:
+            query_object = AccessPolicyClass.scope_query_object(request=request)
+            object = Model.objects.filter(Q(id=skillgroup_id) & query_object).first()
+
+            if object is None:
+                return JsonResponse("The object does not exist.", safe=False)
+
+            serializer = Serializer(event, context={'request': request})
+            return JsonResponse(serializer.data, safe=False)
+
+    elif request.method == "POST":
+        data = request.data.dict()
+        data = Serializer.custom_clean(data=data, context={'request': request})
+        serializer = Serializer(data=data, context={'request': request})
+
+        if serializer.is_valid():
+            success = True
+            try:
+                with transaction.atomic():
+                    serializer.save()
+            except IntegrityError:
+                success = False
+            if success:
+                return JsonResponse("Added Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to add.", safe=False)
+
+        else:
+            print(serializer.error_messages)
+            print(serializer.errors)
+            return JsonResponse("Failed to Add", safe=False)
+    elif request.method == "PUT":
+        query_object = CurriculumApiAccessPolicy.scope_query_object(request=request)
+        object = Curriculum.objects.filter(Q(id=skillgroup_id) & query_object).first()
+
+        if object is None:
+            return JsonResponse("Failed to update.", safe=False)
+
+        data = request.data.dict()
+        data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
+        serializer = Serializer(object, data=data, context={'request': request})
+
+        if serializer.is_valid():
+            success = True
+            try:
+                with transaction.atomic():
+                    serializer.save()
+            except IntegrityError:
+                success = False
+            if success:
+                return JsonResponse("Updated Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to delete.", safe=False)
+
+        else:
+            print(serializer.errors)
+            print(serializer.error_messages)
+            return JsonResponse("Failed to Update")
+
+    elif request.method == "DELETE":
+
+        query_object = AccessPolicyClass.scope_query_object(request=request)
+        object = Model.objects.filter(Q(id=skillgroup_id) & query_object).first()
+
+        if object is None:
+            return JsonResponse("Failed to delete.", safe=False)
+
+        success = True
+        try:
+            with transaction.atomic():
+                object.delete()
+        except IntegrityError:
+            success = False
+        if success:
+            return JsonResponse("Deleted Successfully", safe=False)
+        else:
+            return JsonResponse("Failed to delete.", safe=False)
 
 
 #Testing AccessPolicy

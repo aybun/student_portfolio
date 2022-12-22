@@ -79,7 +79,6 @@ class EventAttendance(models.Model):
 #     is_main_staff = models.BooleanField(default=False)
 
 
-
 class SkillGroup(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=50)

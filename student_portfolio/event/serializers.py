@@ -1,13 +1,14 @@
 from rest_framework import serializers
 
 #
-from .models import Event, EventAttendance, Skill
+from .models import Event, EventAttendance, Skill, SkillGroup, Curriculum
 from rest_framework.parsers import JSONParser
 from django.contrib.auth.models import User
 
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
-from .access_policies import EventApiAccessPolicy, EventAttendanceApiAccessPolicy
+from .access_policies import EventApiAccessPolicy, EventAttendanceApiAccessPolicy, CurriculumApiAccessPolicy, \
+    SkillGroupApiAccessPolicy
 
 from datetime import datetime
 import json
@@ -117,7 +118,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
             id = e['id']
             if id not in skill_ids:
                 raise serializers.ValidationError(
-                    "The skillId is not present in the Skill table : " + str(e['id']))
+                    "The skill id is not present in the Skill table : " + str(e['id']))
 
             if id not in unique_ids:
                 unique_ids.append(id)
@@ -127,7 +128,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     @staticmethod
     def custom_clean_staffs(instance=None, data=None, context=None):
-        # staff_id_fks = Staff.objects.all().values_list('id', flat=True)
+        user_ids = User.objects.all().values_list('id', flat=True)
         #Need to check for correctness and redundancies.
         list_of_dicts = json.loads(data)
 
@@ -135,7 +136,19 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 list_of_dicts) == 0:  # If it is not a list, return an empty string ''. So that we could pop this field.
             return ''
 
-        return list_of_dicts
+        unique_ids = []
+        out_list = []
+        for e in list_of_dicts:
+            id = e['id']
+            if id not in user_ids:
+                raise serializers.ValidationError(
+                    "The user id is not present in the User table : " + str(e['id']))
+
+            if id not in unique_ids:
+                unique_ids.append(id)
+                out_list.append(e)
+
+        return out_list
 
 
     @staticmethod
@@ -186,7 +199,7 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
     user_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=User.objects.all())
 
     synced = serializers.BooleanField(required=False)
-    used_for_calculation = serializers.BooleanField( required=False)
+    used_for_calculation = serializers.BooleanField(required=False)
 
     class Meta:
         model = EventAttendance
@@ -210,34 +223,171 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
         return data
 
 
-class EventAccessPolicy(AccessPolicy):
-    statements = [
-        {
-            "action": ["eventWithAccessPolicyApi"],
-            "principal": ["group:student", "group:staff"],
-            "effect": "allow"
-        },
-        {
-            "action": ["eventWithAccessPolicyApi"],
-            "principal": ["group:student"],
-            "effect": "deny"
-        },
-        {
-            "action": ["listEventsWithAccessPolicyApi"],
-            "principal": ["group:gods"],
-            "effect": "allow"
-        }
-    ]
+class CurriculumSkillGroupSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
 
-    @classmethod
-    def scope_fields(cls, request, fields: dict, instance=None) -> dict:
+    class meta:
+        model = SkillGroup
+        fields = ('id',)
 
-        groups = request.user.groups.values_list('name', flat=True)
-        print(groups)
-        if 'staff' not in groups:
-            fields.pop('created_by', None)
+class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    th_name = serializers.CharField(max_length=50, allow_blank=True, required=False)
+    en_name = serializers.CharField(max_length=50, allow_blank=True, required=False)
+    start_date = serializers.DateField(required=False)
+    end_date = serializers.DateField(required=False)
+    info = serializers.CharField(max_length=200, allow_blank=True)
 
-        return fields
+    attachment_file = serializers.FileField(required=False, allow_null=True, blank=True)
+
+    skillgroups = CurriculumSkillGroupSerializer(many=True, read_only=False, allow_null=True, required=False)
+
+    class Meta:
+        model = Curriculum
+        fields = ('id', 'th_name', 'en_name', 'start_date', 'end_date', 'info', 'attachment_file', 'skillgroups')
+
+        access_policy = CurriculumApiAccessPolicy
+
+    def update(self, instance, validated_data):
+
+        instance.th_name = validated_data.get('th_name', instance.th_name)
+        instance.en_name = validated_data.get('en_name', instance.en_name)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
+        instance.info = validated_data.get('info', instance.info)
+        instance.attachment_file = validated_data.get('attachment_file', instance.attachment_file)
+
+        instance.skillgroups.clear()
+        if 'skillgroups' in validated_data:
+            for e in validated_data.get('skillgroups'):
+                instance.skills.add(SkillGroup.objects.get(id=e['id']))
+
+        instance.save()
+        return instance
+
+    @staticmethod
+    def custom_clean_skillgroups(instance=None, data=None, context=None):
+
+        skill_group_ids = SkillGroup.objects.all().values_list('id', flat=True)
+
+        list_of_dicts = json.loads(data)
+
+        if not (isinstance(list_of_dicts, list)) or len(list_of_dicts) == 0: #Pop from the caller.
+            return ''
+
+        unique_ids = []
+        out_list = []
+        for e in list_of_dicts:
+
+            id = e['id']
+            if id not in skill_group_ids:
+                raise serializers.ValidationError(
+                    "The skillId is not present in the Skill table : " + str(e['id']))
+
+            if id not in unique_ids:
+                unique_ids.append(id)
+                out_list.append(e)
+
+        return out_list
+
+    @staticmethod
+    def custom_clean(instance, data=None, context=None):
+        request = context['request']
+
+        if request.method == "POST":
+            pass
+        elif request.method == 'PUT':
+
+            if isinstance(data.get('attachment_file', None), str):
+                data.pop('attachment_file', None)
+
+            if 'skillgroups' in data:
+                data['skillgroups'] = CurriculumSerializer.custom_clean_skillgroups(data['skillgroups'])
+                if isinstance(data.get('staffs', None), str):
+                    data.pop('staffs', None)
+
+        return data
+
+class SkillAssignedToSkillGroup(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+
+    class meta:
+        model = Skill
+        fields = ('id',)
+
+class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
+
+    id = serializers.IntegerField(required=False)
+    name = serializers.CharField(max_length=50, allow_blank=True)
+    info = serializers.CharField(max_length=200, allow_blank=True)
+
+    skills = SkillAssignedToSkillGroup(many=True, read_only=False, allow_null=True, required=False)
+
+    class meta:
+        model = Skill
+        fields = ('id', 'name', 'info', 'skills')
+
+        access_policy = SkillGroupApiAccessPolicy
+
+    def update(self, instance, validated_data):
+
+        instance.name = validated_data.get('name', instance.name)
+        instance.info = validated_data.get('info', instance.info)
+
+        if 'skills' in validated_data:
+            for e in validated_data.get('skills'):
+                instance.skills.add(Skill.objects.get(id=e['id']))
+
+        instance.save()
+        return instance
+
+    @staticmethod
+    def custom_clean(instance=None, data=None, context=None):
+        request = context['request']
+
+        if request.method == "POST":
+            pass
+        elif request.method == "PUT":
+
+            if 'skills' in data:
+                data['skills'] = EventSerializer.custom_clean_skills(data=data['skills'])
+                if isinstance(data.get('skills', None), str):
+                    data.pop('skills', None)
+
+
+
+
+
+
+
+# class EventAccessPolicy(AccessPolicy):
+#     statements = [
+#         {
+#             "action": ["eventWithAccessPolicyApi"],
+#             "principal": ["group:student", "group:staff"],
+#             "effect": "allow"
+#         },
+#         {
+#             "action": ["eventWithAccessPolicyApi"],
+#             "principal": ["group:student"],
+#             "effect": "deny"
+#         },
+#         {
+#             "action": ["listEventsWithAccessPolicyApi"],
+#             "principal": ["group:gods"],
+#             "effect": "allow"
+#         }
+#     ]
+#
+#     @classmethod
+#     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
+#
+#         groups = request.user.groups.values_list('name', flat=True)
+#         print(groups)
+#         if 'staff' not in groups:
+#             fields.pop('created_by', None)
+#
+#         return fields
 
 
 
@@ -266,7 +416,7 @@ class EventAccessPolicyTestSerializer(FieldAccessMixin, serializers.ModelSeriali
         fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills', 'created_by',
                   'approved', 'used_for_calculation', 'attachment_link', 'attachment_file')
 
-        access_policy = EventAccessPolicy
+        # access_policy = EventAccessPolicy
 
     def validate_skills(self, stringnified_list_of_dicts):
         skill_ids = Skill.objects.all().values_list('skillId', flat=True)
