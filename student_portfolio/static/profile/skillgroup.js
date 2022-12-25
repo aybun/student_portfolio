@@ -53,7 +53,7 @@ let skillgroupComponent = {
             for (const [key, value] of Object.entries(this.skillgroup)) {
                 outDict.append(key.toString(), value)
             }
-            
+
             axios.defaults.xsrfCookieName = 'csrftoken';
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
             axios({
