@@ -7,6 +7,7 @@ urlpatterns=[
     path('logoutpage', views.logoutView ),
 
     path('api/user', views.userApi),
+    # path('api/userTable, views.userTableApi'),
 
     # path('files/<str:file_id>', views.file),
 

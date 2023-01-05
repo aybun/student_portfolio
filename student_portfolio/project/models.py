@@ -14,8 +14,8 @@ class Project(models.Model):
     id = models.BigAutoField(primary_key=True)
 
     title = models.CharField(max_length=100)
-    start_date = models.DateField(default=django.utils.timezone.now(), blank=False)
-    end_date = models.DateField(default=django.utils.timezone.now(), blank=False)
+    start_date = models.DateField(default=django.utils.timezone.now, blank=False)
+    end_date = models.DateField(default=django.utils.timezone.now, blank=False)
 
     info = models.CharField(max_length=200, blank=True, default='')
 

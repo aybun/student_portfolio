@@ -1,4 +1,5 @@
-# from rest_framework import serializers
+from rest_access_policy import FieldAccessMixin
+from rest_framework import serializers
 # from .models import Entry
 #
 # class MySerializer(serializers.ModelSerializer):
@@ -12,3 +13,4 @@
 #     class Meta:
 #         model = Entry
 #         fields = '__all__'
+

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.shortcuts import render
 #
 # from django.views.decorators.csrf import csrf_exempt
@@ -10,6 +11,11 @@ from django.http.response import JsonResponse
 #
 # from django.core.files.storage import default_storage
 #
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.decorators import parser_classes, permission_classes, api_view, authentication_classes
+from rest_framework.parsers import JSONParser, MultiPartParser
+
+
 from user_profile.models import UserProfile
 
 
@@ -37,6 +43,7 @@ def userApi(request):
     data_dict['uservisity_id'] = user_profile.university_id
 
     return JsonResponse(data_dict, safe=False)
+
 
 
 def file(request, file_id):

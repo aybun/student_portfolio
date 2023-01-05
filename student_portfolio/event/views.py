@@ -552,9 +552,9 @@ def skillGroupApi(request, skillgroup_id=0):
             return JsonResponse("Failed to Update")
 
     elif request.method == "DELETE":
-
+        id = skillgroup_id
         query_object = AccessPolicyClass.scope_query_object(request=request)
-        object = Model.objects.filter(Q(id=skillgroup_id) & query_object).first()
+        object = Model.objects.filter(Q(id=id) & query_object).first()
 
         if object is None:
             return JsonResponse("Failed to delete.", safe=False)

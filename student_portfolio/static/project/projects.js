@@ -65,16 +65,11 @@ let projectComponent = {
 
             this.project.skills = this.cleanSkills(this.project.skills);
 
-            // if (this.project.attachment_file == null || typeof this.project.attachment_file === 'string' || this.project.attachment_file === '' )
-            //     delete this.project.attachment_file
-
             let outDict = new FormData();
 
             for (const [key, value] of Object.entries(this.project)) {
                 outDict.append(key.toString(), value)
             }
-            outDict.set('skills', JSON.stringify(this.project.skills))
-            // console.log(outDict.skills)
 
             alert(JSON.stringify(outDict, null, 2))
 
