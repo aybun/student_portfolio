@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_access_policy import AccessPolicy
 
 class ProjectApiAccessPolicy(AccessPolicy):
@@ -16,21 +17,43 @@ class ProjectApiAccessPolicy(AccessPolicy):
         groups = request.user.groups.values_list('name', flat=True)
         method = request.method
 
-        # Field Access
-        if 'staff' not in groups and (method != 'GET'):
-            fields.pop('approved', None)
-            fields.pop('approved_by', None)
-            fields.pop('used_for_calculation', None)
-
         # Cleaning data
         if method == "POST":
-            # We force users to create the project first.
-            fields.pop('projectId', None)
-            fields.pop('approved', None)
-            fields.pop('approved_by', None)
-            fields.pop('used_for_calculation', None)
+            # We force the user to create a project first.
+            fields = {
+                'title': fields['title'],
+                'created_by': fields['created_by']
+            }
 
-            fields.pop('attachment_link', None)
-            fields.pop('attachment_file', None)
+        elif method == "PUT":
+            if 'staff' not in groups:
+                fields.pop('used_for_calculation', None)
+                fields.pop('approved', None)
 
         return fields
+
+    @classmethod
+    def scope_query_object(cls, request):
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if request.method == "GET":
+            if 'staff' in groups:
+                return Q()
+
+            elif 'student' in groups:
+                return Q(approved=True) | Q(created_by=request.user.id)
+
+        elif request.method == "PUT":
+            if 'staff' in groups:
+                return Q()
+
+            elif 'student' in groups:
+                return Q(approved=False) & Q(created_by=request.user.id)
+
+        elif request.method == "DELETE":
+
+            if 'staff' in groups:
+                return Q()
+
+            elif 'student' in groups:
+                return Q(approved=False) & Q(created_by=request.user.id)

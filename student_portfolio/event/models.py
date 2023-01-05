@@ -1,15 +1,6 @@
 from django.db import models
-# from djongo import models
 from django.conf import settings
 from django.contrib.auth.models import User
-
-# from student.models import Student
-# from staff.models import Staff
-
-# from djongo import models
-from django import forms
-
-# Create your models here.
 
 
 def event_attachment_file_directory_path(instance, filename):
@@ -71,14 +62,6 @@ class EventAttendance(models.Model):
     used_for_calculation = models.BooleanField(default=False)
 
 
-# class StaffManageEvent(models.Model):
-#     id = models.BigAutoField(primary_key=True)
-#
-#     event_id_fk = models.ForeignKey(Event, on_delete=models.CASCADE)
-#     user_id_fk = models.ForeignKey(User, on_delete=models.CASCADE)
-#     is_main_staff = models.BooleanField(default=False)
-
-
 class Skillgroup(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=50)
@@ -90,15 +73,10 @@ class Skillgroup(models.Model):
         return "{} {}".format(self.id, self.name)
 
 
-# class AssignSkillToSkillGroup(models.Model):
-#     id = models.BigAutoField(primary_key=True)
-#     skill_id_fk = models.ForeignKey(Skill, on_delete=models.CASCADE)
-#     skill_group_id_fk = models.ForeignKey(SkillGroup, on_delete=models.CASCADE)
-
-
 def curriculum_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     return 'curriculums/{0}/{1}'.format(instance.id, filename)
+
 
 class Curriculum(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -113,8 +91,3 @@ class Curriculum(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.id, self.th_name)
-
-# class CurriculumSKillGroup(models.Model):
-#     curriculum_id_fk = models.ForeignKey(Curriculum, on_delete=models.CASCADE)
-#     skill_group_id_fk = models.ForeignKey(SkillGroup, on_delete=models.CASCADE)
-

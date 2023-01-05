@@ -11,7 +11,7 @@ let projectComponent = {
             // showUnapproved:false,
             // showOptions:true,
 
-            staffs:[],
+            staffTable:[],
             user:{},
 
             project:{},
@@ -23,6 +23,27 @@ let projectComponent = {
     },
 
     methods:{
+        getEmptyProject(){
+            return {
+                id:0,
+                title:"",
+                start_date: (new Date()).toISOString().split('T')[0],
+                end_date: (new Date()).toISOString().split('T')[0],
+
+                info:"",
+
+                created_by:"",
+                approved:false,
+                approved_by:false,
+                used_for_calculation:false,
+
+                attachment_link:"",
+                attachment_file:"",
+
+                skills: [],
+                staffs: [],
+            }
+        },
 
         refreshData(){
             axios.get(variables.API_URL + "project").
@@ -90,19 +111,11 @@ let projectComponent = {
 
         },
         updateClick(){
-            //Note : Check if the project has already been approved. The frontend must prevent it from being unchecked.
-            // let before_altered_project = this.getEmptyProject()
-
             this.project.skills = this.cleanSkills(this.project.skills);
-            // before_altered_project.skills = this.project.skills
-
-            // this.project.skills = JSON.stringify(this.project.skills)
+            this.project.staffs = this.cleanStaffs(this.project.staffs);
 
             this.project.approved = this.checkboxes.includes('approved')
             this.project.used_for_calculation = this.checkboxes.includes('used_for_calculation')
-
-            // if (this.project.attachment_file == null || typeof this.project.attachment_file === 'string' || this.project.attachment_file === '' )
-            //     delete this.project.attachment_file
 
             let outDict = new FormData();
 
@@ -110,15 +123,17 @@ let projectComponent = {
                 outDict.append(key.toString(), value)
             }
             outDict.set('skills', JSON.stringify(this.project.skills))
+            outDict.set('staffs', JSON.stringify(this.project.staffs))
             // this.project.skills = before_altered_project.skills
 
-            alert(JSON.stringify(outDict, null, 2))
+            alert(JSON.stringify(JSON.stringify(this.project.skills), null, 2))
+            alert(JSON.stringify(JSON.stringify(this.project.staffs), null, 2))
 
             axios.defaults.xsrfCookieName = 'csrftoken';
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
             axios({
                 method: 'put',
-                url: variables.API_URL+"project/" + this.project.projectId,
+                url: variables.API_URL+"project/" + this.project.id,
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 data: outDict,
@@ -155,55 +170,56 @@ let projectComponent = {
 
         addSkillClick(){
             this.project.skills.push({
-                skillId: '',
+                id: '',
             })
         },
         removeSkillClick(){
             this.project.skills.pop()
         },
-        cleanSkills(skills){
+
+        addStaffClick(){
+            this.project.staffs.push({
+                id: '',
+            })
+        },
+        removeStaffClick(){
+            this.project.staffs.pop()
+        },
+        cleanSkills(list){
             //Remove empty or redundant inputs.
             nonEmpty = []
-            skillIds = []
-            for (i=0;i<skills.length; ++i) {
-                id = skills[i]['skillId']
+            ids = []
+            for (let i=0;i<list.length; ++i) {
+                id = list[i]['id']
 
-                if ( id !== "" && !skillIds.includes(id)){
-                    nonEmpty.push(skills[i]);
-                    skillIds.push(id)
+                if ( id !== '' && !ids.includes(id)){
+                    ids.push(list[i].id);
+                    nonEmpty.push(list[i])
                 }
             }
             return nonEmpty
         },
 
+        cleanStaffs(list){
+            nonEmpty = []
+            ids = []
+            for (let i=0;i<list.length; ++i) {
+                id = list[i]['id']
 
-        getEmptyProject(){
-            return {
-                projectId:0,
-                title:"",
-                start_date: (new Date()).toISOString().split('T')[0],
-                end_date: (new Date()).toISOString().split('T')[0],
-                mainStaffId:"",
-                info:"",
-
-                skills:[],
-                proposed_by:"",
-                approved:false,
-                approved_by:false,
-                used_for_calculation:false,
-
-                attachment_link:"",
-                attachment_file:""
+                if ( id !== '' && !ids.includes(id)){
+                    ids.push(list[i].id);
+                    nonEmpty.push(list[i])
+                }
             }
+            return nonEmpty
         },
+
         onFileSelected(event){
             this.project.attachment_file = event.target.files[0]
 
         },
         prepareData(){
             this.project = this.getEmptyProject()
-            // if (this.user.is_student)
-            //     this.showOptions = false
 
         }
     },
@@ -221,7 +237,7 @@ let projectComponent = {
 
         axios.get(variables.API_URL+"staff")
         .then((response)=>{
-            this.staffs=response.data;
+            this.staffTable=response.data;
         });
 
         axios.get(variables.API_URL+"skillTable")

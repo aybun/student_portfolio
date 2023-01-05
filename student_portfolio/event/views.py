@@ -491,13 +491,14 @@ def skillGroupApi(request, skillgroup_id=0):
             print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
+            id = skillgroup_id
             query_object = AccessPolicyClass.scope_query_object(request=request)
-            object = Model.objects.filter(Q(id=skillgroup_id) & query_object).first()
+            object = Model.objects.filter(Q(id=id) & query_object).first()
 
             if object is None:
                 return JsonResponse("The object does not exist.", safe=False)
 
-            serializer = Serializer(event, context={'request': request})
+            serializer = Serializer(object, context={'request': request})
             return JsonResponse(serializer.data, safe=False)
 
     elif request.method == "POST":
@@ -522,8 +523,9 @@ def skillGroupApi(request, skillgroup_id=0):
             print(serializer.errors)
             return JsonResponse("Failed to Add", safe=False)
     elif request.method == "PUT":
+        id = skillgroup_id
         query_object = AccessPolicyClass.scope_query_object(request=request)
-        object = Model.objects.filter(Q(id=skillgroup_id) & query_object).first()
+        object = Model.objects.filter(Q(id=id) & query_object).first()
 
         if object is None:
             return JsonResponse("Failed to update.", safe=False)

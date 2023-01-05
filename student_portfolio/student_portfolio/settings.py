@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'staff',
     'event',
     'user_profile',
-    # 'project',
+    'project',
 
 ]
 

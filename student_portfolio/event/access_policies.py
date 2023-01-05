@@ -25,9 +25,10 @@ class EventApiAccessPolicy(AccessPolicy):
         if method == "POST":
             # We force the user to create an event first.
 
-            fields = {'title' : fields['title'],
-                      'created_by' : fields['created_by']
-                      }
+            fields = {
+                'title' : fields['title'],
+                'created_by' : fields['created_by']
+            }
 
         elif method == "PUT":
             fields.pop('created_by')
