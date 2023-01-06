@@ -29,6 +29,13 @@ class StudentApiAccessPolicy(AccessPolicy):
             "action": ["<method:get>"],
             "principal": ["group:staff", "group:student"],
             "effect": "allow"
+
+        },
+        {
+            "action": ["<method:put>"],
+            "principal": ["group:staff"],
+            "effect": "allow"
+
         },
     ]
 
@@ -42,6 +49,24 @@ class StudentApiAccessPolicy(AccessPolicy):
 
             elif 'student' in groups:
                 return Q(user_id_fk=request.user.id)
+
+        elif request.method == "PUT":
+            if 'staff' in groups:
+                return Q()
+
+    @classmethod
+    def scope_fields(cls, request, fields: dict, instance=None) -> dict:
+
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if request.method == 'PUT':
+            if 'staff' in groups:
+                fields = {
+                    'id' : fields['id'],
+                    'enroll' : fields['enroll']
+                }
+
+        return fields
 
 class UserProfileApiAccessPolicy(AccessPolicy):
 

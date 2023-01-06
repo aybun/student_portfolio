@@ -134,7 +134,7 @@
                             <h3>Receivers</h3>
                             <div class="form-row" v-for="(receiver, index) in award.receivers" :key="index">
                                 <select v-model="receiver.id" class="form-control sl">
-                                    <option v-for="e in userTable" v-bind:value="e.user_id_fk">
+                                    <option v-for="e in studentTable" v-bind:value="e.user_id_fk">
                                         {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
                                     </option>
                                 </select>

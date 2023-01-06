@@ -12,7 +12,7 @@ let awardtComponent = {
             // showOptions:true,
 
             staffTable:[],
-            userTable:[], //Define user Api.
+            studentTable:[], //Define user Api.
 
 
             user:{},
@@ -210,7 +210,7 @@ let awardtComponent = {
 
         axios.get(variables.API_URL + "student")
             .then((response)=>{
-                this.userTable=response.data;
+                this.studentTable=response.data;
             })
 
 

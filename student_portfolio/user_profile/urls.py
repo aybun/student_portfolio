@@ -7,6 +7,7 @@ urlpatterns=[
     path('profile/', views.info),
     path('profile/info', views.info),
     path('profile/charts', views.charts),
+    path('profile/edit-student-profile', views.editStudentProfile),
 
     path('api/staff', views.staffApi),
     path('api/staff/<int:userprofile_id>', views.staffApi),

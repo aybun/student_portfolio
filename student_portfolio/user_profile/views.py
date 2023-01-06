@@ -1,3 +1,4 @@
+from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.shortcuts import render
 
@@ -23,6 +24,10 @@ def info(request):
 def charts(request):
 
     return render(request, 'profile/charts.html', {})
+
+def editStudentProfile(request):
+
+    return render(request, 'profile/edit_student_profile.html')
 
 @parser_classes([JSONParser, MultiPartParser])
 @permission_classes((StaffApiAccessPolicy,))
@@ -55,7 +60,7 @@ def staffApi(request, userprofile_id=0):
 
 @parser_classes([JSONParser, MultiPartParser])
 @permission_classes((StudentApiAccessPolicy,))
-@api_view(['GET'])
+@api_view(['GET', 'PUT'])
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def studentApi(request, userprofile_id=0):
     Serializer = StudentSerializer
@@ -79,6 +84,34 @@ def studentApi(request, userprofile_id=0):
             serializer = Serializer(object, context={'request': request})
             return JsonResponse(serializer.data, safe=False)
 
+    elif request.method=="PUT":
+        id = userprofile_id
+        query_object = AccessPolicyClass.scope_query_object(request=request)
+        object = Model.objects.filter(Q(id=id) & Q(faculty_role__id=2) & query_object).first()
+
+        if object is None:
+            return JsonResponse("Failed to update.", safe=False)
+
+        data = request.data.dict()
+        data = Serializer.custom_clean(data=data, context={'request': request})
+        serializer = Serializer(object, data=data, context={'request': request})
+        print(data)
+        if serializer.is_valid():
+            success = True
+            try:
+                with transaction.atomic():
+                    serializer.save()
+            except IntegrityError:
+                success = False
+            if success:
+                return JsonResponse("Updated Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to delete.", safe=False)
+
+        else:
+            print(serializer.errors)
+            print(serializer.error_messages)
+            return JsonResponse("Failed to Update")
 
 @parser_classes([JSONParser, MultiPartParser])
 @permission_classes((UserProfileApiAccessPolicy,))
