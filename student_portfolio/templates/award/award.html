@@ -49,7 +49,7 @@
                 <td v-if="showApproved && award.approved || !showApproved && !award.approved">{% verbatim block %}{{award.received_date}}{% endverbatim block %}</td>
 
                 <td v-if="showApproved && award.approved || !showApproved && !award.approved">
-                    <button v-if="user.is_staff || !showApproved" type="button"
+                    <button v-if="user.is_staff || user.is_student && !showApproved " type="button"
                     class="btn btn-light mr-1"
                     data-bs-toggle="modal"
                     data-bs-target="#edit-info-modal"
@@ -60,7 +60,7 @@
                         </svg>
                     </button>
 
-                    <button v-if="user.is_staff || !showApproved" type="button" @click="deleteClick(award.id)"
+                    <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button" @click="deleteClick(award.id)"
                     class="btn btn-light mr-1">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                         <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
@@ -130,7 +130,7 @@
                             </div>
                         </div>
 
-                        <div v-if="!addingNewAward" class="staff">
+                        <div v-if="user.is_staff && !addingNewAward" class="receiver">
                             <h3>Receivers</h3>
                             <div class="form-row" v-for="(receiver, index) in award.receivers" :key="index">
                                 <select v-model="receiver.id" class="form-control sl">
@@ -140,8 +140,8 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                              <button @click="addInputFieldClick('receivers')" type="button" class="btn btn-secondary">Add staff</button>
-                              <button @click="removeInputFieldClick('receivers')" type="button" class="btn btn-danger">Remove staff</button>
+                              <button @click="addInputFieldClick('receivers')" type="button" class="btn btn-secondary">Add receiver</button>
+                              <button @click="removeInputFieldClick('receivers')" type="button" class="btn btn-danger">Remove receiver</button>
                             </div>
                         </div>
 
@@ -200,7 +200,7 @@
                     Create
                 </button>
 
-                <button id="updateButton" type="button" @click="updateClick()"
+                <button v-if="user.is_student && (award.created_by == user.id)" id="updateButton" type="button" @click="updateClick()"
                     v-else class="btn btn-primary">
                     Update
                 </button>

@@ -208,7 +208,7 @@ let awardtComponent = {
                 this.awards=response.data;
             })
 
-        axios.get(variables.API_URL + "profile")
+        axios.get(variables.API_URL + "student")
             .then((response)=>{
                 this.userTable=response.data;
             })

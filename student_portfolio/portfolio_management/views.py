@@ -37,6 +37,7 @@ def userApi(request):
         'is_staff' : 'staff' in groups,
         'is_student' : 'student' in groups,
         'groups' : groups,
+        'id' : request.user.id,
     }
 
     user_profile = UserProfile.objects.get(user_id_fk=request.user.id)
