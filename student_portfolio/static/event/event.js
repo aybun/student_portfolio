@@ -75,7 +75,7 @@ let eventComponent = {
         this.modalTitle="Edit Event";
         this.addingNewEvent = false
 
-        this.event = event
+        this.event = JSON.parse(JSON.stringify(event))
         // this.event.skills = []
 
         this.checkboxes = []

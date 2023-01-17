@@ -96,7 +96,7 @@ let awardtComponent = {
             this.modalTitle="Edit award";
             this.addingNewAward = false
 
-            this.award = award
+            this.award = JSON.parse(JSON.stringify(award))
 
             this.checkboxes = []
             for(let i=0; i<this.checkboxFields.length; ++i){

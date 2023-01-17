@@ -4,24 +4,27 @@ let chartComponent = {
 
     data(){
         return{
-            staffs:[],
-            events:[],
+            //API Zone
             user:{},
+            profile:{}, //Get Curriculum id
+            curriculums:[],
+            skillgroups:[],
+            skillTable:[],
+            events:[],
 
+
+
+            // JS editing zone
             modalTitle:"Edit goal points",
-            // is_staff: true,
 
-            skillTable: {},
             skillFreq:[],
             skillLabels:[],
 
             radarCharts:[],
-
             checkboxes: [],
 
             editingSkillType:0,
             // PhotoFileName:"anonymous.png",
-
             PhotoPath:variables.PHOTO_URL
         }
     },
@@ -260,6 +263,46 @@ let chartComponent = {
         }
     },
     created:async function(){
+        // user:{},
+        // profile:{}, //Get Curriculum id
+        // curriculums:[],
+        // skillgroups:[],
+        // skillTable:[],
+        // events:[],
+
+        axios.get(variables.API_URL+"user")
+                .then((response)=>{
+                this.user=response.data;
+
+                });
+
+        //Return a list of one element.
+        axios.get(variables.API_URL+"student")
+                .then((response)=>{
+                this.profile=response.data[0];
+                });
+
+        //Consider returning only the curriculum enrolled by the student.
+        axios.get(variables.API_URL+"curriculum")
+                .then((response)=>{
+                this.curriculums=response.data;
+                });
+
+        axios.get(variables.API_URL+"skillgroup")
+                .then((response)=>{
+                this.skillgroups=response.data;
+                });
+
+        axios.get(variables.API_URL+"skillTable")
+            .then((response)=>{
+                this.skillTable=response.data;
+            });
+
+        axios.get(variables.API_URL+"eventAttended/list")
+            .then((response)=>{
+                this.events=response.data;
+            });
+
 
         await this.makeRequests()
         this.prepareData()

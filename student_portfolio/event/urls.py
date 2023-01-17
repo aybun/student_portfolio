@@ -28,6 +28,8 @@ urlpatterns=[
     path('api/eventAttendanceOfStudents/<int:event_id>/<int:attendance_id>', views.eventAttendanceApi),
 #SYNC
     path('api/syncStudentAttendanceByStudentId/<int:event_id>', views.syncStudentAttendanceByStudentId),
+    path('api/eventAttended/list', views.eventAttendedListApi),
+    path('api/eventAttended/list/<int:user_id>', views.eventAttendedListApi),
 
     path('profile/curriculum', views.curriculum),
     path('api/curriculum', views.curriculumApi),

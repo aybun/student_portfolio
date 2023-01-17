@@ -1,10 +1,9 @@
 from rest_framework import serializers
 
 #
-from .models import Event, EventAttendance, Skill, Skillgroup, Curriculum
+from .models import Event, EventAttendance, Skill, Skillgroup, Curriculum, AssignSkillToSkillgroup
 from rest_framework.parsers import JSONParser
 from django.contrib.auth.models import User
-
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
 from .access_policies import EventApiAccessPolicy, EventAttendanceApiAccessPolicy, CurriculumApiAccessPolicy, \
@@ -13,16 +12,17 @@ from .access_policies import EventApiAccessPolicy, EventAttendanceApiAccessPolic
 from datetime import datetime
 import json
 
+
 class SkillSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
     title = serializers.CharField(max_length=50, required=True)
-    goal_point = serializers.IntegerField(min_value=0, max_value=10,  required=False)
 
-    # events = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), many=True)
+    # goal_point = serializers.IntegerField(min_value=0, max_value=10,  required=False)
 
     class Meta:
         model = Skill
-        fields = ('id', 'title', 'goal_point')
+        fields = ('id', 'title')
+
 
 class EventSkillSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
@@ -31,6 +31,7 @@ class EventSkillSerializer(serializers.ModelSerializer):
         model = Skill
         fields = ('id',)
 
+
 class EventStaffSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
 
@@ -38,8 +39,8 @@ class EventStaffSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id',)
 
-class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
+class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, read_only=True)
     title = serializers.CharField(max_length=100, required=True)
     start_datetime = serializers.DateTimeField(required=False, format="%Y-%m-%dT%H:%M")
@@ -47,9 +48,11 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
     info = serializers.CharField(max_length=200, allow_blank=True)
 
-    created_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=User.objects.all())
+    created_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
+                                                    queryset=User.objects.all())
     approved = serializers.BooleanField(required=False)
-    approved_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=User.objects.all())
+    approved_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
+                                                     queryset=User.objects.all())
 
     used_for_calculation = serializers.BooleanField(required=False)
     arranged_inside = serializers.BooleanField(required=False)
@@ -69,7 +72,6 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         access_policy = EventApiAccessPolicy
 
-
     def update(self, instance, validated_data):
 
         instance.title = validated_data.get('title', instance.title)
@@ -84,7 +86,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.attachment_link = validated_data.get('attachment_link', instance.attachment_link)
         instance.attachment_file = validated_data.get('attachment_file', instance.attachment_file)
 
-        #Update many-to-many relationships
+        # Update many-to-many relationships
         instance.skills.clear()
         if 'skills' in validated_data:
             for e in validated_data.get('skills'):
@@ -98,19 +100,22 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.save()
         return instance
 
-
     @staticmethod
     def custom_clean_skills(instance=None, data=None, context=None):
 
-        #Assume that data is a stringnified object.
+        # Assume that data is a stringnified object.
         skill_ids = Skill.objects.all().values_list('id', flat=True)
 
+        print(data)
         list_of_dicts = json.loads(data)
+        print(type(list_of_dicts))
+        print(list_of_dicts)
 
-        if not(isinstance(list_of_dicts, list)) or len(list_of_dicts) == 0: # If it is not a list, return an empty string ''. So that we could pop this field.
+        if not (isinstance(list_of_dicts, list)) or len(
+                list_of_dicts) == 0:  # If it is not a list, return an empty string ''. So that we could pop this field.
             return ''
 
-        #Do We really need this???
+        # Do We really need this???
         unique_ids = []
         out_list = []
         for e in list_of_dicts:
@@ -129,7 +134,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
     @staticmethod
     def custom_clean_staffs(instance=None, data=None, context=None):
         user_ids = User.objects.all().values_list('id', flat=True)
-        #Need to check for correctness and redundancies.
+        # Need to check for correctness and redundancies.
         list_of_dicts = json.loads(data)
 
         if not (isinstance(list_of_dicts, list)) or len(
@@ -150,14 +155,12 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         return out_list
 
-
     @staticmethod
     def custom_clean(instance=None, data=None, context=None):
         # print(data)
         request = context['request']
         method = request.method
         groups = request.user.groups.values_list('name', flat=True)
-
 
         if method == 'POST':
             data['created_by'] = request.user.id
@@ -168,7 +171,8 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 data.pop('attachment_file', None)
 
             if 'skills' in data:
-                data['skills'] = EventSerializer.custom_clean_skills(data=data['skills']) #If it contains errors, the function will return a string, might be ''.
+                data['skills'] = EventSerializer.custom_clean_skills(
+                    data=data['skills'])  # If it contains errors, the function will return a string, might be ''.
                 if isinstance(data.get('skills', None), str):
                     data.pop('skills', None)
 
@@ -188,7 +192,8 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
 class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
-    event_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=True, queryset=Event.objects.all())
+    event_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=True,
+                                                     queryset=Event.objects.all())
 
     university_id = serializers.CharField(min_length=11, max_length=11, required=True)
 
@@ -196,7 +201,8 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
     middlename = serializers.CharField(max_length=50, required=False, allow_blank=True)
     lastname = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
-    user_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=User.objects.all())
+    user_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
+                                                    queryset=User.objects.all())
 
     synced = serializers.BooleanField(required=False)
     used_for_calculation = serializers.BooleanField(required=False)
@@ -213,12 +219,13 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
         request = context['request']
         groups = request.user.groups.values_list('name', flat=True)
 
-
         if request.method == "PUT":
+            data['synced'] = 'false'
 
-            student_id_fk = data['student_id_fk']
-            if student_id_fk == '' or student_id_fk == 'null':
-                data.pop('student_id_fk', None)
+            if 'user_id_fk' in data:
+                student_id_fk = data['user_id_fk']
+                if student_id_fk == '' or student_id_fk == 'null':
+                    data.pop('user_id_fk', None)
 
         return data
 
@@ -229,6 +236,7 @@ class CurriculumSkillGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skillgroup
         fields = ('id',)
+
 
 class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
@@ -273,7 +281,7 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
         list_of_dicts = json.loads(data)
         print("list_of_dicts : {}".format(list_of_dicts))
 
-        if not (isinstance(list_of_dicts, list)) or len(list_of_dicts) == 0: #Pop from the caller.
+        if not (isinstance(list_of_dicts, list)) or len(list_of_dicts) == 0:  # Pop from the caller.
             return ''
 
         unique_ids = []
@@ -313,6 +321,7 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         return data
 
+
 class SkillAssignedToSkillGroup(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
 
@@ -320,13 +329,29 @@ class SkillAssignedToSkillGroup(serializers.ModelSerializer):
         model = Skill
         fields = ('id',)
 
+
+class AssignSkillToSkillgroupSerializer(serializers.ModelSerializer):
+    # id = serializers.IntegerField(required=True)
+    skillgroup_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
+                                                          queryset=Skillgroup.objects.all())
+    skill_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
+                                                     queryset=Skill.objects.all())
+
+    goal_point = serializers.IntegerField(min_value=0, max_value=10, required=False)
+
+    class Meta:
+        model = AssignSkillToSkillgroup
+        fields = ('skillgroup_id_fk', 'skill_id_fk', 'goal_point')
+
+
 class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
-
     id = serializers.IntegerField(required=False)
-    name = serializers.CharField(max_length=50, allow_blank=True)
-    info = serializers.CharField(max_length=200, allow_blank=True)
+    name = serializers.CharField(max_length=50, allow_blank=True, required=False)
+    info = serializers.CharField(max_length=200, allow_blank=True, required=False)
 
-    skills = SkillAssignedToSkillGroup(many=True, read_only=False, allow_null=True, required=False)
+    # skills = SkillAssignedToSkillGroup(many=True, read_only=False, allow_null=True, required=False)
+    skills = AssignSkillToSkillgroupSerializer(many=True, source='assignskilltoskillgroup_skillgroup_set',
+                                               read_only=False, allow_null=True, required=False)
 
     class Meta:
         model = Skillgroup
@@ -340,12 +365,51 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.info = validated_data.get('info', instance.info)
 
         instance.skills.clear()
-        if 'skills' in validated_data:
-            for e in validated_data.get('skills'):
-                instance.skills.add(Skill.objects.get(id=e['id']))
+        print(validated_data)
+        # Now we work with the related name : assignskilltoskillgroup_skillgroup_set
+        # Note : validated_data contains THE OBJECTS, not primary keys.
+        if 'assignskilltoskillgroup_skillgroup_set' in validated_data:
+            for e in validated_data.get('assignskilltoskillgroup_skillgroup_set'):
+                # The comment below shows an equivalent way of creating a relationship.
+                # AssignSkillToSkillgroup.objects.create(skillgroup_id_fk=instance,
+                #                                        skill_id_fk=e['skill_id_fk'],
+                #                                        goal_point=e['goal_point'])
+                instance.skills.add(e['skill_id_fk'],
+                                    through_defaults={'goal_point': e['goal_point']}
+                                    )
 
         instance.save()
         return instance
+
+    @staticmethod
+    def custom_clean_skills(instance=None, data=None, context=None):
+        # Assume that data is a stringnified object.
+        skill_ids = Skill.objects.all().values_list('id', flat=True)
+
+        # print(data)
+        list_of_dicts = json.loads(data, strict=False)
+        # print(list_of_dicts)
+
+        if (not isinstance(list_of_dicts, list)) or len(
+                list_of_dicts) == 0:  # If it is not a list, return an empty string ''. So that we could pop this field.
+            return ''
+
+        # Do We really need this???
+        unique_ids = []
+        out_list = []
+        for e in list_of_dicts:
+
+            id = e['skill_id_fk']
+            if id not in skill_ids:
+                raise serializers.ValidationError(
+                    "The skill id is not present in the Skill table : " + id)
+
+            if id not in unique_ids:
+                unique_ids.append(id)
+                out_list.append(e)
+        # print('outlist {}'.format(out_list))
+        # print(type(out_list))
+        return out_list
 
     @staticmethod
     def custom_clean(instance=None, data=None, context=None):
@@ -356,17 +420,13 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         elif request.method == "PUT":
 
+            # print(data['skills'])
             if 'skills' in data:
-                data['skills'] = EventSerializer.custom_clean_skills(data=data['skills'])
+                data['skills'] = SkillGroupSerializer.custom_clean_skills(data=data['skills'])
                 if isinstance(data.get('skills', None), str):
                     data.pop('skills', None)
-
+        # print(data)
         return data
-
-
-
-
-
 
 # class EventAccessPolicy(AccessPolicy):
 #     statements = [
@@ -396,7 +456,6 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
 #             fields.pop('created_by', None)
 #
 #         return fields
-
 
 
 # class EventAccessPolicyTestSerializer(FieldAccessMixin, serializers.ModelSerializer):
@@ -448,4 +507,3 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
 #     def validate_attachment_file(self, input):
 #
 #         return input
-

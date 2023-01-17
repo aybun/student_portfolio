@@ -123,6 +123,7 @@ def eventApi(request, event_id=0):
                 return JsonResponse("Failed to update.", safe=False)
 
             data = request.data.dict()
+            print(data)
             event_data = EventSerializer.custom_clean(instance=event, data=data, context={'request' : request})
             event_serializer = EventSerializer(event, data=event_data, context={'request': request})
 
@@ -253,7 +254,7 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
 
             attendance_data = EventAttendanceSerializer.custom_clean(data=attendance_data, context={'request' : request})
 
-            print(attendance_data)
+            # print(attendance_data)
             attendance = EventAttendance.objects.filter(id=attendance_data['id']).first()
             if attendance is None:
                 return JsonResponse("Failed to Update", safe=False)
@@ -499,6 +500,7 @@ def skillGroupApi(request, skillgroup_id=0):
                 return JsonResponse("The object does not exist.", safe=False)
 
             serializer = Serializer(object, context={'request': request})
+            print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
 
     elif request.method == "POST":
@@ -531,9 +533,10 @@ def skillGroupApi(request, skillgroup_id=0):
             return JsonResponse("Failed to update.", safe=False)
 
         data = request.data.dict()
+        # print(data)
         data = Serializer.custom_clean(data=data, context={'request': request})
         serializer = Serializer(object, data=data, context={'request': request})
-        print(data)
+        # print(data)
         if serializer.is_valid():
             success = True
             try:
@@ -569,6 +572,34 @@ def skillGroupApi(request, skillgroup_id=0):
             return JsonResponse("Deleted Successfully", safe=False)
         else:
             return JsonResponse("Failed to delete.", safe=False)
+
+
+
+@parser_classes([JSONParser, MultiPartParser])
+@permission_classes((EventAttendedListApiAccessPolicy,))
+@api_view(['GET'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def eventAttendedListApi(request, user_id=0):
+    Serializer = EventSerializer
+    AccessPolicyClass = EventAttendedListApiAccessPolicy
+    Model = Event
+
+    Serializer.Meta.access_policy = AccessPolicyClass
+    if request.method == "GET":
+        if user_id == 0:
+            query_object = AccessPolicyClass.scope_query_object(request=request)
+            objects = Model.objects.filter(query_object).order_by('id')
+
+            if not objects.exists():
+                return JsonResponse("The objects do not exist.", safe=False)
+
+
+            serializer = Serializer(objects, many=True, context={'request': request})
+
+            # print(serializer.data)
+            return JsonResponse(serializer.data, safe=False)
+
+
 
 
 #Testing AccessPolicy

@@ -95,7 +95,7 @@ let projectComponent = {
             this.modalTitle="Edit project";
             this.addingNewProject = false
 
-            this.project = project
+            this.project = JSON.parse(JSON.stringify(project))
             this.checkboxes = []
 
             if (project.approved)

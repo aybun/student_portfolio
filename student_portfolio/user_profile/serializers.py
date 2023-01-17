@@ -40,7 +40,7 @@ class StudentSerializer(FieldAccessMixin, serializers.ModelSerializer):
                                                       allow_null=True, required=False, queryset=FacultyRole.objects.all())
 
     enroll = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, queryset=Curriculum.objects.all())
-    
+
     class Meta:
         model = UserProfile
         fields = ('id', 'university_id', 'user_id_fk', 'firstname', 'middlename', 'lastname', 'faculty_role', 'enroll')

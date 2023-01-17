@@ -1,6 +1,9 @@
 from rest_access_policy import FieldAccessMixin, AccessPolicy
 from django.db.models import Q
 
+from event.models import EventAttendance
+
+
 class EventApiAccessPolicy(AccessPolicy):
     statements = [
         {
@@ -228,4 +231,29 @@ class SkillTableApiAccessPolicy(AccessPolicy):
             "effect": "allow"
         },
     ]
+
+
+class EventAttendedListApiAccessPolicy(AccessPolicy):
+    statements = [
+        {
+            "action": ["<method:get>"],
+            "principal": ["group:staff", "group:student"],
+            "effect": "allow"
+
+        },
+    ]
+
+    @classmethod
+    def scope_query_object(cls, request):
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if request.method == "GET":
+
+            attendances = EventAttendance.objects.filter(user_id_fk=request.user.id)
+            event_ids = attendances.values_list('event_id_fk', flat=True)
+
+            if 'staff' in groups:
+                return Q(approved=True) & Q(id__in=event_ids)
+            elif 'student' in groups:
+                return Q(approved=True) & Q(id__in=event_ids)
 

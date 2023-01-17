@@ -11,7 +11,7 @@ class Skill(models.Model):
     id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=50)
 
-    goal_point = models.BigIntegerField(default=0)
+    # goal_point = models.BigIntegerField(default=0)
     # info = models.CharField(max_length=200, default='')
     # detail = models.CharField(max_length=100)
 
@@ -62,15 +62,27 @@ class EventAttendance(models.Model):
     used_for_calculation = models.BooleanField(default=False)
 
 
+
+
 class Skillgroup(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=50)
     info = models.CharField(max_length=200, default='')
 
-    skills = models.ManyToManyField(Skill, related_name='skillgroup_skill_set', null=True)
+    skills = models.ManyToManyField(Skill, through='AssignSkillToSkillgroup', related_name='skillgroup_skill_set', null=True)
 
     def __str__(self):
         return "{} {}".format(self.id, self.name)
+
+class AssignSkillToSkillgroup(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    skillgroup_id_fk = models.ForeignKey(Skillgroup, on_delete=models.CASCADE, related_name='assignskilltoskillgroup_skillgroup_set')
+    skill_id_fk = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name='assignskilltoskillgroup_skill_set')
+
+    goal_point = models.BigIntegerField(default=0)
+
+    def __str__(self):
+        return "{} {}".format(self.id, self.goal_point)
 
 
 def curriculum_attachment_file_directory_path(instance, filename):

@@ -50,7 +50,7 @@ let curriculumComponent = {
             this.modalTitle="Edit Curriculum"
             this.addingNewCurriculum = false
 
-            this.curriculum = curriculum
+            this.curriculum = JSON.parse(JSON.stringify(curriculum))
         },
 
         createClick(){
