@@ -44,7 +44,7 @@ let skillgroupComponent = {
             this.modalTitle="Edit Skillgroup"
             this.addingNewSkillgroup = false
 
-            this.skillgroup = skillgroup
+            this.skillgroup = JSON.parse(JSON.stringify(skillgroup))
         },
 
         createClick(){
@@ -76,7 +76,7 @@ let skillgroupComponent = {
         updateClick(){
 
             this.skillgroup.skills = this.cleanSkills(this.skillgroup.skills)
-            console.log(this.skillgroup.skills)
+            // console.log(this.skillgroup.skills)
             let outDict = new FormData();
             for (const [key, value] of Object.entries(this.skillgroup)) {
                 outDict.append(key.toString(), value)
@@ -127,7 +127,7 @@ let skillgroupComponent = {
 
         addSkillClick(){
             this.skillgroup.skills.push({
-                id: '',
+                skill_id_fk: '', goal_point : 0
             })
         },
         removeSkillClick(){
@@ -138,7 +138,7 @@ let skillgroupComponent = {
             nonEmpty = []
             ids = []
             for (let i=0;i<list.length; ++i) {
-                id = list[i]['id']
+                id = list[i]['skill_id_fk']
 
                 if ( id !== '' && !ids.includes(id)){
                     ids.push(list[i].id);

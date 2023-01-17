@@ -332,8 +332,8 @@ class SkillAssignedToSkillGroup(serializers.ModelSerializer):
 
 class AssignSkillToSkillgroupSerializer(serializers.ModelSerializer):
     # id = serializers.IntegerField(required=True)
-    skillgroup_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
-                                                          queryset=Skillgroup.objects.all())
+    # skillgroup_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
+    #                                                       queryset=Skillgroup.objects.all())
     skill_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
                                                      queryset=Skill.objects.all())
 
@@ -341,7 +341,7 @@ class AssignSkillToSkillgroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AssignSkillToSkillgroup
-        fields = ('skillgroup_id_fk', 'skill_id_fk', 'goal_point')
+        fields = ('skill_id_fk', 'goal_point')
 
 
 class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
