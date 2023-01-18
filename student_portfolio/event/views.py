@@ -1,4 +1,7 @@
 # import django.db.transaction
+import csv
+import io
+
 from django.shortcuts import render
 from django.db import IntegrityError, transaction
 from django.views.decorators.csrf import csrf_exempt
@@ -9,7 +12,8 @@ from django.contrib.auth.models import User
 # from student.models import Student
 from user_profile.models import UserProfile
 from .models import Event, EventAttendance, Skill, Curriculum, Skillgroup
-from .serializers import EventSerializer, SkillSerializer, EventSkillSerializer, EventAttendanceSerializer, CurriculumSerializer, SkillGroupSerializer
+from .serializers import EventSerializer, SkillSerializer, EventSkillSerializer, EventAttendanceSerializer, \
+    CurriculumSerializer, SkillGroupSerializer, EventAttendanceBulkAddSerializer
 
 from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes, action
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
@@ -209,22 +213,22 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
                 return JsonResponse(serializer.data, safe=False)
 
 
-        elif 'student' in groups:
-            # student = Student.objects.get(user_id_fk=request.user.id)
-            attendances = EventAttendance.objects.filter(user_id_fk=request.user.id)
-
-            if not attendances.exists():
-                return JsonResponse("The objects do not exist.", safe=False)
-
-            event_id_list = attendances.values_list('event_id_fk', flat=True)
-
-            events = Event.objects.filter(id__in=event_id_list)
-
-            if events.exists():
-                event_serializer = EventSerializer(events, many=True, context={'request': request})
-                return JsonResponse(event_serializer.data, safe=False)
-            else:
-                return JsonResponse("The objects do not exist.", safe=False)
+        # elif 'student' in groups:
+        #     # student = Student.objects.get(user_id_fk=request.user.id)
+        #     attendances = EventAttendance.objects.filter(user_id_fk=request.user.id)
+        #
+        #     if not attendances.exists():
+        #         return JsonResponse("The objects do not exist.", safe=False)
+        #
+        #     event_id_list = attendances.values_list('event_id_fk', flat=True)
+        #
+        #     events = Event.objects.filter(id__in=event_id_list)
+        #
+        #     if events.exists():
+        #         event_serializer = EventSerializer(events, many=True, context={'request': request})
+        #         return JsonResponse(event_serializer.data, safe=False)
+        #     else:
+        #         return JsonResponse("The objects do not exist.", safe=False)
 
     elif request.method=='POST':
         if 'staff' in groups:
@@ -281,7 +285,91 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
                 return JsonResponse("Object not found", safe=False)
 
 
-@csrf_exempt
+@parser_classes([JSONParser, MultiPartParser])
+@permission_classes((EventAttendedListApiAccessPolicy,))
+@api_view(['GET'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def eventAttendedListApi(request, user_id=0):
+    Serializer = EventSerializer
+    AccessPolicyClass = EventAttendedListApiAccessPolicy
+    Model = Event
+
+    Serializer.Meta.access_policy = AccessPolicyClass
+    if request.method == "GET":
+        if user_id == 0:
+            query_object = AccessPolicyClass.scope_query_object(request=request)
+            objects = Model.objects.filter(query_object).order_by('id')
+
+            if not objects.exists():
+                return JsonResponse("The objects do not exist.", safe=False)
+
+
+            serializer = Serializer(objects, many=True, context={'request': request})
+
+            # print(serializer.data)
+            return JsonResponse(serializer.data, safe=False)
+
+
+@parser_classes((MultiPartParser, JSONParser,))
+@permission_classes((EventAttendanceBulkAddApiAccessPolicy,))
+@api_view(['POST'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def eventAttendanceBulkAddApi(request):
+
+    data = request.data.dict()
+    serializer = EventAttendanceBulkAddSerializer(data=data, context={'request': request})
+
+    if serializer.is_valid():
+
+        event_id = serializer.validated_data['event_id']
+        csv_file = serializer.validated_data['csv_file']
+
+        decoded_csv_file = csv_file.read().decode(encoding='utf-8-sig')
+        io_string = io.StringIO(decoded_csv_file)
+        csvreader = csv.reader(io_string, delimiter=',')
+
+        valid_serializers = []
+        invalid_rows = []
+
+        header = next(csvreader)
+        # print(header)
+        for (index, row) in enumerate(csvreader):
+            # print(row)
+            temp_dict = {'event_id_fk': event_id}
+            for (col_label, col) in zip(header, row):
+                temp_dict[col_label] = col
+                # print(temp_dict)
+            attendance_serializer = EventAttendanceSerializer(data=temp_dict, context={'request': request})
+
+            if attendance_serializer.is_valid():
+                valid_serializers.append(attendance_serializer)
+
+            else: #Note : Send out the invalid row.
+                invalid_rows.append((index, row))
+
+        success = True
+        try:
+            with transaction.atomic():
+                for e in valid_serializers:
+                    e.save()
+        except IntegrityError:
+            success = False
+
+        if success:
+            return JsonResponse("Added Successfully.", safe=False)
+        else:
+            return JsonResponse("Failed to add.", safe=False)
+
+    else:
+        print(serializer.error_messages)
+        print(serializer.errors)
+        return JsonResponse("Failed to add.", safe=False)
+
+
+@parser_classes((JSONParser, MultiPartParser))
+@permission_classes((EventAttendanceApiAccessPolicy,))
+@api_view(['PUT'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
 def syncStudentAttendanceByStudentId(request, event_id=0):
 
     if request.method == 'PUT':
@@ -575,29 +663,6 @@ def skillGroupApi(request, skillgroup_id=0):
 
 
 
-@parser_classes([JSONParser, MultiPartParser])
-@permission_classes((EventAttendedListApiAccessPolicy,))
-@api_view(['GET'])
-@authentication_classes((SessionAuthentication, BasicAuthentication))
-def eventAttendedListApi(request, user_id=0):
-    Serializer = EventSerializer
-    AccessPolicyClass = EventAttendedListApiAccessPolicy
-    Model = Event
-
-    Serializer.Meta.access_policy = AccessPolicyClass
-    if request.method == "GET":
-        if user_id == 0:
-            query_object = AccessPolicyClass.scope_query_object(request=request)
-            objects = Model.objects.filter(query_object).order_by('id')
-
-            if not objects.exists():
-                return JsonResponse("The objects do not exist.", safe=False)
-
-
-            serializer = Serializer(objects, many=True, context={'request': request})
-
-            # print(serializer.data)
-            return JsonResponse(serializer.data, safe=False)
 
 
 

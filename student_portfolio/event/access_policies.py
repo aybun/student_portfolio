@@ -257,3 +257,12 @@ class EventAttendedListApiAccessPolicy(AccessPolicy):
             elif 'student' in groups:
                 return Q(approved=True) & Q(id__in=event_ids)
 
+class EventAttendanceBulkAddApiAccessPolicy(AccessPolicy):
+    statements = [
+        {
+            "action": ["<method:put>"],
+            "principal": ["group:staff"],
+            "effect": "allow"
+
+        },
+    ]

@@ -26,6 +26,7 @@ urlpatterns=[
     path('api/eventAttendanceOfStudents/', views.eventAttendanceApi),
     path('api/eventAttendanceOfStudents/<int:event_id>', views.eventAttendanceApi),
     path('api/eventAttendanceOfStudents/<int:event_id>/<int:attendance_id>', views.eventAttendanceApi),
+    path('api/eventAttendanceBulkAdd', views.eventAttendanceBulkAddApi),
 #SYNC
     path('api/syncStudentAttendanceByStudentId/<int:event_id>', views.syncStudentAttendanceByStudentId),
     path('api/eventAttended/list', views.eventAttendedListApi),

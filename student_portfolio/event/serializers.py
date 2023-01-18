@@ -1,16 +1,19 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
-#
 from .models import Event, EventAttendance, Skill, Skillgroup, Curriculum, AssignSkillToSkillgroup
 from rest_framework.parsers import JSONParser
 from django.contrib.auth.models import User
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
 from .access_policies import EventApiAccessPolicy, EventAttendanceApiAccessPolicy, CurriculumApiAccessPolicy, \
-    SkillGroupApiAccessPolicy
+    SkillGroupApiAccessPolicy, EventAttendanceBulkAddApiAccessPolicy
 
 from datetime import datetime
 import json
+import csv
+
+
 
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -230,6 +233,32 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
         return data
 
 
+
+
+
+class EventAttendanceBulkAddSerializer(FieldAccessMixin, serializers.Serializer):
+
+    event_id = serializers.IntegerField(required=True)
+    csv_file = serializers.FileField(required=True, allow_empty_file=True)
+    class Meta:
+        # Model = EventAttendance
+        fields = ('event_id', 'csv_file')
+        access_policy = EventAttendanceBulkAddApiAccessPolicy
+
+    def validate_event_id(self, event_id):
+        instance = Event.objects.filter(id=event_id)
+
+        if not instance.exists():
+            raise ValidationError("The event_id = {} does not exist.".format(event_id))
+
+        return event_id
+
+    def validate_csv_file(self, file):
+        if file.size > 10000000:
+            raise ValidationError("The file size must be less than 10 mb.")
+
+        return file
+
 class CurriculumSkillGroupSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
 
@@ -428,82 +457,4 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
         # print(data)
         return data
 
-# class EventAccessPolicy(AccessPolicy):
-#     statements = [
-#         {
-#             "action": ["eventWithAccessPolicyApi"],
-#             "principal": ["group:student", "group:staff"],
-#             "effect": "allow"
-#         },
-#         {
-#             "action": ["eventWithAccessPolicyApi"],
-#             "principal": ["group:student"],
-#             "effect": "deny"
-#         },
-#         {
-#             "action": ["listEventsWithAccessPolicyApi"],
-#             "principal": ["group:gods"],
-#             "effect": "allow"
-#         }
-#     ]
-#
-#     @classmethod
-#     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
-#
-#         groups = request.user.groups.values_list('name', flat=True)
-#         print(groups)
-#         if 'staff' not in groups:
-#             fields.pop('created_by', None)
-#
-#         return fields
 
-
-# class EventAccessPolicyTestSerializer(FieldAccessMixin, serializers.ModelSerializer):
-#
-#     eventId = serializers.IntegerField(required=False, read_only=True)
-#     title = serializers.CharField(max_length=100, required=True)
-#     date = serializers.DateField(required=True)
-#
-#     mainStaffId = serializers.CharField(max_length=11, allow_blank=True)
-#
-#     info = serializers.CharField(max_length=200, allow_blank=True)
-#     skills = serializers.JSONField(default=[])
-#
-#     created_by = serializers.IntegerField(required=False)
-#
-#     approved = serializers.BooleanField(required=False)
-#     used_for_calculation = serializers.BooleanField(required=False)
-#
-#     attachment_link = serializers.URLField(required=False, max_length=200, allow_blank=True)
-#     # Validate attachment_file
-#     attachment_file = serializers.FileField(required=False, allow_null=True)
-#
-#     class Meta:
-#         model = Event
-#         fields = ('eventId', 'title', 'date', 'mainStaffId', 'info', 'skills', 'created_by',
-#                   'approved', 'used_for_calculation', 'attachment_link', 'attachment_file')
-#
-#         # access_policy = EventAccessPolicy
-#
-#     def validate_skills(self, stringnified_list_of_dicts):
-#         skill_ids = Skill.objects.all().values_list('skillId', flat=True)
-#
-#         list_of_dicts = json.loads(stringnified_list_of_dicts)
-#
-#         unique_ids = []
-#         out_list = []
-#         for e in list_of_dicts:
-#
-#             id = e['skillId']
-#             if id not in skill_ids:
-#                 raise serializers.ValidationError("The skillId is not present in the Skill table : " + str(e['skillId']) )
-#
-#             if id not in unique_ids:
-#                 unique_ids.append(id)
-#                 out_list.append(e)
-#
-#         return out_list
-#
-#     def validate_attachment_file(self, input):
-#
-#         return input

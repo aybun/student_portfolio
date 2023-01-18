@@ -12,7 +12,7 @@ let eventAttendanceComponent = {
             // eventId:0,
             // event: 0,
 
-
+            csv_file : '',
             studentAttendances:[],
             // studentId:0,
             // newStudentId:"",
@@ -134,7 +134,7 @@ methods:{
         axios({
             method: 'delete',
             url: variables.API_URL+"eventAttendanceOfStudents/"+ this.event_id + '/' + attendance_id,
-            xstfCookieName: 'csrftoken',
+            xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             headers : {
                 'X-CSRFToken': 'csrftoken',
@@ -146,14 +146,66 @@ methods:{
     },
 
     syncByStudentIdClick(){
-        axios.put(variables.API_URL+"syncStudentAttendanceByStudentId/"+ this.event_id , {
-            'eventId': this.eventId,
-        })
-        .then((response)=>{
+
+        let outDict = {
+            'event_id': this.event_id,
+        }
+
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+        axios({
+            method: 'put',
+            url: variables.API_URL+"syncStudentAttendanceByStudentId/"+ this.event_id,
+            xsrfCookieName: 'csrftoken',
+            xsrfHeaderName: 'X-CSRFToken',
+            data: outDict,
+            headers : {
+                'Content-Type': 'multipart/form-data',
+                'X-CSRFToken': 'csrftoken',
+            }
+        }).then((response)=>{
             this.refreshData();
             alert(response.data);
-        });
+        })
     },
+
+    onCSVFileSelected(event){
+        this.csv_file = event.target.files[0]
+
+    },
+    bulkAddClick(){
+
+        let outDict = {
+            'event_id' : this.event_id,
+            'csv_file' : this.csv_file,
+        }
+
+        let outForm = new FormData();
+        for (const [key, value] of Object.entries(outDict)) {
+            outForm.append(key.toString(), value)
+        }
+        // outForm.set('event_id_fk', this.event_id)
+
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+        axios({
+            method: 'post',
+            url: variables.API_URL+"eventAttendanceBulkAdd",
+            xsrfCookieName: 'csrftoken',
+            xsrfHeaderName: 'X-CSRFToken',
+            data: outForm,
+            headers : {
+                'Content-Type': 'multipart/form-data',
+                'X-CSRFToken': 'csrftoken',
+            }
+        }).then((response)=>{
+            this.refreshData();
+            alert(response.data);
+            this.csv_file = '';
+
+            // document.getElementById('csvFormFile').value = "No file chosen."
+        })
+    }
 
     },
 
