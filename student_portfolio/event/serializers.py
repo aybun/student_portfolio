@@ -239,7 +239,7 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
 class EventAttendanceBulkAddSerializer(FieldAccessMixin, serializers.Serializer):
 
     event_id = serializers.IntegerField(required=True)
-    csv_file = serializers.FileField(required=True, allow_empty_file=True)
+    csv_file = serializers.FileField(required=True, allow_empty_file=False)
     class Meta:
         # Model = EventAttendance
         fields = ('event_id', 'csv_file')

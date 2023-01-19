@@ -44,11 +44,20 @@ class StudentApiAccessPolicy(AccessPolicy):
         groups = request.user.groups.values_list('name', flat=True)
 
         if request.method == "GET":
+
+            query_scope_object = Q()
+
+            curriculum_id = request.GET.get('curriculum_id', None)
+            if curriculum_id is not None:
+                query_scope_object &= Q(enroll=curriculum_id)
+
             if 'staff' in groups:
-                return Q()
+                query_scope_object &= Q()
 
             elif 'student' in groups:
-                return Q(user_id_fk=request.user.id)
+                query_scope_object &= Q(user_id_fk=request.user.id)
+
+            return query_scope_object
 
         elif request.method == "PUT":
             if 'staff' in groups:
@@ -104,3 +113,12 @@ class UserProfileApiAccessPolicy(AccessPolicy):
 
             elif 'student' in groups:
                 return Q(user_id_fk=request.user.id)
+
+class CurriculumStudentBulkAddApiAccessPolicy(AccessPolicy):
+    statements = [
+        {
+            "action": ["<method:get>"],
+            "principal": ["group:staff"],
+            "effect": "allow"
+        },
+    ]

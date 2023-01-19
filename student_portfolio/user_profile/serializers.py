@@ -1,8 +1,10 @@
 from rest_access_policy import FieldAccessMixin
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from event.models import Curriculum
-from .access_policies import UserProfileApiAccessPolicy, StaffApiAccessPolicy, StudentApiAccessPolicy
+from .access_policies import UserProfileApiAccessPolicy, StaffApiAccessPolicy, StudentApiAccessPolicy, \
+    CurriculumStudentBulkAddApiAccessPolicy
 from .models import UserProfile, FacultyRole
 from django.contrib.auth.models import User
 
@@ -66,7 +68,28 @@ class StudentSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         return data
 
+class CurriculumStudentBulkAddSerializer(FieldAccessMixin, serializers.Serializer):
+    curriculum_id = serializers.IntegerField(required=True)
+    csv_file = serializers.FileField(required=True, allow_empty_file=False)
 
+    class Meta:
+        # Model = EventAttendance
+        fields = ('event_id', 'csv_file')
+        access_policy = CurriculumStudentBulkAddApiAccessPolicy
+
+    def validate_curriculum_id(self, event_id):
+        instance = Curriculum.objects.filter(id=event_id)
+
+        if not instance.exists():
+            raise ValidationError("The curriculum_id = {} does not exist.".format(event_id))
+
+        return event_id
+
+    def validate_csv_file(self, file):
+        if file.size > 10000000:
+            raise ValidationError("The file size must be less than 10 mb.")
+
+        return file
 
 
 

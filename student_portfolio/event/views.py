@@ -370,7 +370,7 @@ def eventAttendanceBulkAddApi(request):
 @permission_classes((EventAttendanceApiAccessPolicy,))
 @api_view(['PUT'])
 @authentication_classes((SessionAuthentication, BasicAuthentication))
-def syncStudentAttendanceByStudentId(request, event_id=0):
+def syncAttendanceByUniversityId(request, event_id=0):
 
     if request.method == 'PUT':
 

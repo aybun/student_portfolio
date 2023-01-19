@@ -26,9 +26,9 @@ urlpatterns=[
     path('api/eventAttendanceOfStudents/', views.eventAttendanceApi),
     path('api/eventAttendanceOfStudents/<int:event_id>', views.eventAttendanceApi),
     path('api/eventAttendanceOfStudents/<int:event_id>/<int:attendance_id>', views.eventAttendanceApi),
-    path('api/eventAttendanceBulkAdd', views.eventAttendanceBulkAddApi),
+    path('api/event-attendance-bulk-add', views.eventAttendanceBulkAddApi),
 #SYNC
-    path('api/syncStudentAttendanceByStudentId/<int:event_id>', views.syncStudentAttendanceByStudentId),
+    path('api/sync-attendance-by-university-id/<int:event_id>', views.syncAttendanceByUniversityId),
     path('api/eventAttended/list', views.eventAttendedListApi),
     path('api/eventAttended/list/<int:user_id>', views.eventAttendedListApi),
 

@@ -9,6 +9,7 @@ urlpatterns=[
     path('profile/charts', views.charts),
     path('profile/edit-student-profile', views.editStudentProfile),
 
+
     path('api/staff', views.staffApi),
     path('api/staff/<int:userprofile_id>', views.staffApi),
 
@@ -18,5 +19,7 @@ urlpatterns=[
     path('api/profile', views.profileApi),
     path('api/profile/<int:userprofile_id>', views.profileApi),
 
+    path('profile/curriculum-student/<int:curriculum_id>', views.curriculumStudent),
+    path('api/curriculum-student-bulk-add', views.curriculumStudentBulkAddApi)
 
 ]

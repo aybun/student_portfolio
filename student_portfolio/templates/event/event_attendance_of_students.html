@@ -29,9 +29,10 @@
             <button type="button"
             class="btn btn-primary m-2 fload-end"
 
-            @click="syncByStudentIdClick()">
+            @click="syncByUniversityIdClick()">
              Sync by university id
             </button>
+
             <button type="button"
                 class="btn btn-primary m-2 fload-end"
                 data-bs-toggle="modal"
@@ -160,12 +161,12 @@
 
 
 
-            <div class="modal fade" id="addByFileModal" tabindex="-1"
+            <div v-if="addByFileModalActive" class="modal fade" id="addByFileModal" tabindex="-1"
                 aria-labelledby="addByFileModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addByFileModalLabel">Add By file</h5>
+                    <h5 class="modal-title" id="addByFileModalLabel">Add By CSV File</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                     aria-label="Close"></button>
                 </div>

@@ -5,20 +5,15 @@ let eventAttendanceComponent = {
         return{
             modalTitle:"",
             addingNewStudent : false,
+            addByFileModalActive : true, //To reset the behavior of the modal.
 
             studentAttendEvent : {},
             event_id:0,
-            // id:0,
-            // eventId:0,
-            // event: 0,
+
 
             csv_file : '',
             studentAttendances:[],
-            // studentId:0,
-            // newStudentId:"",
-            // firstname:"",
-            // middlename:"",
-            // lastname:"",
+
             checkboxes:[],
             checkboxFields:['used_for_calculation']
         }
@@ -46,7 +41,7 @@ methods:{
         axios.get(variables.API_URL+"eventAttendanceOfStudents/" + this.event_id)
         .then((response)=>{
             this.studentAttendances=response.data;
-            console.log(this.studentAttendances)
+            // console.log(this.studentAttendances)
         });
 
     },
@@ -145,7 +140,7 @@ methods:{
         })
     },
 
-    syncByStudentIdClick(){
+    syncByUniversityIdClick(){
 
         let outDict = {
             'event_id': this.event_id,
@@ -155,7 +150,7 @@ methods:{
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
         axios({
             method: 'put',
-            url: variables.API_URL+"syncStudentAttendanceByStudentId/"+ this.event_id,
+            url: variables.API_URL+"sync-attendance-by-university-id/"+ this.event_id,
             xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             data: outDict,
@@ -190,7 +185,7 @@ methods:{
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
         axios({
             method: 'post',
-            url: variables.API_URL+"eventAttendanceBulkAdd",
+            url: variables.API_URL+"event-attendance-bulk-add",
             xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             data: outForm,
@@ -201,9 +196,11 @@ methods:{
         }).then((response)=>{
             this.refreshData();
             alert(response.data);
-            this.csv_file = '';
 
-            // document.getElementById('csvFormFile').value = "No file chosen."
+            //Reset the behavior of the modal.
+            this.addByFileModalActive=false
+            this.addByFileModalActive=true
+
         })
     }
 
@@ -217,7 +214,7 @@ created: function(){
 mounted:function(){
 
     this.event_id = JSON.parse(document.getElementById('event_id-data').textContent);
-    console.log(this.event_id)
+    // console.log(this.event_id)
     this.refreshData()
 
 

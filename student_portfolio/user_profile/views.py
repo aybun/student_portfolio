@@ -1,3 +1,6 @@
+import csv
+import io
+
 from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.shortcuts import render
@@ -8,9 +11,11 @@ from rest_framework.decorators import parser_classes, permission_classes, api_vi
 from rest_framework.parsers import JSONParser, MultiPartParser
 from django.http.response import JsonResponse
 
-from .access_policies import UserProfileApiAccessPolicy, StaffApiAccessPolicy, StudentApiAccessPolicy
+from event.models import Curriculum
+from .access_policies import UserProfileApiAccessPolicy, StaffApiAccessPolicy, StudentApiAccessPolicy, \
+    CurriculumStudentBulkAddApiAccessPolicy
 from .models import UserProfile
-from .serializers import UserProfileSerializer, StudentSerializer, StaffSerializer
+from .serializers import UserProfileSerializer, StudentSerializer, StaffSerializer, CurriculumStudentBulkAddSerializer
 
 
 # Create your views here.
@@ -72,6 +77,7 @@ def studentApi(request, userprofile_id=0):
             query_object = AccessPolicyClass.scope_query_object(request)
             objects = Model.objects.filter(Q(faculty_role__id=2) & query_object)
             serializer = Serializer(objects, many=True, context={'request': request})
+            print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
             id = userprofile_id
@@ -95,7 +101,7 @@ def studentApi(request, userprofile_id=0):
         data = request.data.dict()
         data = Serializer.custom_clean(data=data, context={'request': request})
         serializer = Serializer(object, data=data, context={'request': request})
-        print(data)
+        # print(data)
         if serializer.is_valid():
             success = True
             try:
@@ -144,3 +150,56 @@ def profileApi(request, userprofile_id=0):
 
             serializer = Serializer(object, context={'request': request})
             return JsonResponse(serializer.data, safe=False)
+
+def curriculumStudent(request, curriculum_id=0):
+    stuff_for_frontend  = {
+        'curriculum_id' : curriculum_id,
+    }
+    return render(request, 'profile/curriculum_student.html', stuff_for_frontend)
+
+@parser_classes((MultiPartParser, JSONParser,))
+@permission_classes((CurriculumStudentBulkAddApiAccessPolicy,))
+@api_view(['POST'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def curriculumStudentBulkAddApi(request):
+    #Note : We have to ensure that every row is valid.
+
+    data = request.data.dict()
+    print(data)
+    serializer = CurriculumStudentBulkAddSerializer(data=data, context={'request': request})
+
+    if not serializer.is_valid():
+        print(serializer.error_messages)
+        print(serializer.errors)
+        return JsonResponse("Failed to add.", safe=False)
+
+    curriculum_id = serializer.validated_data['curriculum_id']
+    csv_file = serializer.validated_data['csv_file']
+
+    decoded_csv_file = csv_file.read().decode(encoding='utf-8-sig')
+    io_string = io.StringIO(decoded_csv_file)
+    csvreader = csv.reader(io_string, delimiter=',')
+
+    header = next(csvreader)
+    university_id_index = header.index('university_id')
+    university_ids = []
+    for row in csvreader:
+        university_ids.append(row[university_id_index])
+
+    students = UserProfile.objects.filter(university_id__in=university_ids, faculty_role=2)
+
+    #Save to the database.
+    success = True
+    curriculum = Curriculum.objects.get(id=curriculum_id)
+    try:
+        with transaction.atomic():
+            for e in students:
+                e.enroll = curriculum
+                e.save()
+    except IntegrityError:
+        success = False
+
+    if success:
+        return JsonResponse("Added Successfully.", safe=False)
+    else:
+        return JsonResponse("Failed to add.", safe=False)
