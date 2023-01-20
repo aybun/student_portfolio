@@ -223,7 +223,7 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
         groups = request.user.groups.values_list('name', flat=True)
 
         if request.method == "PUT":
-            data['synced'] = 'false'
+            data['synced'] = 'false' #We won't let this in if the university is not present.
 
             if 'user_id_fk' in data:
                 student_id_fk = data['user_id_fk']
@@ -231,6 +231,10 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     data.pop('user_id_fk', None)
 
         return data
+
+
+
+
 
 
 

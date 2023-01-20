@@ -6,7 +6,7 @@ let chartComponent = {
         return{
             //API Zone
             user:{},
-            profile:{}, //Get Curriculum id
+            profile:{}, //Get Curriculum id from enroll.
             curriculums:[],
             skillgroups:[],
             skillTable:[],
@@ -16,63 +16,23 @@ let chartComponent = {
 
             // JS editing zone
             modalTitle:"Edit goal points",
+            n_groups:0,
+            max_n_groups:5,
 
+            reindexedSkillTable:{},
             skillFreq:[],
             skillLabels:[],
 
             radarCharts:[],
-            checkboxes: [],
+            chartActive:false,
+            // checkboxes: [],
 
-            editingSkillType:0,
-            // PhotoFileName:"anonymous.png",
-            PhotoPath:variables.PHOTO_URL
         }
     },
 
     methods:{
-        async refreshData(){
+        refreshData(){
 
-            this.reloadCharts()
-
-        },
-
-        editGoalPoints(skillType){
-            this.editingSkillType = skillType
-        },
-        cleanAttachment_file(attachement_file){
-
-        },
-
-        submitChartDataClick(){
-
-            for (let i=0; i<this.radarcharts.length; ++i){
-                this.radarcharts[i].destroy()
-            }
-            this.reloadCharts()
-
-            let outDict = JSON.parse(JSON.stringify(this.skillTable))
-
-            for (let i = 0; i < this.skillTable.length ;++i){
-                outDict[i].goal_point = this.skillFreq[i]
-            }
-
-
-            axios.defaults.xsrfCookieName = 'csrftoken';
-            axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-            axios({
-                method: 'put',
-                url: variables.API_URL+"skillTable",
-                xsrfCookieName: 'csrftoken',
-                xsrfHeaderName: 'X-CSRFToken',
-                data: outDict,
-                headers : {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': 'csrftoken',
-                }
-            }).then((response)=>{
-                alert(response.data);
-            })
-            //push to DB.
         },
 
         getEmptyArrayOfArrays(arrayLength){
@@ -83,104 +43,155 @@ let chartComponent = {
 
             return arr
         },
+
+        getEmptyArrayOfDicts(arrayLength){
+            let arr = new Array(arrayLength)
+            for (let i = 0; i < arrayLength; ++i ){
+                arr[i] = {}
+            }
+
+            return arr
+        },
+
         reloadCharts(){
              //Prepare chartFreqData for each chart.
-            let n_types = 2
-            this.radarcharts = []
-            let chart_freq_data = this.getEmptyArrayOfArrays(n_types)
-            let goal_freq_data = this.getEmptyArrayOfArrays(n_types)
-            let skill_label_data = this.getEmptyArrayOfArrays(n_types)
+            let curriculum_id = this.profile.enroll
+            let curriculum = ''
+            // console.log('curriculumxxxxx')
+            for (let i = 0; i < this.curriculums.length; ++i){
+                if (this.curriculums[i].id === curriculum_id){
+                    curriculum = this.curriculums[i]
+                    // console.log(this.curriculums[i])
+                    break;
+                }
 
+            }
 
-            for (let i = 0; i < this.skillTable.length; ++i){
-                for (let j = 0; j < n_types; ++j){
-                    if (this.skillTable[i].type === (j+1)){
-                        chart_freq_data[j].push(this.skillFreq[i])
-                        goal_freq_data[j].push(this.skillTable[i].goal_point)
-                        skill_label_data[j].push(this.skillTable[i].title)
+            let skillgroups_for_charts = []
+            // console.log('curriculum')
+            // console.log(curriculum)
 
+            for(let i = 0; i < this.skillgroups.length; ++i){
+                for(let j = 0; j < curriculum.skillgroups.length; ++j)
+                    if (this.skillgroups[i].id === curriculum.skillgroups[j].id){
+                        skillgroups_for_charts.push(JSON.parse(JSON.stringify(this.skillgroups[i])))
                     }
+            }
+
+            // let skills_for_charts = this.getEmptyArrayOfDicts(skillgroups_for_charts.length)
+            // for(let i = 0; i < skills_for_charts.length; ++i){
+            //
+            //     for(let j = 0; j < skillgroups_for_charts.skills.length; ++j){
+            //         skills_for_charts[i][ skillgroups_for_charts.skills[j].skill_id_fk ] = skillgroups_for_charts.skills[j]
+            //     }
+            // }
+
+            this.n_groups = skillgroups_for_charts.length
+            // this.chartActive = true
+
+            let chart_freq_data = this.getEmptyArrayOfArrays(this.n_groups)
+            let goal_freq_data = this.getEmptyArrayOfArrays(this.n_groups)
+            let skill_label_data = this.getEmptyArrayOfArrays(this.n_groups)
+
+
+
+            // console.log(skillgroups_for_charts)
+            // console.log(skillgroups_for_charts.skills)
+            for(let i = 0; i < skillgroups_for_charts.length ; ++i ){
+                for (let j = 0; j < skillgroups_for_charts[i].skills.length; ++j){
+
+                    let temp_skill_id = skillgroups_for_charts[i].skills[j].skill_id_fk
+                    // console.log(temp_skill_id)
+                    // console.log(this.skillTable)
+                    chart_freq_data[i].push( this.skillFreq[ temp_skill_id ])
+                    goal_freq_data[i].push( skillgroups_for_charts[i].skills[j].goal_point )
+                    skill_label_data[i].push(this.reindexedSkillTable[ temp_skill_id ].title)
                 }
             }
 
-            // let chart_input_button = document.getElementById('chart-input-button')
+
+            // for (let i = 0; i < this.skillTable.length; ++i){
+            //     for (let j = 0; j < n_groups; ++j){
+            //         chart_freq_data[j].push(this.skillFreq[i])
+            //         goal_freq_data[j].push(skillgroups_for_charts.skills.skill_id_fk)
+            //     }
+            // }
             //
-            // if (this.user.is_student)
-            //     chart_input_button.style.visibility = "hidden"
-            // console.log(skill_label_data)
-            let chart_ids = ['chart-1', 'chart-2']
-            // let chart_input_ids = ['chart-1-inputs', 'chart-2-inputs']
+            // for (let i = 0; i < this.skillTable.length; ++i){
+            //     for (let j = 0; j < n_groups; ++j){
+            //         if (this.skillTable[i].type === (j+1)){
+            //             chart_freq_data[j].push(this.skillFreq[i])
+            //             goal_freq_data[j].push(this.skillTable[i].goal_point)
+            //             skill_label_data[j].push(this.skillTable[i].title)
+            //
+            //         }
+            //     }
+            // }
 
-            for(let i = 0; i < n_types; ++i){
+            let chart_ids = []
+            for (let i = 0; i < this.n_groups; ++i){
+                chart_ids.push('chart-' + (i + 1))
+            }
 
+            // console.log(chart_ids)
+            this.radarcharts = []
+            for(let i = 0; i < this.n_groups; ++i){
 
+                // console.log(document.getElementById(chart_ids[i]))
                 const ctx = document.getElementById(chart_ids[i]).getContext('2d');
 
                 const chart_data = {
                     labels: skill_label_data[i]
                 }
 
-                if (this.user.is_student){
+
                 chart_data.datasets = [
                     {
-                    label: 'My Skills',
-                    data: chart_freq_data[i],
-                    fill: true,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgb(255, 99, 132)',
-                    pointBackgroundColor: 'rgb(255, 99, 132)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(255, 99, 132)'
+                        label: 'My Skills',
+                        data: chart_freq_data[i],
+                        fill: true,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointBackgroundColor: 'rgb(255, 99, 132)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(255, 99, 132)'
                     },
                     {
-                    label: 'Goal',
-                    data: goal_freq_data[i],
-                    fill: true,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgb(54, 162, 235)',
-                    pointBackgroundColor: 'rgb(54, 162, 235)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(54, 162, 235)'
+                        label: 'Goal',
+                        data: goal_freq_data[i],
+                        fill: true,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        pointBackgroundColor: 'rgb(54, 162, 235)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(54, 162, 235)'
                     },
-                    ]
-                }
+                ]
 
-            else if (this.user.is_staff){
-                chart_data.datasets = [{
-                    label: 'Goal',
-                    data: chart_freq_data[i],
-                    fill: true,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgb(54, 162, 235)',
-                    pointBackgroundColor: 'rgb(54, 162, 235)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(54, 162, 235)'
-                }]
-            }
 
-            const config = {
-                type: 'radar',
-                data: chart_data,
-                options: {
-                    // responsive: false,
-                    // maintainAspectRatio: false,
-                    scales:{
-                        r:{
-                            max:5,
-                            min:0,
+                const config = {
+                    type: 'radar',
+                    data: chart_data,
+                    options: {
+                        // responsive: false,
+                        // maintainAspectRatio: false,
+                        scales:{
+                            r:{
+                                max:5,
+                                min:0,
+                            },
                         },
-                    },
 
-                    elements: {
-                        line: {
-                            borderWidth: 3
-                        }
-                }
-              },
-            };
+                        elements: {
+                            line: {
+                                borderWidth: 3
+                            }
+                    }
+                  },
+                };
+
                 this.radarcharts.push(new Chart(ctx, config))
             }
 
@@ -188,129 +199,95 @@ let chartComponent = {
 
         prepareChartData(){
             //Initialize skillFreq
-            if (this.user.is_student){
 
-                let skillFreq = {}
-                for (let i=0; i<this.skillTable.length; ++i){
-                    skillFreq[this.skillTable[i].skillId] = 0
-                }
-                for (let i=0; i < this.events.length; ++i){
-                    for (let j=0; j < this.events[i].skills.length; ++j){
-                        skillFreq[this.events[i].skills[j].skillId] += 1
-                    }
-                }
-                let temp_skillFreq = []
-                for (let i=0; i < this.skillTable.length; ++i){
-                    temp_skillFreq.push(skillFreq[this.skillTable[i].skillId])
-                }
-                this.skillFreq = temp_skillFreq
+
+            let skillFreq = {}
+            for (let i=0; i<this.skillTable.length; ++i){
+                skillFreq[this.skillTable[i].id] = 0
             }
-            else if (this.user.is_staff){
-                //query from DB
-                let skillFreq = {}
-                for (let i=0; i<this.skillTable.length; ++i){
-                    skillFreq[this.skillTable[i].skillId] = this.skillTable[i].goal_point
-                }
 
-                let temp_skillFreq = []
-                for (let i=0; i < this.skillTable.length; ++i){
-                    temp_skillFreq.push(skillFreq[this.skillTable[i].skillId])
+            for (let i=0; i < this.events.length; ++i){
+                for (let j=0; j < this.events[i].skills.length; ++j){
+                    skillFreq[this.events[i].skills[j].id] += 1
                 }
-
-                this.skillFreq = temp_skillFreq
             }
+
+            let reindexedSkillTable = {}
+            for (let i=0; i< this.skillTable.length; ++i){
+                reindexedSkillTable[this.skillTable[i].id] = this.skillTable[i]
+            }
+            this.reindexedSkillTable = reindexedSkillTable
+
+
+            this.skillFreq = skillFreq
+
 
             //Initialize skillLabels
-            let skillLabels = []
-            this.skillTable.forEach(function(e) {
-                    skillLabels.push(e.title)
-                }
-            )
-            this.skillLabels = skillLabels
+            // let skillLabels = []
+            // this.skillTable.forEach(function(e) {
+            //         skillLabels.push(e.title)
+            //     }
+            // )
+            // this.skillLabels = skillLabels
 
         },
 
         prepareData(){
             // console.log(this.user)
-            this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
-            this.user['is_student'] = Object.values(this.user.groups).includes('student')
+            // this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
+            // this.user['is_student'] = Object.values(this.user.groups).includes('student')
 
             this.prepareChartData()
 
 
         },
-        async makeRequests(){
-            await axios.get(variables.API_URL+"skillTable")
-            .then((response)=>{
-                this.skillTable=response.data;
-            });
-
-            await axios.get(variables.API_URL+"user")
-                .then((response)=>{
-                this.user=response.data;
-
-            });
-
-            await axios.get(variables.API_URL+"event")
-                .then((response)=>{
-                    this.events=response.data;
-                });
-
-            await axios.get(variables.API_URL+"staff")
-                .then((response)=>{
-                    this.staffs=response.data;
-                });
-        }
     },
-    created:async function(){
-        // user:{},
-        // profile:{}, //Get Curriculum id
-        // curriculums:[],
-        // skillgroups:[],
-        // skillTable:[],
-        // events:[],
 
-        axios.get(variables.API_URL+"user")
+    created: async function(){
+
+    },
+
+    mounted: async function(){
+
+        await axios.get(variables.API_URL+"user")
                 .then((response)=>{
                 this.user=response.data;
-
                 });
 
         //Return a list of one element.
-        axios.get(variables.API_URL+"student")
+        await axios.get(variables.API_URL+"student")
                 .then((response)=>{
                 this.profile=response.data[0];
+                console.log(this.profile)
                 });
 
         //Consider returning only the curriculum enrolled by the student.
-        axios.get(variables.API_URL+"curriculum")
+        await axios.get(variables.API_URL+"curriculum")
                 .then((response)=>{
                 this.curriculums=response.data;
+                console.log(this.curriculums)
                 });
 
-        axios.get(variables.API_URL+"skillgroup")
+        await axios.get(variables.API_URL+"skillgroup")
                 .then((response)=>{
                 this.skillgroups=response.data;
+                console.log(this.skillgroups)
                 });
 
-        axios.get(variables.API_URL+"skillTable")
+        await axios.get(variables.API_URL+"skillTable")
             .then((response)=>{
                 this.skillTable=response.data;
+                console.log(this.skillTable)
             });
 
-        axios.get(variables.API_URL+"eventAttended/list")
+        await axios.get(variables.API_URL+"eventAttended/list")
             .then((response)=>{
                 this.events=response.data;
+                console.log(this.events)
             });
 
-
-        await this.makeRequests()
         this.prepareData()
-        this.refreshData()
-    },
-
-    mounted:function(){
-
+        this.reloadCharts()
     }
 }
 const app = Vue.createApp({
