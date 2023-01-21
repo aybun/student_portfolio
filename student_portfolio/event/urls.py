@@ -11,8 +11,6 @@ urlpatterns=[
     # re_path(r'^event/view/([0-9]+)$', views.xxxxxxxxxxx),
 
 
-
-
     #Using Django template
     path('event', views.event),
     path('api/event', views.eventApi),
@@ -22,23 +20,17 @@ urlpatterns=[
     # path('api/eventRegisterRequest', views.eventRegisterRequestApi),
     # path('api/eventRegisterRequest/<int:event_id>', views.eventRegisterRequestApi),
 
-    path('eventAttendanceOfStudents/<int:event_id>', views.eventAttendanceOfStudents),
-    path('api/eventAttendanceOfStudents/', views.eventAttendanceApi),
-    path('api/eventAttendanceOfStudents/<int:event_id>', views.eventAttendanceApi),
-    path('api/eventAttendanceOfStudents/<int:event_id>/<int:attendance_id>', views.eventAttendanceApi),
+    path('event-attendance/<int:event_id>', views.eventAttendance),
+    path('api/event-attendance/', views.eventAttendanceApi),
+    path('api/event-attendance/<int:event_id>', views.eventAttendanceApi),
+    path('api/event-attendance/<int:event_id>/<int:attendance_id>', views.eventAttendanceApi),
     path('api/event-attendance-bulk-add', views.eventAttendanceBulkAddApi),
 #SYNC
     path('api/sync-attendance-by-university-id/<int:event_id>', views.syncAttendanceByUniversityId),
-    path('api/eventAttended/list', views.eventAttendedListApi),
-    path('api/eventAttended/list/<int:user_id>', views.eventAttendedListApi),
+    path('api/event-attended/list', views.eventAttendedListApi),
+    path('api/event-attended/list/<int:user_id>', views.eventAttendedListApi),
 
-    path('profile/curriculum', views.curriculum),
-    path('api/curriculum', views.curriculumApi),
-    path('api/curriculum/<int:curriculum_id>', views.curriculumApi),
 
-    path('profile/skillgroup', views.skillgroup),
-    path('api/skillgroup', views.skillGroupApi),
-    path('api/skillgroup/<int:skillgroup_id>', views.skillGroupApi),
 
     path('api/skillTable', views.skillTableApi),
 

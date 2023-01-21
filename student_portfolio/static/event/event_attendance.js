@@ -38,7 +38,7 @@ methods:{
         },
 
     refreshData(){
-        axios.get(variables.API_URL+"eventAttendanceOfStudents/" + this.event_id)
+        axios.get(variables.API_URL+"event-attendance/" + this.event_id)
         .then((response)=>{
             this.studentAttendances=response.data;
             // console.log(this.studentAttendances)
@@ -80,7 +80,7 @@ methods:{
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
         axios({
             method: 'post',
-            url: variables.API_URL+"eventAttendanceOfStudents/",
+            url: variables.API_URL+"event-attendance/",
             xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             data: outDict,
@@ -105,7 +105,7 @@ methods:{
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
         axios({
             method: 'put',
-            url: variables.API_URL+"eventAttendanceOfStudents/" + this.event_id + '/' + this.studentAttendEvent.id,
+            url: variables.API_URL+"event-attendance/" + this.event_id + '/' + this.studentAttendEvent.id,
             xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             data: outDict,
@@ -128,7 +128,7 @@ methods:{
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
         axios({
             method: 'delete',
-            url: variables.API_URL+"eventAttendanceOfStudents/"+ this.event_id + '/' + attendance_id,
+            url: variables.API_URL+"event-attendance/"+ this.event_id + '/' + attendance_id,
             xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
             headers : {

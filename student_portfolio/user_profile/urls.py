@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from event import views as event_views
 
 urlpatterns=[
     
@@ -19,7 +20,15 @@ urlpatterns=[
     path('api/profile', views.profileApi),
     path('api/profile/<int:userprofile_id>', views.profileApi),
 
+
+    path('profile/curriculum', event_views.curriculum),
     path('profile/curriculum-student/<int:curriculum_id>', views.curriculumStudent),
-    path('api/curriculum-student-bulk-add', views.curriculumStudentBulkAddApi)
+    path('api/curriculum', event_views.curriculumApi),
+    path('api/curriculum/<int:curriculum_id>', event_views.curriculumApi),
+
+    path('profile/skillgroup', event_views.skillgroup),
+    path('api/skillgroup', event_views.skillGroupApi),
+    path('api/skillgroup/<int:skillgroup_id>', event_views.skillGroupApi),
+    path('api/curriculum-student-bulk-add', views.curriculumStudentBulkAddApi),
 
 ]

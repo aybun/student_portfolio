@@ -115,7 +115,7 @@
                 <input type="text" class="form-control" v-model="eventId">
             </div>
             -->
-            <button v-if="!addingNewEvent && user.is_staff" type="button" class="btn btn-primary m-2 fload-end" v-on:click="openNewWindow('/eventAttendanceOfStudents/' + event.id)">
+            <button v-if="!addingNewEvent && user.is_staff" type="button" class="btn btn-primary m-2 fload-end" v-on:click="openNewWindow('/event-attendance/' + event.id)">
                 Show Attendances
             </button>
             <div class="input-group mb-3">

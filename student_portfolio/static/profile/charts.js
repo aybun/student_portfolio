@@ -280,7 +280,7 @@ let chartComponent = {
                 console.log(this.skillTable)
             });
 
-        await axios.get(variables.API_URL+"eventAttended/list")
+        await axios.get(variables.API_URL+"event-attended/list")
             .then((response)=>{
                 this.events=response.data;
                 console.log(this.events)

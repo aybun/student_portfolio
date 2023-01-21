@@ -63,7 +63,7 @@ let chartComponent = {
         refreshData(){
 
             // if (this.user.groups.includes('student'))
-            this.reloadCharts()
+            // this.reloadCharts()
 
             this.event = this.getEmptyEvent()
 
@@ -380,8 +380,8 @@ let chartComponent = {
                 this.staffs=response.data;
             });
 
-        this.prepareData()
-        this.refreshData()
+        // this.prepareData()
+        // this.refreshData()
 
     },
 

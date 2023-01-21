@@ -173,14 +173,14 @@ def eventApi(request, event_id=0):
             else:
                 return JsonResponse("Failed to delete.", safe=False)
 
-def eventAttendanceOfStudents(request, event_id=0):
+def eventAttendance(request, event_id=0):
 
     groups = list(request.user.groups.values_list('name', flat=True))
 
     if 'staff' in groups:
 
         stuff_for_frontend = { 'event_id' : event_id }
-        return render(request, 'event/event_attendance_of_students.html', stuff_for_frontend)
+        return render(request, 'event/event_attendance.html', stuff_for_frontend)
     else:
         return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
 

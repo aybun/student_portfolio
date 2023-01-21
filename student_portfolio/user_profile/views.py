@@ -188,6 +188,10 @@ def curriculumStudentBulkAddApi(request):
 
     students = UserProfile.objects.filter(university_id__in=university_ids, faculty_role=2)
 
+
+    if (len(university_ids) != len(students)):
+        return JsonResponse("Failed to add.", safe=False)
+
     #Save to the database.
     success = True
     curriculum = Curriculum.objects.get(id=curriculum_id)
