@@ -157,12 +157,10 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     data.pop('supervisors', None)
 
             if 'staff' in groups:
-                if instance.approved: #If the project has already been approved. We won't reassign this user to approved_by.
-                    data.pop('approved')
+                if data['approved'] == 'true':
+                    data['approved_by'] = request.user.id
                 else:
-                    if data['approved'] == 'true':
-                        data['approved_by'] = request.user.id
-                    else:
-                        data.pop('approved_by', None)
+                    data.pop('approved_by', None)
+                    instance.approved_by = None
 
-        return data
+        return instance, data

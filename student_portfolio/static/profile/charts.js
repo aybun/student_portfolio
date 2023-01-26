@@ -258,29 +258,30 @@ let chartComponent = {
         await axios.get(variables.API_URL+"student")
                 .then((response)=>{
                 this.profile=response.data[0];
-                console.log(this.profile)
+                // console.log(this.profile)
                 });
 
         //Consider returning only the curriculum enrolled by the student.
         await axios.get(variables.API_URL+"curriculum")
                 .then((response)=>{
                 this.curriculums=response.data;
-                console.log(this.curriculums)
+                // console.log(this.curriculums)
                 });
 
         await axios.get(variables.API_URL+"skillgroup")
                 .then((response)=>{
                 this.skillgroups=response.data;
-                console.log(this.skillgroups)
+                // console.log(this.skillgroups)
                 });
 
         await axios.get(variables.API_URL+"skillTable")
             .then((response)=>{
                 this.skillTable=response.data;
-                console.log(this.skillTable)
+                // console.log(this.skillTable)
             });
 
-        await axios.get(variables.API_URL+"event-attended/list")
+        const eventAttendedParams = new URLSearchParams([['event_used_for_calculation', true], ['event_attendance_used_for_calculation', true]]);
+        await axios.get(variables.API_URL+"event-attended/list", { params : eventAttendedParams} )
             .then((response)=>{
                 this.events=response.data;
                 console.log(this.events)

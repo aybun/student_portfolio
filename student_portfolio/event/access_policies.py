@@ -248,14 +248,31 @@ class EventAttendedListApiAccessPolicy(AccessPolicy):
         groups = request.user.groups.values_list('name', flat=True)
 
         if request.method == "GET":
+            query_object = Q()
 
-            attendances = EventAttendance.objects.filter(user_id_fk=request.user.id)
+            event_attendance_used_for_calculation = request.GET.get('event_attendance_used_for_calculation', None)
+            if event_attendance_used_for_calculation is not None:
+                event_attendance_used_for_calculation = bool(event_attendance_used_for_calculation)
+
+                attendances = EventAttendance.objects.filter(synced=True, user_id_fk=request.user.id,
+                                                             used_for_calculation=event_attendance_used_for_calculation)
+
+            else:
+                attendances = EventAttendance.objects.filter(synced=True, user_id_fk=request.user.id)
+
+            event_used_for_calculation = request.GET.get('event_used_for_calculation', None)
+            if event_attendance_used_for_calculation is not None:
+                event_used_for_calculation = bool(event_used_for_calculation)
+                query_object &= Q(used_for_calculation=event_used_for_calculation)
+
             event_ids = attendances.values_list('event_id_fk', flat=True)
 
             if 'staff' in groups:
-                return Q(approved=True) & Q(id__in=event_ids)
+                query_object &= Q(approved=True) & Q(id__in=event_ids)
             elif 'student' in groups:
-                return Q(approved=True) & Q(id__in=event_ids)
+                query_object &= Q(approved=True) & Q(id__in=event_ids)
+
+            return query_object
 
 class EventAttendanceBulkAddApiAccessPolicy(AccessPolicy):
     statements = [

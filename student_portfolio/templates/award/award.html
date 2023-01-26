@@ -200,8 +200,8 @@
                     Create
                 </button>
 
-                <button v-if="user.is_staff || user.is_student && (award.created_by == user.id)" id="updateButton" type="button" @click="updateClick()"
-                    v-else class="btn btn-primary">
+                <button v-if="!addingNewAward && (user.is_staff || user.is_student && (award.created_by == user.id))" id="updateButton" type="button" @click="updateClick()"
+                     class="btn btn-primary">
                     Update
                 </button>
             </div>

@@ -109,10 +109,10 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         # Assume that data is a stringnified object.
         skill_ids = Skill.objects.all().values_list('id', flat=True)
 
-        print(data)
+        # print(data)
         list_of_dicts = json.loads(data)
-        print(type(list_of_dicts))
-        print(list_of_dicts)
+        # print(type(list_of_dicts))
+        # print(list_of_dicts)
 
         if not (isinstance(list_of_dicts, list)) or len(
                 list_of_dicts) == 0:  # If it is not a list, return an empty string ''. So that we could pop this field.

@@ -96,6 +96,9 @@ methods:{
     },
     updateClick(){
 
+        for (let i=0;i<this.checkboxFields.length; ++i)
+            this.studentAttendEvent[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
+
         let outDict = new FormData();
         for (const [key, value] of Object.entries(this.studentAttendEvent)) {
             outDict.append(key.toString(), value)
@@ -195,13 +198,25 @@ methods:{
             }
         }).then((response)=>{
             this.refreshData();
+            // console.log(response.data)
+            // console.log(response.data.message)
             alert(response.data);
+            // alert(response.message);
 
             //Reset the behavior of the modal.
             this.addByFileModalActive=false
             this.addByFileModalActive=true
 
-        })
+        }).catch((error)=>{
+            this.refreshData();
+            console.log(error.response.data.message)
+            console.log(error.response.data.invalid_rows)
+            alert(error.response.data.invalid_rows)
+            // alert(response.message)
+            // alert(response.invalid_rows)
+            // alert(response.message)
+            ;}
+        )
     }
 
     },

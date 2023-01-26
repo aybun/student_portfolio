@@ -160,7 +160,9 @@ let curriculumComponent = {
             // label.innerText = this.event.attachment_file.name
 
         },
-
+        openNewWindow(url){
+            window.open(url);
+        },
     },
 
     created: function(){

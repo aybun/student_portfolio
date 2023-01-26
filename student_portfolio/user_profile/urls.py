@@ -9,7 +9,7 @@ urlpatterns=[
     path('profile/info', views.info),
     path('profile/charts', views.charts),
     path('profile/edit-student-profile', views.editStudentProfile),
-
+    path('profile/event-attendance', views.eventAttendance),
 
     path('api/staff', views.staffApi),
     path('api/staff/<int:userprofile_id>', views.staffApi),

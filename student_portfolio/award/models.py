@@ -28,7 +28,7 @@ class Award(models.Model):
 
     approved = models.BooleanField(default=False)
     approved_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,
-                                    related_name='award_approved_by_set', editable=False)
+                                    related_name='award_approved_by_set', editable=True, blank=True)
 
     used_for_calculation = models.BooleanField(default=False)
 

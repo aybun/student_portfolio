@@ -207,3 +207,10 @@ def curriculumStudentBulkAddApi(request):
         return JsonResponse("Added Successfully.", safe=False)
     else:
         return JsonResponse("Failed to add.", safe=False)
+
+
+def eventAttendance(request):
+    stuff_for_frontend = {
+
+    }
+    return render(request, 'profile/event_attendance.html', stuff_for_frontend)

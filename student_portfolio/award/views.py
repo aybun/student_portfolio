@@ -36,7 +36,7 @@ def awardApi(request, award_id=0):
                 return JsonResponse("The objects do not exist.", safe=False)
 
             serializer = Serializer(objects, many=True, context={'request': request})
-            print(serializer.data)
+            # print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
             id = award_id
@@ -74,14 +74,15 @@ def awardApi(request, award_id=0):
         id = award_id
         query_object = AccessPolicyClass.scope_query_object(request=request)
         object = Model.objects.filter(Q(id=id) & query_object).first()
-
+        print(object.approved_by)
         if object is None:
             return JsonResponse("Failed to update.", safe=False)
 
         data = request.data.dict()
-        data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
-        serializer = Serializer(object, data=data, context={'request': request})
-        print(data)
+        object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
+
+        serializer = Serializer(instance=object, data=data, context={'request': request})
+        # print(data)
         if serializer.is_valid():
             success = True
             try:

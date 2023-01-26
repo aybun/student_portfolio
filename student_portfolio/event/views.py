@@ -1,7 +1,7 @@
 # import django.db.transaction
 import csv
 import io
-
+from http import HTTPStatus
 from django.shortcuts import render
 from django.db import IntegrityError, transaction
 from django.views.decorators.csrf import csrf_exempt
@@ -56,7 +56,7 @@ def eventApi(request, event_id=0):
                     return JsonResponse({}, safe=False)
 
                 event_serializer = EventSerializer(events, many=True, context={'request': request})
-                # print(event_serializer.data)
+                print(event_serializer.data)
                 return JsonResponse(event_serializer.data, safe=False)
             else:
 
@@ -258,12 +258,12 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
 
             attendance_data = EventAttendanceSerializer.custom_clean(data=attendance_data, context={'request' : request})
 
-            # print(attendance_data)
+            print(attendance_data)
             attendance = EventAttendance.objects.filter(id=attendance_data['id']).first()
             if attendance is None:
                 return JsonResponse("Failed to Update", safe=False)
 
-            serializer=EventAttendanceSerializer(attendance, data=attendance_data, context={'request' : request})
+            serializer=EventAttendanceSerializer(instance=attendance, data=attendance_data, context={'request' : request})
 
             if serializer.is_valid():
                 serializer.save()
@@ -355,10 +355,14 @@ def eventAttendanceBulkAddApi(request):
         except IntegrityError:
             success = False
 
-        if success:
+        if success and len(invalid_rows) == 0:
             return JsonResponse("Added Successfully.", safe=False)
         else:
-            return JsonResponse("Failed to add.", safe=False)
+            response_dict = {
+                'message': 'the file contains some invalid rows.',
+                'invalid_rows' : invalid_rows,
+            }
+            return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     else:
         print(serializer.error_messages)
