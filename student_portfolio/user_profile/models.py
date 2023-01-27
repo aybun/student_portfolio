@@ -25,7 +25,7 @@ class UserProfile(models.Model):
     faculty_role = models.ForeignKey(FacultyRole, null=True, on_delete=models.SET_NULL)
 
     enroll = models.ForeignKey(Curriculum, null=True, on_delete=models.SET_NULL,
-                               related_name='userprofile_enroll_set')
+                               related_name='userprofile_enroll_set', blank=True)
 
     def __str__(self):
         return "{} {} {} {} {}".format(self.id, self.university_id, self.firstname,

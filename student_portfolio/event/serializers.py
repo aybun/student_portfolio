@@ -103,6 +103,20 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def validate(self, data):
+
+        if data.get('start_datetime', None) > data.get('end_datetime', None):
+            raise ValidationError("End date must be after start date.")
+
+        return data
+    
+    # def validate_end_datatime(self, end_datetime):
+    #
+    #     if self.initial_data.get('start_datetime') > end_datetime:
+    #         raise ValidationError("End date must be after start date.")
+    #
+    #     return end_datetime
+
     @staticmethod
     def custom_clean_skills(instance=None, data=None, context=None):
 
