@@ -175,6 +175,7 @@ def projectApi(request, project_id=0):
                     serializer.save()
             except IntegrityError:
                 success = False
+
             if success:
                 return JsonResponse("Added Successfully", safe=False)
             else:

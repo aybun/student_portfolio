@@ -50,7 +50,7 @@ def awardApi(request, award_id=0):
             return JsonResponse(serializer.data, safe=False)
     elif request.method == "POST":
         data = request.data.dict()
-        data = Serializer.custom_clean(data=data, context={'request': request})
+        object, data = Serializer.custom_clean(data=data, context={'request': request})
         serializer = Serializer(data=data, context={'request': request})
 
         if serializer.is_valid():
