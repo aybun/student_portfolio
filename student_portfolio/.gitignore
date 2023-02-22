@@ -1,4 +1,6 @@
 *.idea
 
 media
+private-media
+
 **/__pycache__/

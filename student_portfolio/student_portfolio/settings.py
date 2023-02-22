@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+    'private_storage',
 
     'portfolio_management',
     'registration',
@@ -52,6 +53,8 @@ INSTALLED_APPS = [
     'user_profile',
     'project',
     'award',
+    'private_storage_test_app',
+
 ]
 
 REST_FRAMEWORK = {
@@ -186,6 +189,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'private-media')
+# PRIVATE_STORAGE_AUTH_FUNCTION = 'private_storage.permissions.allow_staff'
 
 LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/logoutpage'
