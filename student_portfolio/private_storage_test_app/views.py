@@ -25,9 +25,10 @@ class StorageView(PrivateStorageView):
 
     def can_access_file(self, private_file):
         # This overrides PRIVATE_STORAGE_AUTH_FUNCTION
-        filename = private_file.filename
 
-        return self.request.is_superuser
+        filename = private_file.relative_name
+
+        return self.request.user.is_superuser
 
 def testprivate(request, id=0):
 

@@ -20,6 +20,8 @@ from rest_framework.authtoken import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+import private_storage.urls
+
 urlpatterns = [
 
     # path('', include('registration.urls')),
@@ -47,7 +49,7 @@ urlpatterns += [
     path('api-token-auth/', views.obtain_auth_token)
 ]
 
-import private_storage.urls
+
 
 urlpatterns += [
     re_path('^private-media/', include(private_storage.urls)),
