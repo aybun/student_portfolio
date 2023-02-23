@@ -16,7 +16,7 @@
             data-bs-toggle="modal"
             data-bs-target="#edit-info-modal"
             @click="addClick()">
-         Create Award
+         Create Item
     </button>
 
 <!--    <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = true">-->
@@ -101,6 +101,12 @@
                             <input class="form-control" type="file" id="formFile" @change="onFileSelected_1">
                         </div>
 
+                        <div v-if="!addingNewItem" class="mb-3">
+                            <label for="formFile" class="form-label"><h3>private_file_2</h3></label>
+                            <p></p>
+                            <label id="attachment_filename_2" for="formFile" class="form-label"><a v-bind:href="this.item.private_file_2"><h6>File url</h6></a></label>
+                            <input class="form-control" type="file" id="formFile_2" @change="onFileSelected_2">
+                        </div>
 <!--                        <End of inputs>-->
                     </div>
 

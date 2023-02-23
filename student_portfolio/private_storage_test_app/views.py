@@ -20,15 +20,60 @@ storage = PrivateFileSystemStorage(
     base_url='/private-media/'
 )
 
+
+def _split_filename(filename):
+
+    #Format : appname_id_originalfilename.
+
+    pos_1 = filename.find('_')
+    pos_2 = filename[pos_1 + 1:].find('_')
+
+    app_name = filename[0:pos_1]
+    id = filename[pos_1 + 1: pos_2]
+
+    return app_name, id
+
+def _get_filename(fullpath):
+
+    pos = fullpath.rfind("\\")
+    if pos == -1:
+        pos = fullpath.rfind("//")
+
+    return fullpath[pos+1:]
+
+
 class StorageView(PrivateStorageView):
     storage = storage
 
     def can_access_file(self, private_file):
         # This overrides PRIVATE_STORAGE_AUTH_FUNCTION
+        #Define the name based on model???
 
-        filename = private_file.relative_name
+        # print(private_file.full_path)
+        # print(private_file.relative_name)
+        filename = _get_filename(private_file.full_path)
+        # print(filename)
+        app_name, id = _split_filename(filename)
+        # print((app_name, id))
 
-        return self.request.user.is_superuser
+        groups = list(self.request.user.groups.values_list('name', flat=True))
+        accessible = False
+        if app_name == 'project':
+            if 'staff' in groups:
+                accessible = True
+        elif app_name == 'event':
+            if 'staff' in groups:
+                accessible = True
+        elif app_name == 'award':
+            if 'staff' in groups:
+                accessible = True
+        elif app_name == 'testprivate':
+            if 'staff' in groups:
+                accessible = True
+
+        # elif app_name == 'profle':
+
+        return accessible
 
 def testprivate(request, id=0):
 
@@ -53,11 +98,12 @@ def testprivateApi(request, project_id=0):
             objects = Model.objects.filter(query_object).order_by('id')
 
             if not objects.exists():
-                return JsonResponse("The objects do not exist.", safe=False)
+                return JsonResponse([], safe=False)
 
             serializer = Serializer(objects, many=True, context={'request': request})
             print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
+
         else:
             id = project_id
             query_object = AccessPolicyClass.scope_query_object(request=request)

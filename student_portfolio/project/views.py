@@ -147,7 +147,7 @@ def projectApi(request, project_id=0):
             objects = Model.objects.filter(query_object).order_by('id')
 
             if not objects.exists():
-                return JsonResponse("The objects do not exist.", safe=False)
+                return JsonResponse([], safe=False)
 
             serializer = Serializer(objects, many=True, context={'request': request})
             # print(serializer.data)

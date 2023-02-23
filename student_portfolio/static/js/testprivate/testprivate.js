@@ -19,7 +19,7 @@ let testprivateComponent = {
 
                 private_file_1:"",
                 private_file_2:"",
-
+                created_by : 0,
             }
         },
 
@@ -136,7 +136,7 @@ let testprivateComponent = {
             this.item.private_file_1 = event.target.files[0]
         },
         onFileSelected_2(event){
-            this.item.private_file_1 = event.target.files[0]
+            this.item.private_file_2 = event.target.files[0]
         },
 
         prepareData(){

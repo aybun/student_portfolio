@@ -5,7 +5,7 @@ class PrivateModelAccessPolicy(AccessPolicy):
     statements = [
         {
             "action": ["<method:get>", "<method:post>", "<method:put>", "<method:delete>"],
-            "principal": ["group:staff"],
+            "principal": ["group:staff", "group:student"],
             "effect": "allow"
 
         },
@@ -47,8 +47,19 @@ class PrivateModelAccessPolicy(AccessPolicy):
             if 'staff' in groups:
                 return Q()
 
+            elif 'student' in groups:
+                return Q()
+
         elif request.method == "PUT":
-            return Q()
+            if 'staff' in groups:
+                return Q()
+
+            elif 'student' in groups:
+                return Q()
 
         elif request.method == "DELETE":
-            return Q()
+            if 'staff' in groups:
+                return Q()
+
+            elif 'student' in groups:
+                return Q()

@@ -53,7 +53,7 @@ def eventApi(request, event_id=0):
                 events = Event.objects.filter(query_object).order_by('id')
 
                 if not events.exists():
-                    return JsonResponse({}, safe=False)
+                    return JsonResponse([], safe=False)
 
                 event_serializer = EventSerializer(events, many=True, context={'request': request})
                 print(event_serializer.data)
