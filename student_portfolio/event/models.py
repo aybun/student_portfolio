@@ -1,11 +1,17 @@
+import os
+
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.dispatch import receiver
+from private_storage.fields import PrivateFileField
+
+from student_portfolio.settings import PRIVATE_STORAGE_ROOT
 
 
 def event_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return 'events/{0}/{1}'.format(instance.id, filename)
+    return PRIVATE_STORAGE_ROOT + '\{0}_{1}_{2}'.format('event', instance.id, filename)
 
 class Skill(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -38,13 +44,25 @@ class Event(models.Model):
     arranged_inside = models.BooleanField(default=False)
 
     attachment_link = models.URLField(max_length=200, blank=True, default='')
-    attachment_file = models.FileField(upload_to=event_attachment_file_directory_path, null=True, blank=True)
+    attachment_file = PrivateFileField(upload_to=event_attachment_file_directory_path, max_file_size=1024*1024*2,
+                                      null=True, blank=True, max_length=500)
 
     skills = models.ManyToManyField(Skill, related_name='event_skill_set', null=True)
     staffs = models.ManyToManyField(User, related_name='event_staff_set', null=True)
 
     def __str__(self):
         return "{} {}".format(self.id, self.title)
+
+def _delete_file(path):
+   """ Deletes file from filesystem. """
+   if os.path.isfile(path):
+       os.remove(path)
+
+@receiver(models.signals.post_delete, sender=Event)
+def delete_file_event(sender, instance, *args, **kwargs):
+    """ Deletes image files on `post_delete` """
+    if instance.attachment_file:
+        _delete_file(instance.attachment_file.path)
 
 class EventAttendance(models.Model):
     id = models.BigAutoField(primary_key=True)

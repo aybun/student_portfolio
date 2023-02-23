@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 from django.db import models
@@ -6,11 +7,16 @@ from django.contrib.auth.models import User
 
 
 # Create your models here.
+from django.dispatch import receiver
+from private_storage.fields import PrivateFileField
+
 from event.models import Skill
+from student_portfolio.settings import PRIVATE_STORAGE_ROOT
+
 
 def award_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return 'awards/{0}/{1}'.format(instance.id, filename)
+    return PRIVATE_STORAGE_ROOT + '\{0}_{1}_{2}'.format('award', instance.id, filename)
 
 class Award(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -33,7 +39,8 @@ class Award(models.Model):
     used_for_calculation = models.BooleanField(default=False)
 
     attachment_link = models.URLField(max_length=200, blank=True, default='')
-    attachment_file = models.FileField(upload_to=award_attachment_file_directory_path, null=True, blank=True)
+    attachment_file = PrivateFileField(upload_to=award_attachment_file_directory_path, max_file_size=1024*1024*2,
+                                      null=True, blank=True, max_length=500)
 
     #Many to Many fields
     skills = models.ManyToManyField(Skill, related_name='award_skill_set', null=True)
@@ -42,3 +49,14 @@ class Award(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.id, self.title)
+
+def _delete_file(path):
+   """ Deletes file from filesystem. """
+   if os.path.isfile(path):
+       os.remove(path)
+
+@receiver(models.signals.post_delete, sender=Award)
+def delete_file(sender, instance, *args, **kwargs):
+    """ Deletes image files on `post_delete` """
+    if instance.attachment_file:
+        _delete_file(instance.attachment_file.path)

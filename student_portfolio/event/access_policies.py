@@ -39,7 +39,7 @@ class EventApiAccessPolicy(AccessPolicy):
             if 'staff' not in groups: #The user is a student or lower level users.
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
-
+                fields.pop('approved_by')
 
         return fields
 
