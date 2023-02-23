@@ -200,11 +200,10 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 if isinstance(data.get('staffs', None), str):
                     data.pop('staffs', None)
 
+            data['approved_by'] = None
             if 'staff' in groups:
                 if data['approved'] == 'true':
                     data['approved_by'] = request.user.id
-                else:
-                    data.pop('approved_by', None)
 
         return data
 

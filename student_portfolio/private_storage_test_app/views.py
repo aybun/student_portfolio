@@ -6,6 +6,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes
 from rest_framework.parsers import JSONParser, MultiPartParser
 
+from award.models import Award
 from private_storage_test_app.access_policies import PrivateModelAccessPolicy
 from private_storage_test_app.models import PrivateModel
 from private_storage_test_app.serializers import PrivateModelSerializer
@@ -26,8 +27,8 @@ def _split_filename(filename):
     #Format : appname_id_originalfilename.
 
     pos_1 = filename.find('_')
-    pos_2 = filename[pos_1 + 1:].find('_')
-
+    pos_2 = (pos_1 + 1) + filename[pos_1 + 1:].find('_')
+    print('FILENAME : {} {} {}'.format(filename, pos_1, pos_2))
     app_name = filename[0:pos_1]
     id = filename[pos_1 + 1: pos_2]
 
@@ -54,7 +55,7 @@ class StorageView(PrivateStorageView):
         filename = _get_filename(private_file.full_path)
         # print(filename)
         app_name, id = _split_filename(filename)
-        # print((app_name, id))
+        print((app_name, id))
 
         groups = list(self.request.user.groups.values_list('name', flat=True))
         accessible = False
@@ -67,6 +68,16 @@ class StorageView(PrivateStorageView):
         elif app_name == 'award':
             if 'staff' in groups:
                 accessible = True
+
+            elif 'student' in groups:
+                object = Award.objects.filter(id=id).first()
+
+                if object is not None:
+                    # print(object.created_by == self.request.user.id and (not object.approved))
+
+                    if object.created_by.id == self.request.user.id and (not object.approved):
+                        accessible = True
+
         elif app_name == 'testprivate':
             if 'staff' in groups:
                 accessible = True

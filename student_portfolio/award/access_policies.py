@@ -26,13 +26,14 @@ class AwardApiAccessPolicy(AccessPolicy):
             }
 
         elif method == "PUT":
-            if instance.approved_by:
-                fields.pop('approved_by', None)
+            # if instance.approved_by:
+            #     fields.pop('approved_by', None)
 
             if 'staff' not in groups:
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
-
+                fields.pop('approved_by', None)
+                
 
         return fields
 

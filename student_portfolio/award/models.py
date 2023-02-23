@@ -30,7 +30,7 @@ class Award(models.Model):
     info = models.CharField(max_length=200, blank=True, default='')
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,
-                                   related_name='award_created_by_set', editable=False)
+                                   related_name='award_created_by_set', editable=True)
 
     approved = models.BooleanField(default=False)
     approved_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,
