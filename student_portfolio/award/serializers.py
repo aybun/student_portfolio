@@ -156,10 +156,14 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 if isinstance(data.get('supervisors', None), str):
                     data.pop('supervisors', None)
 
-            data['approved_by'] = None
+            # data['approved_by'] = None
             if 'staff' in groups:
                 if data['approved'] == 'true':
-                    data['approved_by'] = request.user.id
+                    if not instance.approved:
+                        data['approved_by'] = request.user.id
+                    else:
+                        data.pop('approved_by', None)
                 else:
                     data['approved_by'] = None
+
         return instance, data
