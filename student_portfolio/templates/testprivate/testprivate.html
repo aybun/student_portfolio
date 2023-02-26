@@ -90,24 +90,27 @@
                         <p></p>
 
                         <!--Input fields : 🚩🚩🚩🚩🚩🚩🚩🚩🚩🚩🚩-->
+                        <form id="modal-form">
+                            <div v-if="!addingNewItem && modalActive" class="mb-3">
+                                <label for="formFile1" class="form-label"><h3>private_file_1</h3></label>
+                                <p></p>
+                                <label id="attachment_filename" for="formFile1" class="form-label"><a v-bind:href="this.item.private_file_1"><h6>File url</h6></a></label>
+                                <input  class="form-control" type="file" id="formFile1" @change="onFileSelected_1">
+                            </div>
 
-                        <div v-if="!addingNewItem" class="mb-3">
-                            <label for="formFile1" class="form-label"><h3>private_file_1</h3></label>
-                            <p></p>
-                            <label id="attachment_filename" for="formFile1" class="form-label"><a v-bind:href="this.item.private_file_1"><h6>File url</h6></a></label>
-                            <input class="form-control" type="file" id="formFile1" @change="onFileSelected_1">
-                        </div>
+                            <div v-if="!addingNewItem && modalActive" class="mb-3">
+                                <label for="formFile2" class="form-label"><h3>private_file_2</h3></label>
+                                <p></p>
+                                <a v-if="this.item.private_file_2 != '' && this.item.private_file_2 != null" type="button" class="btn btn-primary" v-bind:href="this.item.private_file_2"> File URL </a>
+                                <button v-if="this.item.private_file_2 != '' && this.item.private_file_2 != null" type="button" class="btn btn-outline-danger" @click="removePrivate_file_2()"> Remove File </button>
+                                <input  v-if="!(this.item.private_file_2 != '' && this.item.private_file_2 != null)" class="form-control" type="file" id="formFile2" @change="onFileSelected_2">
 
-                        <div v-if="!addingNewItem" class="mb-3">
-                            <label for="formFile2" class="form-label"><h3>private_file_2</h3></label>
-                            <p></p>
-<!--                            <label id="attachment_filename_2" for="formFile2" class="form-label"><a v-bind:href="this.item.private_file_2"><h6>File url</h6></a></label>-->
-                            <button v-if="this.item.private_file_2 != '' && this.item.private_file_2 != null" type="button" class="btn btn-primary"> File URL </button>
-                            <button v-if="this.item.private_file_2 != '' && this.item.private_file_2 != null" type="button" class="btn btn-outline-danger" @click="removePrivate_file_2()"> Remove Uploaded File </button>
-                            <input class="form-control" type="file" id="formFile2" @change="onFileSelected_2">
+                            </div>
 
-                        </div>
+
+
                     <!--End input fields : 🚩🚩🚩🚩🚩🚩🚩🚩🚩🚩🚩-->
+                        </form>
                     </div>
 
 

@@ -6,9 +6,12 @@ let testprivateComponent = {
         return {
             modalTitle:"",
             addingNewItem:false,
+            modalActive : true,
 
             item : {},
             items : [],
+
+
         }
     },
 
@@ -67,8 +70,12 @@ let testprivateComponent = {
         },
         editClick(item){
             this.modalTitle="Edit item";
+            // this.addingNewItem = true
             this.addingNewItem = false
 
+            // this.item = this.getEmptyItem()
+            // this.modalActive = false
+            // this.modalActive = true
             this.item = JSON.parse(JSON.stringify(item))
 
         },
@@ -94,6 +101,9 @@ let testprivateComponent = {
                 }
             }).then((response)=>{
                 this.refreshData();
+                // this.item = this.getEmptyItem()
+                // this.addingNewItem = false
+                // this.addingNewItem = true
                 alert(response.data);
             })
 
@@ -184,6 +194,9 @@ let testprivateComponent = {
     },
 
     mounted:function(){
+        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('modal-form').reset()
+        })
 
     }
 

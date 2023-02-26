@@ -185,7 +185,7 @@ def testprivateApi(request, project_id=0):
 
             if success:
                 #Check if the file field passed is ''. or the new file is passed -> Remove the old file.
-                
+
                 if old_obj.private_file_1 and not bool(object.private_file_1)\
                         or old_obj.private_file_1 != object.private_file_1:
                     _delete_file(str(old_obj.private_file_1))
