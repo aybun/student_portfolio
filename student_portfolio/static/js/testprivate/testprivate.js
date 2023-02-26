@@ -130,7 +130,15 @@ let testprivateComponent = {
             this.award[fieldName].pop()
         },
 
+        removePrivate_file_1(){
+            this.item.private_file_1 = ''
+        },
 
+        removePrivate_file_2(){
+            // console.log(this.item)
+            this.item.private_file_2 = ''
+            // console.log(this.item)
+        },
 
         onFileSelected_1(event){
             this.item.private_file_1 = event.target.files[0]

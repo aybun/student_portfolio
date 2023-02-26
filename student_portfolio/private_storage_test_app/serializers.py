@@ -39,12 +39,22 @@ class PrivateModelSerializer(FieldAccessMixin, serializers.ModelSerializer ):
             data['created_by'] = request.user.id
         if method == 'PUT':
 
-            if isinstance(data.get('private_file_1', None), str):
-                data.pop('private_file_1', None)
+            private_file_1 = data.get('private_file_1', None)
+            if isinstance(private_file_1, str):
+                if private_file_1 == '': #We want '' to signal delete.
+                    instance.private_file_1 = None
+                else:
+                    data.pop('private_file_1', None)
 
-            if isinstance(data.get('private_file_2', None), str):
+            private_file_2 = data.get('private_file_2', None)
+            if isinstance(private_file_2, str):
+                # print(private_file_2)
+                # print(private_file_2)
+                if private_file_2 == '':  # We want '' to signal delete.
+                    instance.private_file_2 = None
+
                 data.pop('private_file_2', None)
 
 
-        return data
+        return instance, data
 

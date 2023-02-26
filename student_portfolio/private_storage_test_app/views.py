@@ -1,7 +1,10 @@
+import os
+
 from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
+from copy import deepcopy
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes
 from rest_framework.parsers import JSONParser, MultiPartParser
@@ -93,6 +96,11 @@ def testprivate(request, id=0):
 
     return render(request, 'testprivate/testprivate.html', {})
 
+def _delete_file(path):
+   """ Deletes file from filesystem. """
+   if os.path.isfile(path):
+       os.remove(path)
+
 @parser_classes([JSONParser, MultiPartParser ])
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes((PrivateModelAccessPolicy,))
@@ -128,7 +136,7 @@ def testprivateApi(request, project_id=0):
 
     elif request.method == "POST":
         data = request.data.dict()
-        data = Serializer.custom_clean(data=data, context={'request': request})
+        _, data = Serializer.custom_clean(data=data, context={'request': request})
         serializer = Serializer(data=data, context={'request': request})
 
         if serializer.is_valid():
@@ -151,7 +159,7 @@ def testprivateApi(request, project_id=0):
 
     elif request.method == "PUT":
         id = project_id
-        print('id : {}'.format(id))
+        # print('id : {}'.format(id))
         query_object = AccessPolicyClass.scope_query_object(request=request)
         object = Model.objects.filter(Q(id=id) & query_object).first()
 
@@ -160,7 +168,10 @@ def testprivateApi(request, project_id=0):
 
         data = request.data.dict()
         print(data)
-        data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
+        #old_obj : We want the paths of files to be deleted.
+        old_obj = deepcopy(object)
+        print('old_obj : {}'.format(old_obj))
+        object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
         serializer = Serializer(object, data=data, context={'request': request})
 
 
@@ -171,7 +182,18 @@ def testprivateApi(request, project_id=0):
                     serializer.save()
             except IntegrityError:
                 success = False
+
             if success:
+                #Check if the file field passed is ''. or the new file is passed -> Remove the old file.
+                
+                if old_obj.private_file_1 and not bool(object.private_file_1)\
+                        or old_obj.private_file_1 != object.private_file_1:
+                    _delete_file(str(old_obj.private_file_1))
+
+                if old_obj.private_file_2 and not bool(object.private_file_2)\
+                        or old_obj.private_file_2 != object.private_file_2:
+                    _delete_file(str(old_obj.private_file_2))
+
                 return JsonResponse("Updated Successfully", safe=False)
             else:
                 return JsonResponse("Failed to delete.", safe=False)
