@@ -95,7 +95,7 @@ let awardtComponent = {
         editClick(award){
             this.modalTitle="Edit award";
             this.addingNewAward = false
-
+            this.bindSelect2Elements()
             this.award = JSON.parse(JSON.stringify(award))
 
             this.checkboxes = []
@@ -115,6 +115,8 @@ let awardtComponent = {
             for (let i=0;i<this.checkboxFields.length; ++i)
                 this.award[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
 
+            console.log('hello')
+            console.log(this.award)
             let outDict = new FormData();
 
             for (const [key, value] of Object.entries(this.award)) {
@@ -167,6 +169,8 @@ let awardtComponent = {
             this.award[fieldName].push({
                 id:'',
             })
+
+            this.bindSelect2Elements()
         },
         removeInputFieldClick(fieldName){
             this.award[fieldName].pop()
@@ -191,6 +195,15 @@ let awardtComponent = {
             this.award.attachment_file = event.target.files[0]
 
         },
+
+        bindSelect2Elements(){
+             $(document).ready(function() {
+                $('.js-example-basic-single').select2({
+                    dropdownParent: $("#edit-info-modal")
+                });
+            });
+        },
+
         prepareData(){
             this.award = this.getEmptyAward()
 
@@ -228,6 +241,12 @@ let awardtComponent = {
     },
 
     mounted:function(){
+
+         $(document).ready(function() {
+                $('.js-example-basic-single').select2({
+                    dropdownParent: $("#edit-info-modal")
+                });
+         });
 
     }
 

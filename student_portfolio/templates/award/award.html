@@ -70,7 +70,8 @@
     </table>
 
 
-    <div class="modal fade" id="edit-info-modal" tabindex="-1"
+<!--    <div class="modal fade" id="edit-info-modal" tabindex="-1"-->
+    <div class="modal fade" id="edit-info-modal"
          aria-labelledby="ModalLabel" aria-hidden="true">
 
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -143,16 +144,38 @@
                         <div v-if="!addingNewAward" class="staff">
                             <h3>Supervisors</h3>
                             <div class="form-row" v-for="(supervisor, index) in award.supervisors" :key="index">
-                                <select v-model="supervisor.id" class="form-control sl">
-                                    <option v-for="e in staffTable" v-bind:value="e.user_id_fk">
-                                        {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
-                                    </option>
-                                </select>
+<!--                                <select v-model="supervisor.id" class="form-control sl">-->
+<!--                                    <option v-for="e in staffTable" v-bind:value="e.user_id_fk">-->
+<!--                                        {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}-->
+<!--                                    </option>-->
+<!--                                </select>-->
+<!--                                    <select v-model="supervisor.id" class="selectpicker" data-live-search="true" data-live-search-style="startsWith">-->
+<!--                                        <option v-for="e in staffTable" v-bind:value="e.user_id_fk">-->
+<!--                                            {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}-->
+<!--                                        </option>-->
+<!--                                    </select>-->
+
+                                    <select v-model="supervisor.id" class="js-example-basic-single" name="state" v-bind:id="'supervisorSelector' + index">
+                                          <option v-for="e in staffTable" v-bind:value="e.user_id_fk">
+                                            {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
+                                        </option>
+                                    </select>
                             </div>
+
+
                             <div class="form-group">
                               <button @click="addInputFieldClick('supervisors')" type="button" class="btn btn-secondary">Add supervisor</button>
                               <button @click="removeInputFieldClick('supervisors')" type="button" class="btn btn-danger">Remove supervisor</button>
                             </div>
+
+                            <datalist id="supervisorOptions">
+                                <option v-for="e in staffTable" v-bind:value="e.user_id_fk">
+                                        {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
+                                </option>
+                            </datalist>
+
+
+
                         </div>
 
                         <div v-if="!addingNewAward" class="mb-3">
@@ -179,7 +202,15 @@
                             <label id="attachment_filename" for="formFile" class="form-label"><a v-bind:href="this.award.attachment_file"><h6>File url</h6></a></label>
                             <input class="form-control" type="file" id="formFile" @change="onFileSelected">
                         </div>
-
+                        <select class="js-example-basic-single" name="state" id="botState">
+                          <option value="AL">Alabama</option>
+                          <option value="AL">Alabama</option>
+                          <option value="AL">Alabama</option>
+                          <option value="AL">Alabama</option>
+                          <option value="AL">Alabama</option>
+                          <option value="AL">Alabama</option>
+                          <option value="WY">Wyoming</option>
+                        </select>
 <!--                        <End of inputs>-->
                     </div>
 
@@ -214,4 +245,24 @@
 
 {% block additional_script_in_body %}
     <script src="{% static 'js/award/award.js' %}"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('.js-example-basic-single').select2({
+                dropdownParent: $("#edit-info-modal")
+            });
+            // $('.js-example-basic-multiple').select2();
+
+            // $("#botState").select2({
+            //     dropdownParent: $("#edit-info-modal")
+            // });
+        });
+
+        // $(document).ready(function() {
+        //
+        // });
+
+    </script>
+
+
 {% endblock additional_script_in_body%}

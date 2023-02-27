@@ -52,7 +52,7 @@ def awardApi(request, award_id=0):
         data = request.data.dict()
         object, data = Serializer.custom_clean(data=data, context={'request': request})
         serializer = Serializer(data=data, context={'request': request})
-
+        # print(data)
         if serializer.is_valid():
             success = True
             try:
@@ -79,10 +79,11 @@ def awardApi(request, award_id=0):
             return JsonResponse("Failed to update.", safe=False)
 
         data = request.data.dict()
+        print(data)
         object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
 
         serializer = Serializer(instance=object, data=data, context={'request': request})
-        # print(data)
+
         if serializer.is_valid():
             success = True
             try:
