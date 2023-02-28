@@ -6,11 +6,12 @@
 <div id="app" class="container">
 
     <award-html></award-html>
+<!--    <Multiselect v-model="value" :options="options" :searchable="false" :close-on-select="false" :show-labels="false" placeholder="Pick a value"></Multiselect>-->
 
 </div>
 
 <script type="text/x-template" id="award-template">
-
+<div>
     <button type="button"
             class="btn btn-primary m-2 fload-end"
             data-bs-toggle="modal"
@@ -71,7 +72,7 @@
 
 
 <!--    <div class="modal fade" id="edit-info-modal" tabindex="-1"-->
-    <div class="modal fade" id="edit-info-modal"
+    <div class="modal fade" id="edit-info-modal" tabindex="-1"
          aria-labelledby="ModalLabel" aria-hidden="true">
 
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -112,69 +113,41 @@
 
                         <div v-if="!addingNewAward" class="skill">
                             <h3>Skills</h3>
-                            <div class="form-row" v-for="(skill, index) in award.skills" :key="index">
-                                <select v-model="skill.id" class="form-control sl">
-                                    <option v-for="e in skillTable" v-bind:value="e.id">
-                                        {% verbatim block %}{{ e.title }}{% endverbatim block %}
-                                    </option>
-                                </select>
-                            </div>
+<!--                            <div class="form-row" v-for="(skill, index) in award.skills" :key="index">-->
+<!--&lt;!&ndash;                                <select v-model="skill.id" class="form-control sl">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <option v-for="e in skillTable" v-bind:value="e.id">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        {% verbatim block %}{{ e.title }}{% endverbatim block %}&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </option>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </select>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <multiselect v-model="award.skills[index]" :options="skillTable" :custom-label="skillCustomLabel" track-by="id" placeholder="Select...">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <template slot="clear" slot-scope="props">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <div class="multiselect__clear" v-if="award.skills.length" @mousedown.prevent.stop="clearAll(props.search)"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </template>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </multiselect>&ndash;&gt;-->
 
-                            <div class="form-group">
-                              <button v-on:click="addInputFieldClick('skills')" type="button" class="btn btn-secondary">Add skill</button>
-                              <button v-on:click="removeInputFieldClick('skills')" type="button" class="btn btn-danger">Remove skill</button>
-                            </div>
+<!--                            </div>-->
+                            <multiselect v-model="award.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="skillCustomLabel" track-by="id" placeholder="Select..." >
+<!--                                <template slot="clear" slot-scope="props">-->
+<!--                                  <div class="multiselect__clear" v-if="true" @mousedown.prevent.stop="clearAll(props.search)"></div>-->
+<!--                                </template>-->
+                            </multiselect>
+
+<!--                            <div class="form-group">-->
+<!--                              <button v-on:click="addInputFieldClick('skills')" type="button" class="btn btn-secondary">Add skill</button>-->
+<!--                              <button v-on:click="removeInputFieldClick('skills')" type="button" class="btn btn-danger">Remove skill</button>-->
+<!--                            </div>-->
                         </div>
 
                         <div v-if="user.is_staff && !addingNewAward" class="receiver">
                             <h3>Receivers</h3>
-                            <div class="form-row" v-for="(receiver, index) in award.receivers" :key="index">
-                                <select v-model="receiver.id" class="form-control sl">
-                                    <option v-for="e in studentTable" v-bind:value="e.user_id_fk">
-                                        {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                              <button @click="addInputFieldClick('receivers')" type="button" class="btn btn-secondary">Add receiver</button>
-                              <button @click="removeInputFieldClick('receivers')" type="button" class="btn btn-danger">Remove receiver</button>
-                            </div>
+<!--                                <multiselect v-model="award.receivers[index]" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :allow-empty="false" deselect-label="Can't remove this value"></multiselect>-->
+                                <multiselect v-model="award.receivers" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..."></multiselect>
                         </div>
 
                         <div v-if="!addingNewAward" class="staff">
                             <h3>Supervisors</h3>
-                            <div class="form-row" v-for="(supervisor, index) in award.supervisors" :key="index">
-<!--                                <select v-model="supervisor.id" class="form-control sl">-->
-<!--                                    <option v-for="e in staffTable" v-bind:value="e.user_id_fk">-->
-<!--                                        {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}-->
-<!--                                    </option>-->
-<!--                                </select>-->
-<!--                                    <select v-model="supervisor.id" class="selectpicker" data-live-search="true" data-live-search-style="startsWith">-->
-<!--                                        <option v-for="e in staffTable" v-bind:value="e.user_id_fk">-->
-<!--                                            {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}-->
-<!--                                        </option>-->
-<!--                                    </select>-->
-
-                                    <select v-model="supervisor.id" class="js-example-basic-single" name="state" v-bind:id="'supervisorSelector' + index">
-                                          <option v-for="e in staffTable" v-bind:value="e.user_id_fk">
-                                            {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
-                                        </option>
-                                    </select>
-                            </div>
-
-
-                            <div class="form-group">
-                              <button @click="addInputFieldClick('supervisors')" type="button" class="btn btn-secondary">Add supervisor</button>
-                              <button @click="removeInputFieldClick('supervisors')" type="button" class="btn btn-danger">Remove supervisor</button>
-                            </div>
-
-                            <datalist id="supervisorOptions">
-                                <option v-for="e in staffTable" v-bind:value="e.user_id_fk">
-                                        {% verbatim block %}{{ e.firstname }} {{ e.lastname}}{% endverbatim block %}
-                                </option>
-                            </datalist>
-
-
+                            <multiselect v-model="award.supervisors" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..."></multiselect>
+                            
 
                         </div>
 
@@ -202,16 +175,8 @@
                             <label id="attachment_filename" for="formFile" class="form-label"><a v-bind:href="this.award.attachment_file"><h6>File url</h6></a></label>
                             <input class="form-control" type="file" id="formFile" @change="onFileSelected">
                         </div>
-                        <select class="js-example-basic-single" name="state" id="botState">
-                          <option value="AL">Alabama</option>
-                          <option value="AL">Alabama</option>
-                          <option value="AL">Alabama</option>
-                          <option value="AL">Alabama</option>
-                          <option value="AL">Alabama</option>
-                          <option value="AL">Alabama</option>
-                          <option value="WY">Wyoming</option>
-                        </select>
-<!--                        <End of inputs>-->
+
+                        <!--                        <End of inputs>-->
                     </div>
 
 
@@ -238,7 +203,7 @@
         </div>
 
     </div>
-
+</div>
 </script>
 {% endblock additional_body %}
 
@@ -246,23 +211,19 @@
 {% block additional_script_in_body %}
     <script src="{% static 'js/award/award.js' %}"></script>
 
-    <script>
-        $(document).ready(function() {
-            $('.js-example-basic-single').select2({
-                dropdownParent: $("#edit-info-modal")
-            });
-            // $('.js-example-basic-multiple').select2();
+<!--    <script>-->
+<!--        $(document).ready(function() {-->
+<!--            $('.js-example-basic-single').select2({-->
+<!--                dropdownParent: $("#edit-info-modal")-->
+<!--            });-->
+<!--            // $('.js-example-basic-multiple').select2();-->
 
-            // $("#botState").select2({
-            //     dropdownParent: $("#edit-info-modal")
-            // });
-        });
-
-        // $(document).ready(function() {
-        //
-        // });
-
-    </script>
+<!--            // $("#botState").select2({-->
+<!--            //     dropdownParent: $("#edit-info-modal")-->
+<!--            // });-->
+<!--        });-->
+<!--        -->
+<!--    </script>-->
 
 
 {% endblock additional_script_in_body%}

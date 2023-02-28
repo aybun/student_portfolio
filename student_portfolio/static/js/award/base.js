@@ -1,5 +1,6 @@
-const horizontalNavbarApp = Vue.createApp({
-
+// const horizontalNavbarApp = Vue.createApp({
+const horizontalNavbarApp = new Vue({
+    el : '#horizontal-navbar',
     data(){
         return {
             user: {},
@@ -21,4 +22,4 @@ const horizontalNavbarApp = Vue.createApp({
     },
 })
 
-horizontalNavbarApp.mount('#horizontal-navbar')
+// horizontalNavbarApp.mount('#horizontal-navbar')

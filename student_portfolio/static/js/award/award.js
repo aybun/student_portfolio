@@ -1,7 +1,10 @@
 let awardtComponent = {
 
     template : '#award-template',
-
+    components:{
+        // 'v-select': VueSelect.VueSelect,
+        Multiselect: window.VueMultiselect.default,
+    },
     data(){
         return {
             modalTitle:"",
@@ -95,7 +98,7 @@ let awardtComponent = {
         editClick(award){
             this.modalTitle="Edit award";
             this.addingNewAward = false
-            this.bindSelect2Elements()
+
             this.award = JSON.parse(JSON.stringify(award))
 
             this.checkboxes = []
@@ -170,7 +173,6 @@ let awardtComponent = {
                 id:'',
             })
 
-            this.bindSelect2Elements()
         },
         removeInputFieldClick(fieldName){
             this.award[fieldName].pop()
@@ -185,7 +187,7 @@ let awardtComponent = {
 
                 if ( id !== '' && !ids.includes(id)){
                     ids.push(list[i].id);
-                    nonEmpty.push(list[i])
+                    nonEmpty.push({'id' :list[i].id} )
                 }
             }
             return nonEmpty
@@ -196,18 +198,68 @@ let awardtComponent = {
 
         },
 
-        bindSelect2Elements(){
-             $(document).ready(function() {
-                $('.js-example-basic-single').select2({
-                    dropdownParent: $("#edit-info-modal")
-                });
-            });
-        },
-
         prepareData(){
             this.award = this.getEmptyAward()
 
-        }
+        },
+
+        //custom labels
+        skillCustomLabel({id, title}){
+            if (id === '' || id == null){
+
+                return 'Select'
+            }
+            else if (title == null){
+                for (let i = 0; i < this.skillTable.length; ++i){
+                    if (this.skillTable[i].id === id){
+                        let temp = this.skillTable[i]
+                        return `${temp.id} ${temp.title}`
+                    }
+                }
+            }
+
+            return `${id} ${title}`
+        },
+        receiverCustomLabel({ id, university_id, firstname, lastname }){
+
+            if (id === '' || id == null){
+
+                return 'Select'
+            }
+            else if (university_id == null){
+                for (let i = 0; i < this.studentTable.length; ++i){
+                    if (this.studentTable[i].id === id){
+                        let temp = this.studentTable[i]
+                        return `${temp.university_id} ${temp.firstname} ${temp.lastname}`
+                    }
+                }
+            }
+
+            return `${university_id} ${firstname} ${lastname}`
+        },
+
+        supervisorCustomLabel({id, university_id, firstname, lastname}){
+
+            if (id === '' || id == null){
+                return 'Select'
+            }
+            else if (university_id == null){
+                for (let i = 0; i < this.staffTable.length; ++i){
+                    if (this.staffTable[i].id === id){
+                        let temp = this.staffTable[i]
+                        return `${temp.firstname} ${temp.lastname}`
+                    }
+                }
+            }
+
+            return `${firstname} ${lastname}`
+        },
+
+        clearAll(){
+            console.log('clear all')
+        },
+
+
     },
 
     created: async function(){
@@ -230,6 +282,7 @@ let awardtComponent = {
         axios.get(variables.API_URL+"staff")
         .then((response)=>{
             this.staffTable=response.data;
+            console.log(this.staffTable)
         });
 
         axios.get(variables.API_URL+"skillTable")
@@ -242,21 +295,33 @@ let awardtComponent = {
 
     mounted:function(){
 
-         $(document).ready(function() {
-                $('.js-example-basic-single').select2({
-                    dropdownParent: $("#edit-info-modal")
-                });
-         });
-
+        //https://stackoverflow.com/questions/18487056/select2-doesnt-work-when-embedded-in-a-bootstrap-modal/19574076#19574076
+        // $.fn.modal.Constructor.prototype._enforceFocus = function() {};
     }
 
 }
 
-const app = Vue.createApp({
-
+const app = new Vue({
+    el: '#app',
     components:{
         'award-html' : awardtComponent,
+        // Multiselect: window.VueMultiselect.default,
+        // 'v-select': VueSelect.VueSelect,
+    },
+
+    data () {
+    return {
+        options: [
+          'foo',
+          'bar',
+          'baz'
+        ]
     }
+  }
+
 })
 
-app.mount('#app')
+// app.component('award-html', awardtComponent)
+// app.component('vue-multiselect', window.VueMultiselect)
+// app.component('v-select', VueSelect.VueSelect)
+// app.mount('#app')
