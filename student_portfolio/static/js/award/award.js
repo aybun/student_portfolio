@@ -4,6 +4,7 @@ let awardtComponent = {
     components:{
         // 'v-select': VueSelect.VueSelect,
         Multiselect: window.VueMultiselect.default,
+        'BootstrapTable': BootstrapTable,
     },
     data(){
         return {
@@ -25,6 +26,73 @@ let awardtComponent = {
 
             checkboxes:[],
             checkboxFields : ['approved', 'used_for_calculation'],
+
+            tableColumns : [
+                {
+                    title: 'Award ID',
+                    field: 'id'
+                },
+                {
+                    title: 'Title',
+                    field: 'title',
+                    // formatter : () => {
+                    //     return 'TitleX'
+                    // }
+
+                },
+                {
+                    title: 'Received date',
+                    field: 'received_date'
+                },
+                {
+                    title: 'Approved',
+                    field: 'approved'
+                },
+                {
+                    field: 'action',
+                    title: 'Actions',
+                    align: 'center',
+                    formatter: function () {
+                      // return '<a href="javascript:" class="edit"><i class="fa fa-star"></i></a>'
+                        let edit_str =
+                            `<a href="javascript:" class="edit">
+                                    <button v-if="user.is_staff || user.is_student && !showApproved " type="button"
+                                                class="btn btn-light mr-1"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#edit-info-modal"         
+                                                >
+                                                    <i class="bi bi-pencil-square"></i>
+                                    </button>
+                            </a>`
+
+                        let delete_str =
+                            `<a href="javascript:" class="delete">
+                                <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button" @click="deleteClick(award.id)"
+                                class="btn btn-light mr-1">
+                                <i class="bi bi-trash"></i>
+                                </button>
+                            </a>`
+
+                        return edit_str + ' ' + delete_str
+                    },
+                    events: {
+                      'click .edit':  (e, value, row) => {
+                          this.editClick(row)
+                        },
+
+                      'click .delete':  (e, value, row) => {
+                          this.deleteClick(row.id)
+                        },
+
+                      },
+                }
+            ],
+
+            tableOptions : {
+                search: true,
+                showColumns: true
+            },
+
         }
     },
 
@@ -282,7 +350,7 @@ let awardtComponent = {
         axios.get(variables.API_URL+"staff")
         .then((response)=>{
             this.staffTable=response.data;
-            console.log(this.staffTable)
+            // console.log(this.staffTable)
         });
 
         axios.get(variables.API_URL+"skillTable")

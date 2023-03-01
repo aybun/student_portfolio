@@ -1,6 +1,10 @@
 {% extends "award/base.html" %}
 {% load static %}
 
+{% block additional_scripts %}
+<script src="https://unpkg.com/bootstrap-table@1.21.2/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+{% endblock additional_scripts %}
+
 {% block additional_body %}
 
 <div id="app" class="container">
@@ -26,6 +30,19 @@
     <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = false">
          show unapproved
      </button>
+
+    <div id="table">
+<!--        <bootstrap-table :columns="tableColumns" :data="awards" :options="options"></bootstrap-table>-->
+        <bootstrap-table :columns="tableColumns"
+                         :data="awards"
+                         :options="tableOptions"
+                         data-filter-control="true"
+                         data-show-search-clear-button="true"
+        >
+
+        </bootstrap-table>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
@@ -59,7 +76,7 @@
                     </button>
 
                     <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button" @click="deleteClick(award.id)"
-                    class="btn btn-light mr-1">
+                        class="btn btn-light mr-1">
                         <i class="bi bi-trash"></i>
                     </button>
 
@@ -147,7 +164,7 @@
                         <div v-if="!addingNewAward" class="staff">
                             <h3>Supervisors</h3>
                             <multiselect v-model="award.supervisors" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..."></multiselect>
-                            
+
 
                         </div>
 
