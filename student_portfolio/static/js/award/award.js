@@ -5,6 +5,7 @@ let awardtComponent = {
         // 'v-select': VueSelect.VueSelect,
         Multiselect: window.VueMultiselect.default,
         'BootstrapTable': BootstrapTable,
+        VueGoodTable : window['vue-good-table'].VueGoodTable,
     },
     data(){
         return {
@@ -27,6 +28,28 @@ let awardtComponent = {
             checkboxes:[],
             checkboxFields : ['approved', 'used_for_calculation'],
 
+            gtbColumns : [
+                {
+                    label: 'Award ID',
+                    field: 'id'
+                },
+                {
+                    label: 'Title',
+                    field: 'title',
+
+                },
+                {
+                    label: 'Received date',
+                    field: 'received_date',
+
+                },
+                {
+                    label: 'Approved',
+                    field: 'approved',
+                },
+
+            ],
+
             tableColumns : [
                 {
                     title: 'Award ID',
@@ -35,45 +58,80 @@ let awardtComponent = {
                 {
                     title: 'Title',
                     field: 'title',
-                    // formatter : () => {
-                    //     return 'TitleX'
-                    // }
 
                 },
                 {
                     title: 'Received date',
-                    field: 'received_date'
+                    field: 'received_date',
+
                 },
                 {
                     title: 'Approved',
-                    field: 'approved'
+                    field: 'approved',
                 },
                 {
-                    field: 'action',
+                    // field: 'action',
                     title: 'Actions',
                     align: 'center',
-                    formatter: function () {
+                    formatter: (row) => {
                       // return '<a href="javascript:" class="edit"><i class="fa fa-star"></i></a>'
-                        let edit_str =
+
+                        // let edit_str =
+                        //         `<a href="javascript:" class="edit">
+                        //             <button v-if="user.is_staff || user.is_student && !showApproved " type="button"
+                        //                 class="btn btn-light mr-1"
+                        //                 data-bs-toggle="modal"
+                        //                 data-bs-target="#edit-info-modal"
+                        //             >
+                        //                 <i class="bi bi-pencil-square"></i>
+                        //             </button>
+                        //         </a>`
+                        // let delete_str =
+                        //     `<a href="javascript:" class="delete">
+                        //         <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button"
+                        //             class="btn btn-light mr-1">
+                        //             <i class="bi bi-trash"></i>
+                        //         </button>
+                        //     </a>`
+                        //
+                        // let result = ''
+                        //
+                        // if (this.user.is_staff){
+                        //     return edit_str + delete_str
+                        // }
+                        // else if (this.user.is_student){
+                        //     if (row.created_by === user.id && !row.approved)
+                        //         return edit_str + delete_str
+                        //     else
+                        //         return ''
+                        // }
+
+                        return [
                             `<a href="javascript:" class="edit">
                                     <button v-if="user.is_staff || user.is_student && !showApproved " type="button"
-                                                class="btn btn-light mr-1"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#edit-info-modal"         
-                                                >
-                                                    <i class="bi bi-pencil-square"></i>
+                                        class="btn btn-light mr-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#edit-info-modal"         
+                                    >
+                                        <i class="bi bi-pencil-square"></i>
                                     </button>
-                            </a>`
+                            </a>`,
 
-                        let delete_str =
+
                             `<a href="javascript:" class="delete">
-                                <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button" @click="deleteClick(award.id)"
-                                class="btn btn-light mr-1">
-                                <i class="bi bi-trash"></i>
+                                <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button"
+                                    class="btn btn-light mr-1">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </a>`,
+                            `<a href="javascript:" class="delete">
+                                <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button"
+                                    class="btn btn-light mr-1">
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </a>`
 
-                        return edit_str + ' ' + delete_str
+                        ].join('')
                     },
                     events: {
                       'click .edit':  (e, value, row) => {
@@ -362,7 +420,10 @@ let awardtComponent = {
     },
 
     mounted:function(){
-
+        // $('#table').bootstrapTable({
+        //     // data: this.awards,
+        //     // options : this.tableOptions,
+        // });
         //https://stackoverflow.com/questions/18487056/select2-doesnt-work-when-embedded-in-a-bootstrap-modal/19574076#19574076
         // $.fn.modal.Constructor.prototype._enforceFocus = function() {};
     }

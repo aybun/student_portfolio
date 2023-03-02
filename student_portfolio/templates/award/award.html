@@ -2,7 +2,9 @@
 {% load static %}
 
 {% block additional_scripts %}
-<script src="https://unpkg.com/bootstrap-table@1.21.2/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+<!--<script src="https://unpkg.com/bootstrap-table@1.21.2/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>-->
+<script src="https://unpkg.com/bootstrap-table@1.21.2/dist/extensions/toolbar/bootstrap-table-toolbar.min.js"></script>
+<!--<script src="https://unpkg.com/bootstrap-table@1.21.2/dist/bootstrap-table-locale-all.min.js"></script>-->
 {% endblock additional_scripts %}
 
 {% block additional_body %}
@@ -30,16 +32,24 @@
     <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = false">
          show unapproved
      </button>
+    <vue-good-table
+      :columns="gtbColumns"
+      :rows="awards">
 
-    <div id="table">
-<!--        <bootstrap-table :columns="tableColumns" :data="awards" :options="options"></bootstrap-table>-->
-        <bootstrap-table :columns="tableColumns"
-                         :data="awards"
-                         :options="tableOptions"
-                         data-filter-control="true"
-                         data-show-search-clear-button="true"
+    </vue-good-table>
+
+    <div v-if="false" id="table">
+        <bootstrap-table
+                        :columns="tableColumns"
+                        :data="awards"
+                        :options="tableOptions"
+
+                        data-show-search-clear-button="true"
+                        data-id-table="advancedTable"
+                        data-advanced-search="true"
+
+                        data-click-to-select="true"
         >
-
         </bootstrap-table>
     </div>
 

@@ -30,13 +30,13 @@ def awardApi(request, award_id=0):
     if request.method == "GET":
         if award_id == 0:
             query_object = AccessPolicyClass.scope_query_object(request=request)
-            objects = Model.objects.filter(query_object).order_by('id')
+            objects = Model.objects.filter(query_object).distinct('id').order_by('id')
 
             if not objects.exists():
                 return JsonResponse([], safe=False)
 
             serializer = Serializer(objects, many=True, context={'request': request})
-            # print(serializer.data)
+            print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
             id = award_id
