@@ -28,24 +28,52 @@ let awardtComponent = {
             checkboxes:[],
             checkboxFields : ['approved', 'used_for_calculation'],
 
+            selectedRows: [],
             gtbColumns : [
                 {
                     label: 'Award ID',
-                    field: 'id'
+                    field: 'id',
+                    tooltip: 'A simple tooltip',
                 },
                 {
                     label: 'Title',
                     field: 'title',
-
+                    filterOptions: {
+                        styleClass: 'class1', // class to be added to the parent th element
+                        enabled: true, // enable filter for this column
+                        placeholder: 'Filter This Thing', // placeholder for filter input
+                        filterValue: '', // initial populated value for this filter
+                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterFn: this.columnFilterFn, //custom filter function that
+                        // trigger: 'enter', //only trigger on enter not on keyup
+                    },
                 },
                 {
                     label: 'Received date',
                     field: 'received_date',
+                    filterable: true,
+                    type: "date",
+                    dateInputFormat: "yyyy-mm-dd",
+                    dateOutputFormat: "yyyy-mm-dd",
+                    filterOptions: {
+                        enabled: true,
+                        placeholder: "Filter Received",
+                        filterFn: this.dateRangeFilter,
+                    }
 
                 },
                 {
                     label: 'Approved',
                     field: 'approved',
+                    filterOptions: {
+                        styleClass: 'class1', // class to be added to the parent th element
+                        enabled: true, // enable filter for this column
+                        placeholder: 'All', // placeholder for filter input
+                        filterValue: '', // initial populated value for this filter
+                        filterDropdownItems: [true, false], // dropdown (with selected values) instead of text input
+                        // filterFn: this.columnApprovedFilterFn, //custom filter function that
+                        trigger: 'enter', //only trigger on enter not on keyup
+                    },
                 },
 
             ],
@@ -105,33 +133,6 @@ let awardtComponent = {
                         //     else
                         //         return ''
                         // }
-
-                        return [
-                            `<a href="javascript:" class="edit">
-                                    <button v-if="user.is_staff || user.is_student && !showApproved " type="button"
-                                        class="btn btn-light mr-1"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#edit-info-modal"         
-                                    >
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-                            </a>`,
-
-
-                            `<a href="javascript:" class="delete">
-                                <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button"
-                                    class="btn btn-light mr-1">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </a>`,
-                            `<a href="javascript:" class="delete">
-                                <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button"
-                                    class="btn btn-light mr-1">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </a>`
-
-                        ].join('')
                     },
                     events: {
                       'click .edit':  (e, value, row) => {
@@ -385,7 +386,52 @@ let awardtComponent = {
             console.log('clear all')
         },
 
+        selectionChanged(params){
+            // console.log('heloo')
+            // let selectedRows = this.$refs['vgt'].selectedRows
+            // console.log(selectedRows)
+            // this.selectedRows = params.selectedRows
+            // console.log(params)
 
+        },
+
+        rowActionDelete(){
+            let selectedRows = this.$refs['vgt'].selectedRows
+            console.log(selectedRows)
+
+            let ids = []
+            for(let i = 0; i < selectedRows.length; ++i){
+                ids.push(selectedRows[i].id)
+            }
+
+            let outDict = new FormData();
+            outDict.append('ids', JSON.stringify(ids))
+
+            axios.defaults.xsrfCookieName = 'csrftoken';
+            axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+            axios({
+                method: 'delete',
+                url: variables.API_URL+"award/multi-delete",
+                xstfCookieName: 'csrftoken',
+                xsrfHeaderName: 'X-CSRFToken',
+                data: outDict,
+                headers : {
+                    'X-CSRFToken': 'csrftoken',
+                }
+            }).then((response)=>{
+                this.refreshData();
+                alert(response.data);
+            })
+        },
+
+        dateRangeFilter(data, filterString) {
+
+            let dateRange = filterString.split("to");
+            let startDate = Date.parse(dateRange[0]);
+            let endDate = Date.parse(dateRange[1]);
+            return (Date.parse(data) >= startDate && Date.parse(data) <= endDate);
+
+            },
     },
 
     created: async function(){
@@ -426,6 +472,30 @@ let awardtComponent = {
         // });
         //https://stackoverflow.com/questions/18487056/select2-doesnt-work-when-embedded-in-a-bootstrap-modal/19574076#19574076
         // $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+
+        let inputs = [
+              'input[placeholder="Filter Received"]',
+              // 'input[placeholder="Filter Start Date"]'
+              // 'input[placeholder="Filter Need By Date"]'
+            ];
+
+        inputs.forEach(function(input) {
+            flatpickr(input, {
+            dateFormat: "Y-m-d",
+            mode: "range",
+            allowInput: true
+            });
+        });
+        // inputs.forEach(function(input) {
+        //     $(input).daterangepicker({
+        //         locale: {
+        //             format: 'YYYY-MM-DD',
+        //             separator: " to "
+        //         }
+        //     }
+        //
+        //     );
+        // });
     }
 
 }

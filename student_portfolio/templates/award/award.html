@@ -33,9 +33,26 @@
          show unapproved
      </button>
     <vue-good-table
-      :columns="gtbColumns"
-      :rows="awards">
 
+        ref="vgt"
+        :columns="gtbColumns"
+        :rows="awards"
+        :select-options="{enabled: true,
+            selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
+        }"
+        :search-options="{ enabled: true }"
+        :pagination-options="{
+                            enabled: true,
+                            mode: 'records',
+                            perPage: 10,
+                            setCurrentPage: 1,
+                        }"
+        @on-selected-rows-change="selectionChanged"
+
+    >
+        <div slot="selected-row-actions">
+            <button @click="rowActionDelete">Action 1</button>
+        </div>
     </vue-good-table>
 
     <div v-if="false" id="table">
@@ -49,6 +66,8 @@
                         data-advanced-search="true"
 
                         data-click-to-select="true"
+
+
         >
         </bootstrap-table>
     </div>
