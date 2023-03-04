@@ -25,19 +25,27 @@ let awardtComponent = {
             award:{},
             awards:[],
 
+
+            formReceiversIsInvalid: false,
+
             checkboxes:[],
             checkboxFields : ['approved', 'used_for_calculation'],
+            modalReadonly : false,
 
-            selectedRows: [],
-            gtbColumns : [
+            // selectedRows: [],
+            vgtColumns : [
                 {
                     label: 'Award ID',
                     field: 'id',
                     tooltip: 'A simple tooltip',
+                    thClass: 'text-center',
+                    tdClass: 'text-center',
                 },
                 {
                     label: 'Title',
                     field: 'title',
+                    thClass: 'text-center',
+
                     filterOptions: {
                         styleClass: 'class1', // class to be added to the parent th element
                         enabled: true, // enable filter for this column
@@ -55,6 +63,8 @@ let awardtComponent = {
                     type: "date",
                     dateInputFormat: "yyyy-mm-dd",
                     dateOutputFormat: "yyyy-mm-dd",
+                    thClass: 'text-center',
+                    tdClass: 'text-center',
                     filterOptions: {
                         enabled: true,
                         placeholder: "Filter Received",
@@ -65,6 +75,8 @@ let awardtComponent = {
                 {
                     label: 'Approved',
                     field: 'approved',
+                    thClass: 'text-center',
+                    tdClass: 'text-center',
                     filterOptions: {
                         styleClass: 'class1', // class to be added to the parent th element
                         enabled: true, // enable filter for this column
@@ -74,6 +86,12 @@ let awardtComponent = {
                         // filterFn: this.columnApprovedFilterFn, //custom filter function that
                         trigger: 'enter', //only trigger on enter not on keyup
                     },
+                },
+                {
+                    label: 'Action',
+                    field: 'action',
+                    thClass: 'text-center',
+                    tdClass: 'text-center',
                 },
 
             ],
@@ -225,6 +243,9 @@ let awardtComponent = {
         editClick(award){
             this.modalTitle="Edit award";
             this.addingNewAward = false
+
+            if (this.modalReadonly)
+                this.modalTitle="Award (read only mode)"
 
             this.award = JSON.parse(JSON.stringify(award))
 
@@ -431,7 +452,11 @@ let awardtComponent = {
             let endDate = Date.parse(dateRange[1]);
             return (Date.parse(data) >= startDate && Date.parse(data) <= endDate);
 
-            },
+        },
+        toggleColumn( index, event ){
+            // Set hidden to inverse of what it currently is
+            this.$set( this.vgtColumns[ index ], 'hidden', ! this.vgtColumns[ index ].hidden );
+        },
     },
 
     created: async function(){
@@ -465,6 +490,27 @@ let awardtComponent = {
         this.prepareData()
     },
 
+    computed : {
+        // formReceiversIsInvalid () {
+        //   return this.award.receivers.length === 0
+        // }
+    },
+
+    watch:{
+        award : {
+            handler(newValue, oldValue) {
+                // Note: `newValue` will be equal to `oldValue` here
+                // on nested mutations as long as the object itself
+                // hasn't been replaced.
+
+                this.formReceiversIsInvalid = (newValue.receivers.length === 0);
+            },
+
+            deep: true
+
+        }
+    },
+
     mounted:function(){
         // $('#table').bootstrapTable({
         //     // data: this.awards,
@@ -496,6 +542,11 @@ let awardtComponent = {
         //
         //     );
         // });
+
+        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', ()=> {
+            document.getElementById('modal-form').reset()
+            this.modalReadonly = false;
+        })
     }
 
 }

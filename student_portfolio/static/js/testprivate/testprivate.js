@@ -194,7 +194,7 @@ let testprivateComponent = {
     },
 
     mounted:function(){
-        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', function() {
+        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', () => {
             document.getElementById('modal-form').reset()
         })
 

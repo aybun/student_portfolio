@@ -32,10 +32,11 @@
     <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = false">
          show unapproved
      </button>
+
     <vue-good-table
 
         ref="vgt"
-        :columns="gtbColumns"
+        :columns="vgtColumns"
         :rows="awards"
         :select-options="{enabled: true,
             selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
@@ -50,10 +51,65 @@
         @on-selected-rows-change="selectionChanged"
 
     >
+
+
         <div slot="selected-row-actions">
-            <button @click="rowActionDelete">Action 1</button>
+            <button @click="rowActionDelete">delete</button>
         </div>
+
+        <div slot="table-actions">
+            <div class="dropdown">
+
+                  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    columns
+                  </button>
+
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
+                            <a href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn( index, $event )" ><input :checked="!column.hidden" type="checkbox"/>&nbsp;{% verbatim block %}{{column.label}}{% endverbatim block %}</a>
+                        </a>
+                  </div>
+
+            </div>
+
+<!--            <multiselect v-model="visibleColumns" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" track-by="id" placeholder="Select..." :disabled="modalReadonly">-->
+
+<!--            </multiselect>-->
+
+        </div>
+
+        <template slot="table-row" slot-scope="props">
+            <span v-if="props.column.field == 'action'">
+
+                <button v-if="user.is_staff || user.is_student" type="button"
+                    class="btn btn-light mr-1"
+                    data-bs-toggle="modal"
+                    data-bs-target="#edit-info-modal"
+                    @click=" modalReadonly=true; editClick(props.row);">
+                        <i class="bi bi-eye"></i>
+                </button>
+
+                <button v-if="user.is_staff || !props.row.approved && props.row.created_by === user.id && user.is_student" type="button"
+                    class="btn btn-light mr-1"
+                    data-bs-toggle="modal"
+                    data-bs-target="#edit-info-modal"
+                    @click="editClick(props.row)">
+                        <i class="bi bi-pencil-square"></i>
+                </button>
+
+                <button v-if="user.is_staff || !props.row.approved && props.row.created_by === user.id && user.is_student" type="button" @click="deleteClick(props.row.id)"
+                    class="btn btn-light mr-1">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </span>
+
+            <span v-else>
+              {% verbatim block %}{{props.formattedRow[props.column.field]}}{% endverbatim block %}
+            </span>
+      </template>
     </vue-good-table>
+
+
 
     <div v-if="false" id="table">
         <bootstrap-table
@@ -72,7 +128,7 @@
         </bootstrap-table>
     </div>
 
-    <table class="table table-striped">
+    <table v-if="false" class="table table-striped">
         <thead>
             <tr>
                 <th>
@@ -134,26 +190,26 @@
                 <div class="d-flex flex-row bd-highlight mb-3">
 
                     <div class="p-1 w-50 bd-highlight">
-
+                        <form id="modal-form">
                         <div class="input-group mb-3">
                             <span class="input-group-text">Title</span>
-                            <input type="text" class="form-control" v-model="award.title">
+                            <input type="text" class="form-control" v-model="award.title" :readonly="modalReadonly">
 
                         </div>
 
                         <div v-if="!addingNewAward" class="input-group mb-3">
                             <span class="input-group-text">rank</span>
-                            <input type="number" class="form-control" min="0" v-model="award.rank">
+                            <input type="number" class="form-control" min="0" v-model="award.rank" :readonly="modalReadonly">
                         </div>
 
                         <div v-if="!addingNewAward" class="input-group mb-3">
                             <span class="input-group-text">Received Date</span>
-                            <input type="date" class="form-control" v-model="award.received_date">
+                            <input type="date" class="form-control" v-model="award.received_date" :readonly="modalReadonly">
                         </div>
 
                         <div v-if="!addingNewAward" class="input-group mb-3">
                             <span class="input-group-text">info</span>
-                            <input type="text" class="form-control" v-model="award.info">
+                            <input type="text" class="form-control" v-model="award.info" :readonly="modalReadonly">
                         </div>
 
 
@@ -172,7 +228,7 @@
 <!--&lt;!&ndash;                                </multiselect>&ndash;&gt;-->
 
 <!--                            </div>-->
-                            <multiselect v-model="award.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="skillCustomLabel" track-by="id" placeholder="Select..." >
+                            <multiselect v-model="award.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="skillCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly">
 <!--                                <template slot="clear" slot-scope="props">-->
 <!--                                  <div class="multiselect__clear" v-if="true" @mousedown.prevent.stop="clearAll(props.search)"></div>-->
 <!--                                </template>-->
@@ -186,22 +242,29 @@
 
                         <div v-if="user.is_staff && !addingNewAward" class="receiver">
                             <h3>Receivers</h3>
-<!--                                <multiselect v-model="award.receivers[index]" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :allow-empty="false" deselect-label="Can't remove this value"></multiselect>-->
-                                <multiselect v-model="award.receivers" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..."></multiselect>
+                            <div :class="{ 'invalid': formReceiversIsInvalid }">
+<!--                                <label class="typo__label">Customized multiselect</label>-->
+                                <multiselect v-model="award.receivers" :allow-empty="false" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly">
+<!--                                    <span v-if="formReceiversIsInvalid">There are errors in the selected values</span>-->
+<!--                                    <span v-if="hasError">There are errors in the selected values</span>-->
+                                </multiselect>
+                                <label class="typo__label form__label" v-if="formReceiversIsInvalid" style="color:red;">receivers : Must have at least one value</label>
+
+                            </div>
                         </div>
 
                         <div v-if="!addingNewAward" class="staff">
                             <h3>Supervisors</h3>
-                            <multiselect v-model="award.supervisors" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..."></multiselect>
+                            <multiselect v-model="award.supervisors" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly"></multiselect>
 
 
                         </div>
 
                         <div v-if="!addingNewAward" class="mb-3">
 <!--                            <input v-bind:disabled="award.approved" type="checkbox" value="approved" v-model="checkboxes"/>-->
-                            <input type="checkbox" value="approved" v-model="checkboxes"/>
+                            <input type="checkbox" value="approved" v-model="checkboxes" :disabled="modalReadonly || !user.is_staff"/>
                             <label>&nbsp;approved&nbsp;&nbsp;</label>
-                            <input type="checkbox" value="used_for_calculation" v-model="checkboxes"/>
+                            <input type="checkbox" value="used_for_calculation" v-model="checkboxes" :disabled="modalReadonly || !user.is_staff"/>
                             <label>&nbsp;Use for calculation</label>
                         </div>
 
@@ -209,7 +272,7 @@
                             <label><h3>Attachment link</h3></label>
                             <div class="input-group mb-3">
                                 <span class="input-group-text">Attachment Link</span>
-                                <input id="attachment_link_form" type="text" class="form-control" v-model="award.attachment_link">
+                                <input id="attachment_link_form" type="text" class="form-control" v-model="award.attachment_link" :readonly="modalReadonly">
                             </div>
                         </div>
 
@@ -219,9 +282,9 @@
                             <label for="formFile" class="form-label"><h3>Attachment file</h3></label>
                             <p></p>
                             <label id="attachment_filename" for="formFile" class="form-label"><a v-bind:href="this.award.attachment_file"><h6>File url</h6></a></label>
-                            <input class="form-control" type="file" id="formFile" @change="onFileSelected">
+                            <input class="form-control" type="file" id="formFile" @change="onFileSelected" :disabled="modalReadonly">
                         </div>
-
+                        </form>
                         <!--                        <End of inputs>-->
                     </div>
 
@@ -237,7 +300,7 @@
                     Create
                 </button>
 
-                <button v-if="!addingNewAward && (user.is_staff || user.is_student && (award.created_by == user.id))" id="updateButton" type="button" @click="updateClick()"
+                <button v-if="!modalReadonly && !addingNewAward && (user.is_staff || user.is_student && (award.created_by == user.id))" id="updateButton" type="button" @click="updateClick()"
                      class="btn btn-primary">
                     Update
                 </button>
