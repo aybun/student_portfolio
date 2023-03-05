@@ -6,7 +6,9 @@ let awardtComponent = {
         Multiselect: window.VueMultiselect.default,
         'BootstrapTable': BootstrapTable,
         VueGoodTable : window['vue-good-table'].VueGoodTable,
+
     },
+    // plugins: [VueFormulate.default],
     data(){
         return {
             modalTitle:"",
@@ -26,7 +28,8 @@ let awardtComponent = {
             awards:[],
 
 
-            formReceiversIsInvalid: false,
+            formReceiversIsValid: true,
+
 
             checkboxes:[],
             checkboxFields : ['approved', 'used_for_calculation'],
@@ -95,80 +98,6 @@ let awardtComponent = {
                 },
 
             ],
-
-            tableColumns : [
-                {
-                    title: 'Award ID',
-                    field: 'id'
-                },
-                {
-                    title: 'Title',
-                    field: 'title',
-
-                },
-                {
-                    title: 'Received date',
-                    field: 'received_date',
-
-                },
-                {
-                    title: 'Approved',
-                    field: 'approved',
-                },
-                {
-                    // field: 'action',
-                    title: 'Actions',
-                    align: 'center',
-                    formatter: (row) => {
-                      // return '<a href="javascript:" class="edit"><i class="fa fa-star"></i></a>'
-
-                        // let edit_str =
-                        //         `<a href="javascript:" class="edit">
-                        //             <button v-if="user.is_staff || user.is_student && !showApproved " type="button"
-                        //                 class="btn btn-light mr-1"
-                        //                 data-bs-toggle="modal"
-                        //                 data-bs-target="#edit-info-modal"
-                        //             >
-                        //                 <i class="bi bi-pencil-square"></i>
-                        //             </button>
-                        //         </a>`
-                        // let delete_str =
-                        //     `<a href="javascript:" class="delete">
-                        //         <button v-if="user.is_staff || user.is_student && !showApproved && (award.created_by == user.id)" type="button"
-                        //             class="btn btn-light mr-1">
-                        //             <i class="bi bi-trash"></i>
-                        //         </button>
-                        //     </a>`
-                        //
-                        // let result = ''
-                        //
-                        // if (this.user.is_staff){
-                        //     return edit_str + delete_str
-                        // }
-                        // else if (this.user.is_student){
-                        //     if (row.created_by === user.id && !row.approved)
-                        //         return edit_str + delete_str
-                        //     else
-                        //         return ''
-                        // }
-                    },
-                    events: {
-                      'click .edit':  (e, value, row) => {
-                          this.editClick(row)
-                        },
-
-                      'click .delete':  (e, value, row) => {
-                          this.deleteClick(row.id)
-                        },
-
-                      },
-                }
-            ],
-
-            tableOptions : {
-                search: true,
-                showColumns: true
-            },
 
         }
     },
@@ -243,9 +172,7 @@ let awardtComponent = {
         editClick(award){
             this.modalTitle="Edit award";
             this.addingNewAward = false
-
-            if (this.modalReadonly)
-                this.modalTitle="Award (read only mode)"
+            this.modalReadonly = false
 
             this.award = JSON.parse(JSON.stringify(award))
 
@@ -257,22 +184,45 @@ let awardtComponent = {
 
 
         },
+        viewClick(award){
+            this.modalTitle="Award (read only mode)";
+            this.addingNewAward = false
+            this.modalReadonly = true
+
+            this.award = JSON.parse(JSON.stringify(award))
+
+            this.checkboxes = []
+            for(let i=0; i<this.checkboxFields.length; ++i){
+                if (this.award[this.checkboxFields[i]])
+                    this.checkboxes.push(this.checkboxFields[i])
+            }
+
+        },
         updateClick(){
             this.award.skills = this.cleanManyToManyFields(this.award.skills);
             this.award.receivers = this.cleanManyToManyFields(this.award.receivers);
             this.award.supervisors = this.cleanManyToManyFields(this.award.supervisors);
+            console.log('update')
+            // console.log(this.$refs.formulateInputInfo)
+            console.log(this.formReceiversIsValid)
+            // console.log(this.$refs.formulateInputInfo.isValid)
 
             //CheckboxFields
             for (let i=0;i<this.checkboxFields.length; ++i)
                 this.award[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
 
-            console.log('hello')
-            console.log(this.award)
+            // console.log('hello')
+            // console.log(this.award)
             let outDict = new FormData();
 
             for (const [key, value] of Object.entries(this.award)) {
                 outDict.append(key.toString(), value)
             }
+            // typeof myVar === 'string' || myVar instanceof String
+            if (typeof this.award.attachment_file != 'string'){
+                outDict.set('attachment_file', this.award.attachment_file.files[0].file)
+            }
+
             outDict.set('skills', JSON.stringify(this.award.skills))
             outDict.set('receivers', JSON.stringify(this.award.receivers))
             outDict.set('supervisors', JSON.stringify(this.award.supervisors))
@@ -457,6 +407,13 @@ let awardtComponent = {
             // Set hidden to inverse of what it currently is
             this.$set( this.vgtColumns[ index ], 'hidden', ! this.vgtColumns[ index ].hidden );
         },
+
+        resetAwardFields(fieldname){
+
+            if (fieldname === 'attachment_file'){
+                this.$refs.attachment_file.reset();
+            }
+        }
     },
 
     created: async function(){
@@ -503,7 +460,7 @@ let awardtComponent = {
                 // on nested mutations as long as the object itself
                 // hasn't been replaced.
 
-                this.formReceiversIsInvalid = (newValue.receivers.length === 0);
+                this.formReceiversIsValid = (newValue.receivers.length !== 0);
             },
 
             deep: true
@@ -543,18 +500,38 @@ let awardtComponent = {
         //     );
         // });
 
-        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', ()=> {
-            document.getElementById('modal-form').reset()
-            this.modalReadonly = false;
+        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
+            // document.getElementById('modal-form-attachment_file').reset()
+            // if (event.target.getAttribute('data-dismiss') !== 'modal') {
+            //     // If not, prevent the modal from closing
+            //     event.preventDefault()
+            // }
+
+            // this.$refs['modal-form-attachment_file'].reset();
+
+            // this.$refs['formulate-input-attachment_file'].reset();
+            // this.award.attachment_file = ''
         })
     }
 
 }
 
+//Register vue-formulate
+Vue.use(VueFormulate)
+
+//Register vee-validate
+// const veeValidateConfig = {
+//   errorBagName: 'veeErrors', // change if property conflicts
+// };
+
+Vue.use(VeeValidate)
+
+
 const app = new Vue({
     el: '#app',
     components:{
         'award-html' : awardtComponent,
+        // 'validation-provider' : VeeValidate.ValidationProvider,
         // Multiselect: window.VueMultiselect.default,
         // 'v-select': VueSelect.VueSelect,
     },

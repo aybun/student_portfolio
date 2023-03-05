@@ -38,7 +38,7 @@ def awardApi(request, award_id=0):
                 return JsonResponse([], safe=False)
 
             serializer = Serializer(objects, many=True, context={'request': request})
-            print(serializer.data)
+            # print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
             id = award_id
@@ -81,6 +81,7 @@ def awardApi(request, award_id=0):
             return JsonResponse("Failed to update.", safe=False)
 
         data = request.data.dict()
+        print('put')
         print(data)
         object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
 
