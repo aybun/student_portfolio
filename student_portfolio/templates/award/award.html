@@ -6,7 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@braid/vue-formulate@2.5.3/dist/formulate.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@braid/vue-formulate@2.5.3/dist/snow.min.css">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/3.4.0/vee-validate.min.js" integrity="sha512-84yzUgF42oK9g2CcOuLR0fWJya49e4nZi/ihHLw88MPgvTqH+FJOGFjOw57jYTu/El8mwI0LjZ7Cg9jHonlcxw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/2.2.15/vee-validate.min.js" integrity="sha512-tRtrfr8wNwGoT8S+xTQUXABGBAuJGWnzEUgud4TEh/updXcbkSGnIoGPVpGMbRGVCtB7dtPW67qwhzFRdxD6Qg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/3.4.15/rules.min.js" integrity="sha512-kBxS3XYyxeDfP5NHNszlb9ER2cOlt1MVIQR71DcTWifH79QY987Kht8QVpwhgwOBtyX8sm+f7w0Lym3MTu+wGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
 {% endblock additional_scripts %}
 
@@ -193,32 +193,42 @@
                 <div class="d-flex flex-row bd-highlight mb-3">
 
                     <div class="p-1 w-50 bd-highlight">
+                        <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
 <!--                        <form id="modal-form">-->
-                        <div class="input-group mb-3">
-                            <span class="input-group-text">Title</span>
-<!--                            <input type="text" class="form-control" v-model="award.title" :readonly="modalReadonly">-->
-                            <formulate-input type="text" v-model="award.title" validation="required" :readonly="modalReadonly"></formulate-input>
-                        </div>
+<!--                        <div class="input-group mb-3">-->
+<!--&lt;!&ndash;                            <span class="input-group-text">Title</span>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <input type="text" class="form-control" v-model="award.title" :readonly="modalReadonly">&ndash;&gt;-->
+<!--                            <formulate-input type="text" v-model="award.title" label="Title" validation="required" :readonly="modalReadonly"></formulate-input>-->
+<!--                        </div>-->
+                        <formulate-input ref="formulate-input-title" type="text" v-model="award.title" label="Title" validation="required" :readonly="modalReadonly"></formulate-input>
 
-                        <div v-if="!addingNewAward" class="input-group mb-3">
-                            <span class="input-group-text">rank</span>
-<!--                            <input type="number" class="form-control" min="0" v-model="award.rank" :readonly="modalReadonly">-->
-                            <formulate-input type="number" v-model="award.rank"  validation="required|number" min="0" max="5" :readonly="modalReadonly"></formulate-input>
-                        </div>
+<!--                        <div v-if="!addingNewAward" class="input-group mb-3">-->
+<!--&lt;!&ndash;                            <span class="input-group-text">Rank</span>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <input type="number" class="form-control" min="0" v-model="award.rank" :readonly="modalReadonly">&ndash;&gt;-->
+<!--                            <formulate-input type="number" v-model="award.rank"  label="Rank" validation="required|number" min="0" max="5" :readonly="modalReadonly"></formulate-input>-->
+<!--                            -->
+<!--                        </div>-->
+                        <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"  label="Rank" validation="required|number|min:0|max:5" :readonly="modalReadonly">
 
-                        <div v-if="!addingNewAward" class="input-group mb-3">
-                            <span class="input-group-text">Received Date</span>
-<!--                            <input type="date" class="form-control" v-model="award.received_date" :readonly="modalReadonly">-->
-                            <formulate-input type="date" v-model="award.received_date" validation="required" :readonly="modalReadonly"></formulate-input>
+                        </formulate-input>
 
-                        </div>
+<!--                        <div v-if="!addingNewAward" class="input-group mb-3">-->
+<!--&lt;!&ndash;                            <span class="input-group-text">Received Date</span>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <input type="date" class="form-control" v-model="award.received_date" :readonly="modalReadonly">&ndash;&gt;-->
+<!--                            <formulate-input type="date" v-model="award.received_date" label="Received Date" validation="required" :readonly="modalReadonly"></formulate-input>-->
 
-                        <div v-if="!addingNewAward" class="input-group mb-3">
-<!--                            <span class="input-group-text">info</span>-->
-<!--                            <input type="text" class="form-control" v-model="award.info" :readonly="modalReadonly">-->
-                            <formulate-input ref="formulateInputInfo" label="info" type="textarea" v-model="award.info" validation="required|max:200,length" :readonly="modalReadonly" validation-name="info"></formulate-input>
+<!--                        </div>-->
 
-                        </div>
+                        <formulate-input ref="formulate-input-received_date" type="date" v-model="award.received_date"  label="Received Date" validation="required" :readonly="modalReadonly"></formulate-input>
+
+<!--                        <div v-if="!addingNewAward" class="input-group mb-3">-->
+<!--&lt;!&ndash;                            <span class="input-group-text">info</span>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <input type="text" class="form-control" v-model="award.info" :readonly="modalReadonly">&ndash;&gt;-->
+<!--                            <formulate-input ref="formulateInputInfo" label="Info" type="textarea" v-model="award.info" validation="required|max:200,length" :readonly="modalReadonly" validation-name="info"></formulate-input>-->
+
+<!--                        </div>-->
+
+                        <formulate-input ref="formulate-input-info" label="Info" type="textarea" v-model="award.info" validation="max:200,length" :readonly="modalReadonly" validation-name="info"></formulate-input>
 
 
                         <div v-if="!addingNewAward" class="skill">
@@ -235,16 +245,16 @@
                             <div>
 <!--                                <ValidationProvider  rules="required" v-slot="v">-->
 <!--                                <label class="typo__label">Customized multiselect</label>-->
+<!--                                <ValidationObserver ref="multiselect-receivers-observer" slim>-->
+                                    <multiselect  ref="multiselect-receivers" name="multiselect-receivers" v-model="award.receivers"
+                                                v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="receivers"
 
-                                <multiselect  ref="multiselect-receivers" v-model="award.receivers"
-                                            v-validate data-vv-rules="required" data-vv-name="multiselect-receivers"
-                                              :allow-empty="false" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly">
-<!--                                    <span v-if="formReceiversIsInvalid">There are errors in the selected values</span>-->
-<!--                                    <span v-if="hasError">There are errors in the selected values</span>-->
-                                </multiselect>
+                                                  :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly">
 
+                                    </multiselect>
+<!--                                </ValidationObserver>-->
 <!--                                <label class="typo__label form__label" v-if="!formReceiversIsValid" style="color:red;">receivers : Must have at least one value</label>-->
-                                <span v-if="errors.first('multiselect-receivers')" v-cloak>{% verbatim block %}{{ errors.first('multiselect-receivers') }}{% endverbatim block %}</span>
+                                <span v-show="veeErrors.has('multiselect-receivers')" style="color:red;" >{% verbatim block %}{{ veeErrors.first('multiselect-receivers') }}{% endverbatim block %}</span>
 <!--                                </ValidationProvider >-->
                             </div>
                         </div>
@@ -263,17 +273,26 @@
 <!--                            <input  type="checkbox" value="used_for_calculation" v-model="checkboxes" :disabled="modalReadonly || !user.is_staff"/>-->
 <!--                            <label >Use for calculation</label>-->
 
-                            <FormulateInput  v-model="checkboxes" :options="{approved : 'approved'}" type="checkbox" :disabled="modalReadonly || !user.is_staff"></FormulateInput>
-                            <FormulateInput  v-model="checkboxes" :options="{used_for_calculation : 'Use for calculation'}" type="checkbox" :disabled="modalReadonly || !user.is_staff"></FormulateInput>
+                            <FormulateInput  ref="formulate-input-approved" v-model="checkboxes" :options="{approved : 'approved'}" type="checkbox" :disabled="modalReadonly || !user.is_staff"></FormulateInput>
+                            <FormulateInput  ref="formulate-input-used_for_calculation" v-model="checkboxes" :options="{used_for_calculation : 'Use for calculation'}" type="checkbox" :disabled="modalReadonly || !user.is_staff"></FormulateInput>
                         </div>
 
                         <div v-if="!addingNewAward" class="mb-3">
-                            <label><h3>Attachment link</h3></label>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text">Attachment Link</span>
-                                <input id="attachment_link_form" type="text" class="form-control" v-model="award.attachment_link" :readonly="modalReadonly">
+<!--                            <label><h3>Attachment link</h3></label>-->
+<!--                            <div class="input-group mb-3">-->
+<!--                                <span class="input-group-text">Attachment Link</span>-->
+<!--                                <input id="attachment_link_form" type="text" class="form-control" v-model="award.attachment_link" :readonly="modalReadonly">-->
 
-                            </div>
+<!--                            </div>-->
+                            <FormulateInput
+                                  ref="formulate-input-attachment_link"
+                                  type="url"
+                                  v-model="award.attachment_link"
+                                  label="Attachment link"
+                                  placeholder="Copy and paste url here"
+                                  help="copy and paste url"
+                                  validation=""
+                            ></FormulateInput>
                         </div>
 
                         <p></p>
@@ -285,13 +304,17 @@
 <!--                                <label id="attachment_filename" for="formFile" class="form-label"><a v-bind:href="this.award.attachment_file"><h6>File url</h6></a></label>-->
 <!--                                <input class="form-control" type="file" id="formFile" @change="onFileSelected" :disabled="modalReadonly">-->
 <!--                            </form>-->
+<!--                            formKey is used to destroy and recreate the form after closing the modal.-->
                             <FormulateInput
+                              :key="formKey"
                               type="file"
-                              name="file"
+                              ref="formulate-input-attachment_file"
                               label="Attachment file"
                               help="The file size must not exceed 2MB."
-                              ref="formulate-input-attachment_file"
 
+                              v-model="award.attachment_file"
+                              ref="formulate-input-attachment_file"
+                              name="formulate-input-attachment_file"
                               :validation-rules="{
                                 lessThan2MB: () => (typeof award.attachment_file == 'string') || Object.is(award.attachment_file, null) ||
                                 (award.attachment_file.files.length == 0) || (award.attachment_file.files[0].file.size < 2000000)
@@ -305,15 +328,24 @@
                               validation-event="input"
                               validation="lessThan2MB"
 
-                              v-model="award.attachment_file"
+
                               upload-behavior="delayed"
 
                               :disabled="modalReadonly"
 
                             ></FormulateInput>
                         </div>
+<!--                        </FormulateForm>-->
 <!--                        </form>-->
                         <!--                        <End of inputs>-->
+                    <FormulateInput v-if="false"  type="submit" :disabled="hasErrors" @click="updateClick()">
+
+                        Update
+
+                    </FormulateInput>
+
+
+                </FormulateForm>
                     </div>
 
 
@@ -322,15 +354,16 @@
 
             </div>
 
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button id="createButton" type="button" @click="createClick()"
                     v-if="addingNewAward" class="btn btn-primary" >
                     Create
                 </button>
-
-                <button v-if="!modalReadonly && !addingNewAward && (user.is_staff || user.is_student && (award.created_by == user.id))" id="updateButton" type="button" @click="updateClick()"
-                     class="btn btn-primary">
+<!--                type="button" class="btn btn-primary"-->
+                <button type="button" class="btn btn-primary" v-if="!modalReadonly && !addingNewAward && (user.is_staff || user.is_student && (award.created_by == user.id))" id="updateButton"
+                      @click="updateClick();">
                     Update
                 </button>
             </div>

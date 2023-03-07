@@ -8,11 +8,14 @@ let awardtComponent = {
         VueGoodTable : window['vue-good-table'].VueGoodTable,
 
     },
+    // mixins: [VueFormulate.FormulateMixin],
     // plugins: [VueFormulate.default],
     data(){
         return {
             modalTitle:"",
             addingNewAward:false,
+
+            formKey: 1,
 
             showApproved:true,
             // showUnapproved:false,
@@ -25,14 +28,20 @@ let awardtComponent = {
             user:{},
 
             award:{},
+            copiedAward:{},
             awards:[],
 
 
-            formReceiversIsValid: true,
-
+            // formReceiversIsValid: true,
 
             checkboxes:[],
             checkboxFields : ['approved', 'used_for_calculation'],
+            formulateInputFieldRefs: [
+                'formulate-input-title', 'formulate-input-rank',
+                'formulate-input-received_date', 'formulate-input-info',
+                'formulate-input-approved', 'formulate-input-used_for_calculation',
+                "formulate-input-attachment_link", 'formulate-input-attachment_file'],
+
             modalReadonly : false,
 
             // selectedRows: [],
@@ -174,7 +183,9 @@ let awardtComponent = {
             this.addingNewAward = false
             this.modalReadonly = false
 
+
             this.award = JSON.parse(JSON.stringify(award))
+            this.copiedAward = JSON.parse(JSON.stringify(award))
 
             this.checkboxes = []
             for(let i=0; i<this.checkboxFields.length; ++i){
@@ -190,6 +201,7 @@ let awardtComponent = {
             this.modalReadonly = true
 
             this.award = JSON.parse(JSON.stringify(award))
+            this.copiedAward = JSON.parse(JSON.stringify(award))
 
             this.checkboxes = []
             for(let i=0; i<this.checkboxFields.length; ++i){
@@ -198,14 +210,20 @@ let awardtComponent = {
             }
 
         },
-        updateClick(){
+        async updateClick(){
+
+            let formIsValid =  await this.validateForm().then((result) => {
+                return result
+            })
+
+            console.log('update')
+            console.log(formIsValid)
+            if (!formIsValid)
+                return;
+
             this.award.skills = this.cleanManyToManyFields(this.award.skills);
             this.award.receivers = this.cleanManyToManyFields(this.award.receivers);
             this.award.supervisors = this.cleanManyToManyFields(this.award.supervisors);
-            console.log('update')
-            // console.log(this.$refs.formulateInputInfo)
-            console.log(this.formReceiversIsValid)
-            // console.log(this.$refs.formulateInputInfo.isValid)
 
             //CheckboxFields
             for (let i=0;i<this.checkboxFields.length; ++i)
@@ -219,7 +237,9 @@ let awardtComponent = {
                 outDict.append(key.toString(), value)
             }
             // typeof myVar === 'string' || myVar instanceof String
-            if (typeof this.award.attachment_file != 'string'){
+            if (typeof this.award.attachment_file != 'string' &&
+                this.award.attachment_file.files.length !== 0
+            ){
                 outDict.set('attachment_file', this.award.attachment_file.files[0].file)
             }
 
@@ -413,7 +433,37 @@ let awardtComponent = {
             if (fieldname === 'attachment_file'){
                 this.$refs.attachment_file.reset();
             }
-        }
+        },
+
+        async validateForm(){
+            //return boolean
+            // vur-formulate
+
+            // const vue_formulate_promises = [];
+            //
+            // this.formulateInputFieldRefs.forEach((e) => {
+            //     vue_formulate_promises.push(this.$refs[e].performValidation())
+            // })
+            // await Promise.all(vue_formulate_promises)
+
+            //Perform validation on the form.
+            this.$formulate.submit('formulate-form-1');
+            await this.$refs['formulate-form-1'].isLoading
+
+            let vue_formulate_valid = this.$refs['formulate-form-1'].isValid;
+            // console.log(vue_formulate_valid)
+
+            //vee-validate
+            await this.$validator.validate().then((result) => {
+                return result
+            });
+
+
+            let vee_validate_valid = (!this.veeErrors.has('multiselect-receivers'))
+
+            return vue_formulate_valid && vee_validate_valid
+        },
+
     },
 
     created: async function(){
@@ -453,20 +503,20 @@ let awardtComponent = {
         // }
     },
 
-    watch:{
-        award : {
-            handler(newValue, oldValue) {
-                // Note: `newValue` will be equal to `oldValue` here
-                // on nested mutations as long as the object itself
-                // hasn't been replaced.
-
-                this.formReceiversIsValid = (newValue.receivers.length !== 0);
-            },
-
-            deep: true
-
-        }
-    },
+    // watch:{
+    //     award : {
+    //         handler(newValue, oldValue) {
+    //             // Note: `newValue` will be equal to `oldValue` here
+    //             // on nested mutations as long as the object itself
+    //             // hasn't been replaced.
+    //
+    //             this.formReceiversIsValid = (newValue.receivers.length !== 0);
+    //         },
+    //
+    //         deep: true
+    //
+    //     }
+    // },
 
     mounted:function(){
         // $('#table').bootstrapTable({
@@ -508,9 +558,18 @@ let awardtComponent = {
             // }
 
             // this.$refs['modal-form-attachment_file'].reset();
-
-            // this.$refs['formulate-input-attachment_file'].reset();
+            // console.log(this.$refs['formulate-input-attachment_file'])
+            // this.$refs['formulate-input-attachment_file'];
             // this.award.attachment_file = ''
+            this.veeErrors.clear()
+            // console.log(this.$formulate)
+            // this.$formulate.reset('formulate-input-attachment_file', '')
+            // this.award = this.getEmptyAward()
+            this.formKey += 1
+            // this.$refs['formulate-form-1'].isValid
+            // console.log(this.$refs['formulate-form-1'])
+
+
         })
     }
 
@@ -519,12 +578,12 @@ let awardtComponent = {
 //Register vue-formulate
 Vue.use(VueFormulate)
 
-//Register vee-validate
-// const veeValidateConfig = {
-//   errorBagName: 'veeErrors', // change if property conflicts
-// };
+// Register vee-validate
+const veeValidateConfig = {
+  errorBagName: 'veeErrors', // change if property conflicts
+};
 
-Vue.use(VeeValidate)
+Vue.use(VeeValidate, veeValidateConfig)
 
 
 const app = new Vue({
@@ -535,7 +594,7 @@ const app = new Vue({
         // Multiselect: window.VueMultiselect.default,
         // 'v-select': VueSelect.VueSelect,
     },
-
+    // mixins: [VueFormulate.FormulateMixin],
     data () {
     return {
         options: [
