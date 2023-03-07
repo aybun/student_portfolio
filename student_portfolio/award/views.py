@@ -1,4 +1,6 @@
 import json
+import os
+from copy import deepcopy
 
 from django.db import IntegrityError, transaction
 from django.db.models import Q
@@ -14,6 +16,11 @@ from award.access_policies import AwardApiAccessPolicy
 from award.models import Award
 from award.serializers import AwardSerializer
 
+
+def _delete_file(path):
+   """ Deletes file from filesystem. """
+   if os.path.isfile(path):
+       os.remove(path)
 
 def award(request):
     return render(request, 'award/award.html', {})
@@ -81,10 +88,12 @@ def awardApi(request, award_id=0):
             return JsonResponse("Failed to update.", safe=False)
 
         data = request.data.dict()
-        print('put')
-        print(data)
-        object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
 
+        # old_obj : We want the paths of files to be deleted.
+        old_obj = deepcopy(object)
+
+        object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
+        print(data)
         serializer = Serializer(instance=object, data=data, context={'request': request})
 
         if serializer.is_valid():
@@ -94,8 +103,19 @@ def awardApi(request, award_id=0):
                     serializer.save()
             except IntegrityError:
                 success = False
+
+            # Delete Files
             if success:
-                return JsonResponse("Updated Successfully", safe=False)
+                #Check if the file field passed is ''. or the new file is passed -> Remove the old file.
+
+                if old_obj.attachment_file and not bool(object.attachment_file)\
+                        or old_obj.attachment_file != object.attachment_file:
+                    _delete_file(str(old_obj.attachment_file))
+
+            # Sending Messages
+            if success:
+                # print('success data : {}'.format(serializer.data))
+                return JsonResponse(serializer.data, safe=False)
             else:
                 return JsonResponse("Failed to delete.", safe=False)
 

@@ -305,20 +305,21 @@
 <!--                                <input class="form-control" type="file" id="formFile" @change="onFileSelected" :disabled="modalReadonly">-->
 <!--                            </form>-->
 <!--                            formKey is used to destroy and recreate the form after closing the modal.-->
+
                             <FormulateInput
                               :key="formKey"
                               type="file"
+
                               ref="formulate-input-attachment_file"
+                              name="formulate-input-attachment_file"
+                              v-model="award.attachment_file"
+
                               label="Attachment file"
                               help="The file size must not exceed 2MB."
 
-                              v-model="award.attachment_file"
-                              ref="formulate-input-attachment_file"
-                              name="formulate-input-attachment_file"
-                              :validation-rules="{
-                                lessThan2MB: () => (typeof award.attachment_file == 'string') || Object.is(award.attachment_file, null) ||
-                                (award.attachment_file.files.length == 0) || (award.attachment_file.files[0].file.size < 2000000)
-                              }"
+                              :validation-rules="{lessThan2MB : () => {
+                                    return validateAttachmentFileLessThan2MB(2000000)
+                              }}"
 
                               :validation-messages="{
                                   lessThan2MB : 'The file size must not exceed 2MB.'
@@ -328,12 +329,15 @@
                               validation-event="input"
                               validation="lessThan2MB"
 
-
                               upload-behavior="delayed"
 
                               :disabled="modalReadonly"
 
                             ></FormulateInput>
+<!--                            File Button-->
+                            <button v-if="copiedAward.attachment_file != '' &&  !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-primary" @click="this.window.open(award.attachment_file)"> File URL </button>
+                            <button v-if="copiedAward.attachment_file != '' && !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-outline-danger" @click="formKey += 1; copiedAward.attachment_file=''; award.attachment_file=''" :disabled="modalReadonly"> Remove File </button>
+
                         </div>
 <!--                        </FormulateForm>-->
 <!--                        </form>-->

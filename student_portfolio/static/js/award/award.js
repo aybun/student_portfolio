@@ -212,12 +212,11 @@ let awardtComponent = {
         },
         async updateClick(){
 
-            let formIsValid =  await this.validateForm().then((result) => {
-                return result
+            let formIsValid =  false;
+            await this.validateForm().then((result) => {
+                 formIsValid = result
             })
 
-            console.log('update')
-            console.log(formIsValid)
             if (!formIsValid)
                 return;
 
@@ -229,18 +228,18 @@ let awardtComponent = {
             for (let i=0;i<this.checkboxFields.length; ++i)
                 this.award[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
 
-            // console.log('hello')
-            // console.log(this.award)
             let outDict = new FormData();
 
             for (const [key, value] of Object.entries(this.award)) {
                 outDict.append(key.toString(), value)
             }
             // typeof myVar === 'string' || myVar instanceof String
-            if (typeof this.award.attachment_file != 'string' &&
-                this.award.attachment_file.files.length !== 0
-            ){
-                outDict.set('attachment_file', this.award.attachment_file.files[0].file)
+
+            if (! Object.is(this.award.attachment_file, null)){
+                if (typeof this.award.attachment_file !== 'string')
+                    if ( ! Object.is(this.award.attachment_file.files, null))
+                        if (this.award.attachment_file.files.length !== 0)
+                            outDict.set('attachment_file', this.award.attachment_file.files[0].file)
             }
 
             outDict.set('skills', JSON.stringify(this.award.skills))
@@ -260,8 +259,12 @@ let awardtComponent = {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-                this.refreshData();
-                alert(response.data);
+
+                this.reAssignUpdatedElementIntoList(response.data) //With reactivity.
+                this.award = JSON.parse(JSON.stringify(response.data))
+                this.copiedAward = JSON.parse(JSON.stringify(response.data))
+
+                alert(JSON.stringify(response.data));
             })
 
         },
@@ -275,7 +278,7 @@ let awardtComponent = {
             axios({
                 method: 'delete',
                 url: variables.API_URL+"award/"+ award_id,
-                xstfCookieName: 'csrftoken',
+                xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 headers : {
                     'X-CSRFToken': 'csrftoken',
@@ -410,7 +413,8 @@ let awardtComponent = {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-                this.refreshData();
+                // this.refreshData();
+
                 alert(response.data);
             })
         },
@@ -434,6 +438,29 @@ let awardtComponent = {
                 this.$refs.attachment_file.reset();
             }
         },
+        reAssignUpdatedElementIntoList(newAward){
+
+            for (let i = 0; i < this.awards.length; ++i){
+                if (this.awards[i].id === newAward.id){
+                    this.$set(this.awards, i, newAward)
+                    break;
+                }
+            }
+        }
+        ,
+        validateAttachmentFileLessThan2MB(maxFileSize){
+
+            if (typeof this.award.attachment_file == 'string'){
+                return true
+            }else if (Object.is(this.award.attachment_file, null)){
+                return true
+            }else if (this.award.attachment_file.files.length === 0){
+                return true
+            }else{
+                return this.award.attachment_file.files[0].file.size < maxFileSize
+            }
+
+        },
 
         async validateForm(){
             //return boolean
@@ -447,8 +474,7 @@ let awardtComponent = {
             // await Promise.all(vue_formulate_promises)
 
             //Perform validation on the form.
-            this.$formulate.submit('formulate-form-1');
-            await this.$refs['formulate-form-1'].isLoading
+            await this.$formulate.submit('formulate-form-1');
 
             let vue_formulate_valid = this.$refs['formulate-form-1'].isValid;
             // console.log(vue_formulate_valid)

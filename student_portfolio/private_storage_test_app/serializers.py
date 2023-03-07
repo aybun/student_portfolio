@@ -43,13 +43,12 @@ class PrivateModelSerializer(FieldAccessMixin, serializers.ModelSerializer ):
             if isinstance(private_file_1, str):
                 if private_file_1 == '': #We want '' to signal delete.
                     instance.private_file_1 = None
-                else:
-                    data.pop('private_file_1', None)
+
+                data.pop('private_file_1', None)
 
             private_file_2 = data.get('private_file_2', None)
             if isinstance(private_file_2, str):
-                # print(private_file_2)
-                # print(private_file_2)
+
                 if private_file_2 == '':  # We want '' to signal delete.
                     instance.private_file_2 = None
 

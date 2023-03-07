@@ -139,6 +139,8 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
             attachment_file = data.get('attachment_file', None)
             if isinstance(attachment_file, str):
+                if attachment_file == '':  # We want '' to signal delete.
+                    instance.attachment_file = None
                 data.pop('attachment_file', None)
 
             if 'skills' in data:
