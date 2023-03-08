@@ -4,7 +4,7 @@ let awardtComponent = {
     components:{
         // 'v-select': VueSelect.VueSelect,
         Multiselect: window.VueMultiselect.default,
-        'BootstrapTable': BootstrapTable,
+
         VueGoodTable : window['vue-good-table'].VueGoodTable,
 
     },
@@ -621,15 +621,7 @@ const app = new Vue({
         // 'v-select': VueSelect.VueSelect,
     },
     // mixins: [VueFormulate.FormulateMixin],
-    data () {
-    return {
-        options: [
-          'foo',
-          'bar',
-          'baz'
-        ]
-    }
-  }
+
 
 })
 
