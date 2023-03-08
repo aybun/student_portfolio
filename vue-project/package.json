@@ -13,6 +13,7 @@
     "bootstrap": "^5.2.1",
     "bootstrap-icons": "^1.10.3",
     "flatpickr": "^4.6.13",
+    "sass": "^1.58.3",
     "vue": "^2.7.7",
     "vue-good-table": "^2.21.11",
     "vue-multiselect": "^2.1.7",
