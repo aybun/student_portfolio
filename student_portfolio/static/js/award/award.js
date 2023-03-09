@@ -611,7 +611,6 @@ const veeValidateConfig = {
 
 Vue.use(VeeValidate, veeValidateConfig)
 
-
 const app = new Vue({
     el: '#app',
     components:{

@@ -1,6 +1,9 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import HomeView from "../views/HomeView.vue";
+import Award from "../components/award/Award.vue";
+import Login from "../components/registration/Login.vue";
+// import {Login2} from "../components/registration/Login2.vue";
 
 Vue.use(VueRouter);
 
@@ -20,6 +23,16 @@ const router = new VueRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import("../views/AboutView.vue"),
+    },
+    {
+      path: "/award",
+      name: "award",
+      component: Award,  
+    },
+    {
+      path: "/login-vue",
+      name: "login-vue",
+      component: Login,  
     },
   ],
 });

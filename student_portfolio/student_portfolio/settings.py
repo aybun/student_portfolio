@@ -68,8 +68,22 @@ REST_FRAMEWORK = {
    # ]
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
+# 'Lax'
+CSRF_COOKIE_SAMESITE = False
+SESSION_COOKIE_SAMESITE = 'None'
 
+CSRF_COOKIE_HTTPONLY = False
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_ALLOW_CREDENTIALS = True
+
+# PROD ONLY
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -193,8 +207,9 @@ MEDIA_URL = '/media/'
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'private-media')
 # PRIVATE_STORAGE_AUTH_FUNCTION = 'private_storage.permissions.allow_staff'
 
-LOGIN_REDIRECT_URL = '/home'
-LOGOUT_REDIRECT_URL = '/logoutpage'
+# LOGIN_REDIRECT_URL = '/home'
+LOGIN_REDIRECT_URL = 'http://localhost:3000/'
+LOGOUT_REDIRECT_URL = '/home'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 

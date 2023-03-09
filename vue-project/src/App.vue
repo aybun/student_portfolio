@@ -15,17 +15,18 @@ import HelloWorld from "./components/HelloWorld.vue";
         height="125"
       />
 
-      <div class="wrapper" v-if="false">
+      <div class="wrapper">
         <HelloWorld msg="You did it!" />
 
         <nav>
           <router-link to="/">Home</router-link>
           <router-link to="/about">About</router-link>
+          <router-link to="/award">Award</router-link>
         </nav>
       </div>
     </header>
 
-    <router-view v-if="false"/>
+    <router-view />
 
     <div class="flex-shrink-0 p-3 bg-white" style="width: 280px;">
     <a href="/" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
@@ -81,6 +82,8 @@ import HelloWorld from "./components/HelloWorld.vue";
             <li><a href="#" class="link-dark rounded">New...</a></li>
             <li><a href="#" class="link-dark rounded">Profile</a></li>
             <li><a href="#" class="link-dark rounded">Settings</a></li>
+            <li><a href="http://127.0.0.1:8000/login" class="link-dark rounded">Login</a></li>
+            <li><router-link to="/login-vue" class="link-dark rounded">Login Vue</router-link></li>
             <li><a href="#" class="link-dark rounded">Sign out</a></li>
           </ul>
         </div>

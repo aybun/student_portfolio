@@ -4,12 +4,14 @@ from . import views
 urlpatterns=[
 
     path('home', views.home),
-    path('logoutpage', views.logoutView ),
+    path('logoutpage', views.logoutView),
 
     path('api/user', views.userApi),
-    # path('api/userTable, views.userTableApi'),
 
-    # path('files/<str:file_id>', views.file),
+    path('api/get-csrf', views.get_csrf),
+    path('api/login', views.login_view),
+    path('api/logout', views.logout_view),
+    path('api/session', views.session_view),
 
-    path('api/files/<str:file_id>', views.fileApi),
+
 ]
