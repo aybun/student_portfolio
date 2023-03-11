@@ -17,7 +17,10 @@ Vue.use(VeeValidate, {
 })
 
 Vue.use(VueFormulate)
-Vue.prototype.$API_URL = "http://127.0.0.1:8000/api/"
+
+//URLs
+Vue.prototype.$API_URL = "http://localhost:80/api/"
+// Vue.prototype.$MAIN_BACKEND_URL = "http://127.0.0.1:8000/" 
 
 Vue.use(VueCookies)
 
@@ -26,11 +29,11 @@ new Vue({
   render: (h) => h(App),
 
   created: function () {
-    axios.get(this.$API_URL + 'get-csrf').then((response)=>{
-      console.log(response, response.headers['x-csrftoken'])
-      this.$cookies.set("x-csrftoken", response.headers['x-csrftoken'], "1d")
-      // console.log(this.$cookies.get('x-csrftoken'))
-    })
+    // axios.get(this.$API_URL + 'get-csrf').then((response)=>{
+    //   console.log(response, response.headers['x-csrftoken'])
+    //   this.$cookies.set("x-csrftoken", response.headers['x-csrftoken'], "1d")
+    //   // console.log(this.$cookies.get('x-csrftoken'))
+    // })
 
   },
 

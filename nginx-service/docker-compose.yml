@@ -1,0 +1,25 @@
+# Docker Compose file for Nginx, that lets you proxy front end API requests in a transparent manner.
+
+# Run with:
+#   docker-compose -f docker-compose-nginx-local-dev-proxy.yaml up
+# Clean up afterwards with:
+#   docker-compose -f docker-compose-nginx-local-dev-proxy.yaml down
+#   docker rm nginx-local-dev-proxy
+
+version: "3.7"
+services:
+  nginx_local_dev_proxy:
+    container_name: nginx-local-dev-proxy
+    image: nginx:1.21.3
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+    volumes:
+      # Here we mount the local configuration for the Nginx instance
+      - "./nginx-local-dev-proxy-container.conf:/etc/nginx/nginx.conf"
+      # Here we mount the actual source code (or you can mount the build output)
+      - "./src:/usr/share/nginx/html"
+    # Enable this for detailed routing debug info
+    command: [nginx-debug, '-g', 'daemon off;']

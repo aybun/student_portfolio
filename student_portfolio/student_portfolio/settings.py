@@ -70,15 +70,40 @@ REST_FRAMEWORK = {
 
 # CORS_ORIGIN_ALLOW_ALL = True
 # 'Lax'
-CSRF_COOKIE_SAMESITE = False
-SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Default name : we set it for the sake of consistency (We might need to access this var from other files).
+# CSRF_COOKIE_NAME = 'csrftoken'
 
 CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = False
 CORS_ALLOWED_ORIGINS = [
+    'http://localhost:80',
+    'http://127.0.0.1:8000',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:80',
+    'http://127.0.0.1:8000',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
+
+# CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_EXPOSE_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # PROD ONLY
@@ -208,7 +233,7 @@ PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'private-media')
 # PRIVATE_STORAGE_AUTH_FUNCTION = 'private_storage.permissions.allow_staff'
 
 # LOGIN_REDIRECT_URL = '/home'
-LOGIN_REDIRECT_URL = 'http://localhost:3000/'
+LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/home'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

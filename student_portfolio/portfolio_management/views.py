@@ -8,13 +8,13 @@ from django.shortcuts import render
 from django.http.response import JsonResponse
 from django.middleware.csrf import get_token
 from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_POST
 
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import parser_classes, permission_classes, api_view, authentication_classes
 from rest_framework.parsers import JSONParser, MultiPartParser
-
+from rest_framework.permissions import AllowAny
 
 from user_profile.models import UserProfile
 
@@ -48,21 +48,34 @@ def userApi(request):
     return JsonResponse(data_dict, safe=False)
 
 
-@ensure_csrf_cookie
+# @ensure_csrf_cookie
 def get_csrf(request):
     response = JsonResponse({'detail': 'CSRF cookie set'})
     response['X-CSRFToken'] = get_token(request)
+    print(response.__dict__)
     return response
 
-@authentication_classes((SessionAuthentication, BasicAuthentication))
-@require_POST
+# @authentication_classes((SessionAuthentication, BasicAuthentication))
+# @require_POST
+@api_view(['POST',])
+@permission_classes((AllowAny,))
 def login_view(request):
+    print(request.data)
+    print(type(request.data))
     # data = json.loads(request.body)
     # username = data.get('username', None)
     # password = data.get('password', None)
-    username = request.POST.get('username', None)
-    password = request.POST.get('password', None)
-    print(request.POST)
+    data = request.data.get('username_password', None)
+    if data is None:
+        return JsonResponse({'detail': 'Please provide username and password.'}, status=400)
+
+    data = json.loads(data)
+
+    print(data)
+    username = data.get('username', None)
+    password = data.get('password', None)
+    print(username, password)
+    # print(request.POST)
     if username is None or password is None:
         return JsonResponse({'detail': 'Please provide username and password.'}, status=400)
 

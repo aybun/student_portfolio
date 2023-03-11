@@ -406,14 +406,14 @@ let awardtComponent = {
             axios({
                 method: 'delete',
                 url: variables.API_URL+"award/multi-delete",
-                xstfCookieName: 'csrftoken',
+                xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 data: outDict,
                 headers : {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-                // this.refreshData();
+                this.refreshData();
 
                 alert(response.data);
             })

@@ -6,13 +6,13 @@ import { Multiselect } from 'vue-multiselect'
 import { VueGoodTable } from  'vue-good-table';
 import axios from 'axios'
 import flatpickr from 'flatpickr'
-// import VueFormulate from '@braid/vue-formulate'
+import 'flatpickr/dist/flatpickr.min.css'
 
 export default {
 
 components:{
     
-    Multiselect: Multiselect,
+    Multiselect,
     VueGoodTable,
     // VueFormulate, 
 
@@ -309,10 +309,11 @@ methods:{
 
     cleanManyToManyFields(list){
         //Remove empty or redundant inputs.
-        nonEmpty = []
-        ids = []
+        console.log(list)
+        let nonEmpty = []
+        let ids = []
         for (let i=0;i<list.length; ++i) {
-            id = list[i]['id']
+            let id = list[i]['id']
 
             if ( id !== '' && !ids.includes(id)){
                 ids.push(list[i].id);
@@ -421,7 +422,7 @@ methods:{
                 'X-CSRFToken': 'csrftoken',
             }
         }).then((response)=>{
-            // this.refreshData();
+            this.refreshData();
 
             alert(response.data);
         })
@@ -501,29 +502,36 @@ methods:{
 },
 
 created: async function(){
-    
-    axios.defaults.xsrfCookieName = 'csrftoken';
-    axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-    await axios({
-            method: 'get',
-            url: this.$API_URL+"user",
-            xsrfCookieName: 'csrftoken',
-            xsrfHeaderName: 'X-CSRFToken',
-            headers : {
-                'X-CSRFToken': 'csrftoken',
-            }
-        }).then((response)=>{
-            this.user=response.data;
-        })
-    
-    // await axios.get(this.$API_URL+"user")
-    //     .then((response)=>{
+    // console.log(documuent.cookies)
+    console.log("Hello from Award.Vue")
+    axios.defaults.xsrfCookieName = 'csrftoken'
+    axios.defaults.xsrfHeaderName = "X-CSRFToken"
+    axios.defaults.withCredentials = true;
+    // await axios({
+    //         method: 'get',
+    //         url: this.$API_URL+"user",
+    //         xsrfCookieName: 'csrftoken',
+    //         xsrfHeaderName: 'X-CSRFToken',
+    //         headers : {
+    //             'X-CSRFToken': 'csrftoken',
+    //         }
+    //     }).then((response)=>{
     //         this.user=response.data;
     //     })
+    
+    await axios.get(this.$API_URL+"user")
+        .then((response)=>{
+            this.user=response.data;
+            console.log(this.user)
+        }).catch((error) => {
+            
+            console.log(error)
+        })
 
     axios.get(this.$API_URL + "award")
         .then((response)=>{
             this.awards=response.data;
+            console.log(this.awards)
         })
 
     axios.get(this.$API_URL + "student")
@@ -535,7 +543,7 @@ created: async function(){
     axios.get(this.$API_URL+"staff")
     .then((response)=>{
         this.staffTable=response.data;
-        // console.log(this.staffTable)
+        
     });
 
     axios.get(this.$API_URL+"skillTable")
@@ -554,6 +562,7 @@ computed : {
 
 
 mounted:function(){
+    console.log('mounted')
     console.log('cookies', document.cookie)
     // $('#table').bootstrapTable({
     //     // data: this.awards,
@@ -663,7 +672,7 @@ mounted:function(){
 
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                         <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
-                            <a href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn( index, $event )" ><input :checked="!column.hidden" type="checkbox"/>&nbsp;{% verbatim block %}{{column.label}}{% endverbatim block %}</a>
+                            <a href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn( index, $event )" ><input :checked="!column.hidden" type="checkbox"/>&nbsp;{{column.label}}</a>
                         </a>
                   </div>
 
@@ -701,7 +710,7 @@ mounted:function(){
             </span>
 
             <span v-else>
-              {% verbatim block %}{{props.formattedRow[props.column.field]}}{% endverbatim block %}
+              {{props.formattedRow[props.column.field]}}
             </span>
       </template>
     </vue-good-table>
@@ -713,7 +722,7 @@ mounted:function(){
         <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                    <h5 class="modal-title" id="ModalLabel">{% verbatim block %}{{modalTitle}}{% endverbatim block %}</h5>
+                    <h5 class="modal-title" id="ModalLabel">{{modalTitle}}</h5>
 
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -756,7 +765,7 @@ mounted:function(){
                                                   :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly">
 
                                     </multiselect>
-                                <span v-show="veeErrors.has('multiselect-receivers')" style="color:red;" >{% verbatim block %}{{ veeErrors.first('multiselect-receivers') }}{% endverbatim block %}</span>
+                                <span v-show="veeErrors.has('multiselect-receivers')" style="color:red;" >{{ veeErrors.first('multiselect-receivers') }}</span>
                             </div>
                         </div>
 
@@ -783,6 +792,7 @@ mounted:function(){
                                   placeholder="Copy and paste url here"
                                   help="copy and paste url"
                                   validation=""
+                                  :disabled="modalReadonly"
                             ></FormulateInput>
                         </div>
 

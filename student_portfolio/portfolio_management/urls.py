@@ -9,7 +9,7 @@ urlpatterns=[
     path('api/user', views.userApi),
 
     path('api/get-csrf', views.get_csrf),
-    path('api/login', views.login_view),
+    path('api/custom-login', views.login_view),
     path('api/logout', views.logout_view),
     path('api/session', views.session_view),
 
