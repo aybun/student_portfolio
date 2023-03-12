@@ -22,7 +22,6 @@
 
 <script>
 
-import Cookies from "universal-cookie";
 // import axios from 'axios'
 import { Buffer } from 'buffer';
 

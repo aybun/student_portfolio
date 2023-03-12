@@ -10,7 +10,9 @@
     "test:e2e:ci": "start-server-and-test preview http://localhost:4173/ 'cypress run --e2e'",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@braid/vue-formulate": "^2.5.3",
@@ -19,7 +21,6 @@
     "bootstrap-icons": "^1.10.3",
     "buffer": "^6.0.3",
     "flatpickr": "^4.6.13",
-    "universal-cookie": "^4.0.4",
     "vee-validate": "^2.2.15",
     "vue": "^2.7.7",
     "vue-cookies": "^1.8.3",
