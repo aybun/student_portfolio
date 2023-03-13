@@ -24,7 +24,7 @@
 
 // import axios from 'axios'
 import { Buffer } from 'buffer';
-
+import axios from 'axios'
 
 export default {
     data () {

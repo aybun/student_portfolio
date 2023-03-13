@@ -14,13 +14,9 @@ export default {
 components:{
     
     VueGoodTable,
-    // VueFormulate, 
     Multiselect,
-    // "FormulateForm" : FormulateForm ,
-    // "FormulateInput" : FormulateInput,
+   
 },
-// mixins: [VueFormulate.FormulateMixin],
-// plugins: [FormulateForm, FormulateInput],
 
 data()  {
     return {
@@ -49,8 +45,7 @@ data()  {
                     'validation_message' : this.attachment_file_max_file_size_validation_message_function,
                     'validation_rule' : this.attachment_file_max_file_size_validation_function
                 }
-            },
-                 
+            },   
         },
         
 
@@ -213,8 +208,6 @@ methods:{
             if (this.award[this.checkboxFields[i]])
                 this.checkboxes.push(this.checkboxFields[i])
         }
-
-
     },
     viewClick(award){
         this.modalTitle="Award (read only mode)";
@@ -229,7 +222,6 @@ methods:{
             if (this.award[this.checkboxFields[i]])
                 this.checkboxes.push(this.checkboxFields[i])
         }
-
     },
     async updateClick(){
 
@@ -241,10 +233,6 @@ methods:{
         if (!formIsValid)
             return;
 
-        this.award.skills = this.cleanManyToManyFields(this.award.skills);
-        this.award.receivers = this.cleanManyToManyFields(this.award.receivers);
-        this.award.supervisors = this.cleanManyToManyFields(this.award.supervisors);
-
         //CheckboxFields
         for (let i=0;i<this.checkboxFields.length; ++i)
             this.award[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
@@ -254,18 +242,11 @@ methods:{
         for (const [key, value] of Object.entries(this.award)) {
             outDict.append(key.toString(), value)
         }
-        // typeof myVar === 'string' || myVar instanceof String
-
-        if (! Object.is(this.award.attachment_file, null)){
-            if (typeof this.award.attachment_file !== 'string')
-                if ( ! Object.is(this.award.attachment_file.files, null))
-                    if (this.award.attachment_file.files.length !== 0)
-                        outDict.set('attachment_file', this.award.attachment_file.files[0].file)
-        }
-
-        outDict.set('skills', JSON.stringify(this.award.skills))
-        outDict.set('receivers', JSON.stringify(this.award.receivers))
-        outDict.set('supervisors', JSON.stringify(this.award.supervisors))
+        
+        outDict.set('attachment_file', this.cleanAttachmentFile(this.award.attachment_file))
+        outDict.set('skills', JSON.stringify(this.cleanManyToManyFields(this.award.skills)))
+        outDict.set('receivers', JSON.stringify(this.cleanManyToManyFields(this.award.receivers)))
+        outDict.set('supervisors', JSON.stringify(this.cleanManyToManyFields(this.award.supervisors)))
 
         axios.defaults.xsrfCookieName = 'csrftoken';
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -322,7 +303,7 @@ methods:{
 
     cleanManyToManyFields(list){
         //Remove empty or redundant inputs.
-        console.log(list)
+        // console.log(list)
         let nonEmpty = []
         let ids = []
         for (let i=0;i<list.length; ++i) {
@@ -336,6 +317,21 @@ methods:{
         return nonEmpty
     },
 
+    cleanAttachmentFile(attachment_file_field){
+        // Idea : If there is a file, send it.
+
+        let file_field = attachment_file_field
+
+        if (! Object.is(file_field, null)){
+            if (typeof file_field !== 'string')
+                if ( ! Object.is(file_field.files, null))
+                    if (file_field.files.length !== 0)
+                        return file_field.files[0].file
+        }
+
+        return file
+    },
+
     onFileSelected(event){
         this.award.attachment_file = event.target.files[0]
     },
@@ -347,7 +343,7 @@ methods:{
         
         //custom labels
     skillCustomLabel({id, title}){
-        if (id === '' || id == null){
+        if (id === '' || Object.is(id,  null)){
             return 'Select'
         }
         else if (title == null){
@@ -361,9 +357,10 @@ methods:{
 
         return `${id} ${title}`
     },
+
     receiverCustomLabel({ id, university_id, firstname, lastname }){
 
-        if (id === '' || id == null){
+        if (id === '' || Object.is(id,  null)){
 
             return 'Select'
         }
@@ -381,7 +378,7 @@ methods:{
 
     supervisorCustomLabel({id, university_id, firstname, lastname}){
 
-        if (id === '' || id == null){
+        if (id === '' || Object.is(id,  null)){
             return 'Select'
         }
         else if (university_id == null){
@@ -452,25 +449,18 @@ methods:{
         this.$set( this.vgtColumns[ index ], 'hidden', ! this.vgtColumns[ index ].hidden );
     },
 
-    resetAwardFields(fieldname){
-
-        if (fieldname === 'attachment_file'){
-            this.$refs.attachment_file.reset();
-        }
-    },
-    reAssignUpdatedElementIntoList(newAward){
-
-        for (let i = 0; i < this.awards.length; ++i){
-            if (this.awards[i].id === newAward.id){
-                this.$set(this.awards, i, newAward)
+    reassignUpdatedElementIntoList(list, element){
+        for (let i = 0; i < list.length; ++i){
+            if (list[i].id === element.id){
+                this.$set(list, i, element)
                 break;
             }
         }
-    }
-    ,
+    },
 
     attachment_file_max_file_size_validation_function(){
-
+        //Idea : If the file exists, the size must be valid.
+        
         let maxFileSize = this.formConstraints.attachment_file.max_file_size.size
 
         if (typeof this.award.attachment_file == 'string'){
@@ -579,26 +569,13 @@ created: async function(){
     
 },
 
-computed : {
-    // formReceiversIsInvalid () {
-    //   return this.award.receivers.length === 0
-    // }
-},
-
-
 mounted:function(){
     if (this.testMode)
         return;
     
     console.log('mounted')
     console.log('cookies', document.cookie)
-    // $('#table').bootstrapTable({
-    //     // data: this.awards,
-    //     // options : this.tableOptions,
-    // });
-    //https://stackoverflow.com/questions/18487056/select2-doesnt-work-when-embedded-in-a-bootstrap-modal/19574076#19574076
-    // $.fn.modal.Constructor.prototype._enforceFocus = function() {};
-
+    
     let inputs = [
           'input[placeholder="Filter Received"]',
           // 'input[placeholder="Filter Start Date"]'
@@ -615,25 +592,9 @@ mounted:function(){
     
 
     document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
-        // document.getElementById('modal-form-attachment_file').reset()
-        // if (event.target.getAttribute('data-dismiss') !== 'modal') {
-        //     // If not, prevent the modal from closing
-        //     event.preventDefault()
-        // }
-
-        // this.$refs['modal-form-attachment_file'].reset();
-        // console.log(this.$refs['formulate-input-attachment_file'])
-        // this.$refs['formulate-input-attachment_file'];
-        // this.award.attachment_file = ''
         this.veeErrors.clear()
-        // console.log(this.$formulate)
-        // this.$formulate.reset('formulate-input-attachment_file', '')
-        // this.award = this.getEmptyAward()
         this.formKey += 1
-        // this.$refs['formulate-form-1'].isValid
-        // console.log(this.$refs['formulate-form-1'])
-
-
+        
     })
 }
 
@@ -697,10 +658,6 @@ mounted:function(){
 
             </div>
 
-<!--            <multiselect v-model="visibleColumns" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" track-by="id" placeholder="Select..." :disabled="modalReadonly">-->
-
-<!--            </multiselect>-->
-
         </div>
 
         <template slot="table-row" slot-scope="props">
@@ -759,10 +716,10 @@ mounted:function(){
                         <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"  label="Rank" validation="required|number|min:0" :readonly="modalReadonly">
 
                         </formulate-input>
-
+                        
                         <formulate-input ref="formulate-input-received_date" type="date" v-model="award.received_date"  label="Received Date" validation="required" :readonly="modalReadonly"></formulate-input>
 
-                        <formulate-input ref="formulate-input-info" label="Info" type="textarea" v-model="award.info" validation="max:200,length" :readonly="modalReadonly" validation-name="info"></formulate-input>
+                        <formulate-input ref="formulate-input-info" label="Info" type="textarea" v-model="award.info" validation="max:200,length" :key="formKey" :readonly="modalReadonly" validation-name="info"></formulate-input>
 
 
                         <div v-if="!addingNewAward" class="skill">

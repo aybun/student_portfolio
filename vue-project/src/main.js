@@ -7,7 +7,9 @@ import "./assets/main.css";
 
 import * as VeeValidate from 'vee-validate' 
 import VueFormulate from '@braid/vue-formulate'
-import axios from 'axios'
+import FormulateVueDatetimePlugin from '@cone2875/vue-formulate-datetime'
+
+
 import VueCookies from 'vue-cookies'
 
 
@@ -16,8 +18,10 @@ Vue.use(VeeValidate, {
   errorBagName: 'veeErrors', 
 })
 
-Vue.use(VueFormulate)
-
+Vue.use(VueFormulate, {
+  // plugin : [FormulateVueDatetimePlugin]
+})
+Vue.use(FormulateVueDatetimePlugin)
 //URLs
 Vue.prototype.$API_URL = "http://localhost:80/api/"
 // Vue.prototype.$MAIN_BACKEND_URL = "http://127.0.0.1:8000/" 

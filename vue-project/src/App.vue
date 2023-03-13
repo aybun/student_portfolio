@@ -48,10 +48,11 @@ import HelloWorld from "./components/HelloWorld.vue";
       </li>
       <li class="mb-1">
         <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">
-          Dashboard
+          Event
         </button>
         <div class="collapse" id="dashboard-collapse">
           <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+            <li><router-link to="/event" class="link-dark rounded">Event</router-link></li>
             <li><a href="#" class="link-dark rounded">Overview</a></li>
             <li><a href="#" class="link-dark rounded">Weekly</a></li>
             <li><a href="#" class="link-dark rounded">Monthly</a></li>
@@ -82,7 +83,7 @@ import HelloWorld from "./components/HelloWorld.vue";
             <li><a href="#" class="link-dark rounded">New...</a></li>
             <li><a href="#" class="link-dark rounded">Profile</a></li>
             <li><a href="#" class="link-dark rounded">Settings</a></li>
-            <li><a href="http://127.0.0.1:8000/login" class="link-dark rounded">Login</a></li>
+            <!-- <li><a href="http://127.0.0.1:8000/login" class="link-dark rounded">Login</a></li> -->
             <li><router-link to="/login-vue" class="link-dark rounded">Login Vue</router-link></li>
             <li><a href="#" class="link-dark rounded">Sign out</a></li>
           </ul>

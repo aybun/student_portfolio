@@ -12,21 +12,13 @@ let eventComponent = {
             addingNewEvent : false,
             showApproved: true,
 
-            // id:0,
             event: {},
-
-
-            // is_staff: true,
 
             skillTable:[],
             staffTable:[],
             checkboxes: [],
             checkboxFields : ['approved', 'used_for_calculation', 'arranged_inside'],
 
-            // skills:{},
-            // PhotoFileName:"anonymous.png",
-
-            PhotoPath:variables.PHOTO_URL
         }
     },
 
@@ -76,8 +68,6 @@ let eventComponent = {
         this.addingNewEvent = false
 
         this.event = JSON.parse(JSON.stringify(event))
-        // this.event.skills = []
-
         this.checkboxes = []
 
         for(let i=0; i<this.checkboxFields.length; ++i){
@@ -86,6 +76,7 @@ let eventComponent = {
         }
 
     },
+
     createClick(){
 
         let outDict = new FormData();
@@ -224,10 +215,6 @@ let eventComponent = {
             window.open(url);
     },
 
-    prepareData(){
-        // this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
-        // this.user['is_student'] = Object.values(this.user.groups).includes('student')
-    }
     },
 
     created:async function(){
