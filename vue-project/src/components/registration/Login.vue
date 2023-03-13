@@ -5,8 +5,8 @@
             @submit="sendLoginInfoClick"
             #default="{ hasErrors }"
         >
-            <FormulateInput ref="formulate-input-username" v-model='username' type="text" label="Username" name="username" validation="required" ></FormulateInput>
-            <FormulateInput ref="formulate-input-password" v-model='password' type="password"  label="Password" name="password" validation="required" ></FormulateInput>
+            <FormulateInput ref="formulate-input-username" type="text" label="Username" name="username" validation="required" ></FormulateInput>
+            <FormulateInput ref="formulate-input-password" type="password"  label="Password" name="password" validation="required" ></FormulateInput>
             
             <FormulateInput type="submit" :disabled="hasErrors">
                 Login
@@ -29,12 +29,12 @@ import axios from 'axios'
 export default {
     data () {
         return {
-            username:'',
-            password:'',
+            
         }
-
+        
     },
-
+    
+    
     created : function(){
         axios.defaults.xsrfCookieName = 'csrftoken'
         axios.defaults.xsrfHeaderName = "X-CSRFToken"

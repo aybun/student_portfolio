@@ -107,6 +107,8 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         start_datetime, end_datetime = (data.get('start_datetime', None), data.get('end_datetime', None))
         if start_datetime is not None and end_datetime is not None:
+            print("{} {} {}".format("start_datetime", type(start_datetime), start_datetime))
+            print("{} {} {}".format("end_datetime", type(end_datetime), end_datetime))
             if start_datetime > end_datetime:
                 raise ValidationError("End date must be after start date.")
 

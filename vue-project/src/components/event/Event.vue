@@ -78,14 +78,30 @@ export default {
                     field: 'start_datetime',
                     filterable: true,
                     type: "date",
-                    dateInputFormat: "yyyy-mm-dd",
-                    dateOutputFormat: "yyyy-mm-dd",
+                    dateInputFormat: "yyyy-MM-dd\'T\'HH:mm",
+                    dateOutputFormat: "dd-MM-yyyy HH:mm",
                     thClass: 'text-center',
                     tdClass: 'text-center',
                     filterOptions: {
                         enabled: true,
-                        placeholder: "Filter Received",
-                        filterFn: this.dateRangeFilter,
+                        placeholder: "Filter Start",
+                        filterFn: this.datetimeRangeFilter,
+                    }
+
+                },
+                {
+                    label: 'Start',
+                    field: 'end_datetime',
+                    filterable: true,
+                    type: "date",
+                    dateInputFormat: "yyyy-MM-dd\'T\'HH:mm",
+                    dateOutputFormat: "dd-MM-yyyy HH:mm",
+                    thClass: 'text-center',
+                    tdClass: 'text-center',
+                    filterOptions: {
+                        enabled: true,
+                        placeholder: "Filter Start",
+                        filterFn: this.datetimeRangeFilter,
                     }
 
                 },
@@ -247,13 +263,12 @@ export default {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response) => {
-                this.reAssignUpdatedElementIntoList(this.events, response.data)
+                this.reassignUpdatedElementIntoList(this.events, response.data)
                 this.event = JSON.parse(JSON.stringify(response.data))
                 this.copiedEvent = JSON.parse(JSON.stringify(response.data))
-
                 alert(JSON.stringify(response.data));
 
-            }).catch((erros) => {
+            }).catch((errors) => {
                 console.log(errors)
             })
 
@@ -310,7 +325,7 @@ export default {
                             return file_field.files[0].file
             }
             
-            return file
+            return file_field
         },
 
         reassignUpdatedElementIntoList(list, element){
@@ -384,11 +399,24 @@ export default {
             return 'The file size must not exceed ' + this.formConstraints.attachment_file.max_file_size.size + ' bytes.'
         },
 
+        toggleColumn( index, event ){
+            // Set hidden to inverse of what it currently is
+            this.$set( this.vgtColumns[ index ], 'hidden', ! this.vgtColumns[ index ].hidden );
+        },
+
+        datetimeRangeFilter(data, filterString) {
+
+            let dateRange = filterString.split("to");
+            let startDate = Date.parse(dateRange[0]);
+            let endDate = Date.parse(dateRange[1]);
+            return (Date.parse(data) >= startDate && Date.parse(data) <= endDate);
+
+        },
     
     },
 
     created: async function () {
-            
+        this.event = this.getEmptyEvent()
 
         if (this.testMode)
             return;
@@ -420,8 +448,27 @@ export default {
         },
 
     mounted: function () {
-        this.event = this.getEmptyEvent()
+        
+        let inputs = [
+          'input[placeholder="Filter Start"]',
+          // 'input[placeholder="Filter Start Date"]'
+          // 'input[placeholder="Filter Need By Date"]'
+        ];
 
+        inputs.forEach(function(input) {
+            flatpickr(input, {
+            dateFormat: "d-m-Y",
+            mode: "range",
+            allowInput: true,
+            enableTime:true,
+            });
+        });
+
+        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
+            this.veeErrors.clear()
+            this.formKey += 1
+            
+        })
     }
 }
 </script>
@@ -460,10 +507,14 @@ export default {
                       <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         columns
                       </button>
-
+                      <!-- <input :checked="!column.hidden" type="checkbox" disabled/> -->
+                      
                       <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
-                                <a href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn(index, $event)" ><input :checked="!column.hidden" type="checkbox"/>&nbsp;{{ column.label }}</a>
+                            <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#"> 
+                                <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn(index, $event)" >
+                                    <formulate-input type="checkbox" v-if="!column.hidden" disabled="true" checked="true"></formulate-input>
+                                    {{ column.label }}
+                                </span>
                             </a>
                       </div>
 
@@ -529,10 +580,10 @@ export default {
                                     Show Attendances
                                 </button>
                                 
-                                <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
+                                <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }" :key="formKey">
                                     <formulate-input ref="formulate-input-title" type="text" v-model="event.title" label="Title" validation="required|max:100" :readonly="modalReadonly"></formulate-input>
-                                    <FormulateInput ref="formulate-input-start_datetime" type="vue-datetime" datetype="datetime" v-model="event.start_datetime" label="Start" validation="required" :readonly="modalReadonly"></FormulateInput>
-                                    <FormulateInput ref="formulate-input-end_datetime" type="vue-datetime" datetype="datetime" v-model="event.end_datetime" label="End" validation="required" :readonly="modalReadonly"></FormulateInput>
+                                    <FormulateInput ref="formulate-input-start_datetime" type="vue-datetime"  datetype="datetime" v-model="event.start_datetime" label="Start" validation="required"  :disabled="modalReadonly"></FormulateInput>
+                                    <FormulateInput ref="formulate-input-end_datetime" type="vue-datetime"  datetype="datetime" v-model="event.end_datetime" label="End" validation="required"  :disabled="modalReadonly"></FormulateInput>
                                     <formulate-input ref="formulate-input-info" label="Info" type="textarea" v-model="event.info" validation="max:200,length" :readonly="modalReadonly" validation-name="info"></formulate-input>
                                     
                                     <h3>Skills</h3>
@@ -550,7 +601,7 @@ export default {
                                     </FormulateInput>                                           
                                         
                                     <FormulateInput
-                                        :key="formKey" type="file" ref="formulate-input-attachment_file" name="formulate-input-attachment_file"
+                                        type="file" ref="formulate-input-attachment_file" name="formulate-input-attachment_file"
                                         
                                         v-model="event.attachment_file" label="Attachment file"                                  
     

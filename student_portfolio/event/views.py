@@ -127,10 +127,11 @@ def eventApi(request, event_id=0):
                 return JsonResponse("Failed to update.", safe=False)
 
             data = request.data.dict()
-            print(data)
+            # print(data)
             event_data = EventSerializer.custom_clean(instance=event, data=data, context={'request' : request})
             event_serializer = EventSerializer(event, data=event_data, context={'request': request})
-
+            # print(event_data)
+            # print(event_serializer.is_valid())
             if event_serializer.is_valid():
 
                 success = True
@@ -143,7 +144,7 @@ def eventApi(request, event_id=0):
                     success = False
 
                 if success:
-                    return JsonResponse("Updated Successfully", safe=False)
+                    return JsonResponse(event_serializer.data, safe=False)
                 else:
                     return JsonResponse("Failed to delete.", safe=False)
 

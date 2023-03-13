@@ -570,11 +570,8 @@ created: async function(){
 },
 
 mounted:function(){
-    if (this.testMode)
-        return;
-    
-    console.log('mounted')
-    console.log('cookies', document.cookie)
+    // if (this.testMode)
+    //     return;
     
     let inputs = [
           'input[placeholder="Filter Received"]',
@@ -586,7 +583,8 @@ mounted:function(){
         flatpickr(input, {
         dateFormat: "Y-m-d",
         mode: "range",
-        allowInput: true
+        allowInput: true,
+        // enableTime:true,
         });
     });
     
@@ -652,7 +650,12 @@ mounted:function(){
 
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                         <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
-                            <a href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn( index, $event )" ><input :checked="!column.hidden" type="checkbox"/>&nbsp;{{column.label}}</a>
+
+                            <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn( index, $event )" >
+                                <formulate-input type="checkbox" v-if="!column.hidden" disabled="true" checked="true"></formulate-input>
+                                {{ column.label }}
+                            </span>
+
                         </a>
                   </div>
 
@@ -709,7 +712,7 @@ mounted:function(){
                 <div class="d-flex flex-row bd-highlight mb-3">
 
                     <div class="p-1 w-50 bd-highlight">
-                        <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
+                        <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }" :key="formKey">
 
                         <formulate-input ref="formulate-input-title" type="text" v-model="award.title" label="Title" validation="required|max:100" :readonly="modalReadonly"></formulate-input>
 
@@ -776,8 +779,7 @@ mounted:function(){
 
                         <div v-if="!addingNewAward" class="mb-3">
 
-                            <FormulateInput
-                              :key="formKey"
+                            <FormulateInput                        
                               type="file"
 
                               ref="formulate-input-attachment_file"

@@ -19,9 +19,9 @@ Vue.use(VeeValidate, {
 })
 
 Vue.use(VueFormulate, {
-  // plugin : [FormulateVueDatetimePlugin]
+  plugins : [FormulateVueDatetimePlugin]
 })
-Vue.use(FormulateVueDatetimePlugin)
+
 //URLs
 Vue.prototype.$API_URL = "http://localhost:80/api/"
 // Vue.prototype.$MAIN_BACKEND_URL = "http://127.0.0.1:8000/" 
