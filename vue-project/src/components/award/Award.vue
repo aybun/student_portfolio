@@ -1,24 +1,26 @@
 <script>
 
 
-// import { VueGoodTable  } from 'vue-good-table';
 import { Multiselect } from 'vue-multiselect'
 import { VueGoodTable } from  'vue-good-table';
 import axios from 'axios'
+
 import flatpickr from 'flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
+import * as bootstrap from 'bootstrap'
 
 export default {
 
 components:{
     
-    Multiselect,
     VueGoodTable,
     // VueFormulate, 
-
+    Multiselect,
+    // "FormulateForm" : FormulateForm ,
+    // "FormulateInput" : FormulateInput,
 },
 // mixins: [VueFormulate.FormulateMixin],
-// plugins: [VueFormulate.default],
+// plugins: [FormulateForm, FormulateInput],
 
 data()  {
     return {
@@ -26,8 +28,9 @@ data()  {
         addingNewAward:false,
         formKey:1,
         showApproved:true,
-        // showUnapproved:false,
-        // showOptions:true,
+
+        testMode:false,
+        attachment_file_max_file_size : 2000000,
 
         staffTable:[],
         studentTable:[], //Define user Api.
@@ -39,8 +42,18 @@ data()  {
         copiedAward:{},
         awards:[],
 
+        formConstraints : {
+            attachment_file : {
+                max_file_size : {
+                    'size' : 2000000,
+                    'validation_message' : this.attachment_file_max_file_size_validation_message_function,
+                    'validation_rule' : this.attachment_file_max_file_size_validation_function
+                }
+            },
+                 
+        },
+        
 
-        // formReceiversIsValid: true,
 
         checkboxes:[],
         checkboxFields : ['approved', 'used_for_calculation'],
@@ -325,18 +338,16 @@ methods:{
 
     onFileSelected(event){
         this.award.attachment_file = event.target.files[0]
-
     },
-
+        
     prepareData(){
         this.award = this.getEmptyAward()
-
+        
     },
-
-    //custom labels
+        
+        //custom labels
     skillCustomLabel({id, title}){
         if (id === '' || id == null){
-
             return 'Select'
         }
         else if (title == null){
@@ -457,7 +468,10 @@ methods:{
         }
     }
     ,
-    validateAttachmentFileLessThan2MB(maxFileSize){
+
+    attachment_file_max_file_size_validation_function(){
+
+        let maxFileSize = this.formConstraints.attachment_file.max_file_size.size
 
         if (typeof this.award.attachment_file == 'string'){
             return true
@@ -468,7 +482,10 @@ methods:{
         }else{
             return this.award.attachment_file.files[0].file.size < maxFileSize
         }
+    },
 
+    attachment_file_max_file_size_validation_message_function(){
+        return 'The file size must not exceed ' + this.formConstraints.attachment_file.max_file_size.size + ' bytes.'
     },
 
     async validateForm(){
@@ -499,9 +516,17 @@ methods:{
         return vue_formulate_valid && vee_validate_valid
     },
 
+    openNewWindow(url){
+        window.open(url);
+    }
+
 },
 
 created: async function(){
+    this.prepareData(); // Assign an empty award.
+
+    if (this.testMode)
+        return;
     // console.log(documuent.cookies)
     console.log("Hello from Award.Vue")
     axios.defaults.xsrfCookieName = 'csrftoken'
@@ -551,7 +576,7 @@ created: async function(){
         this.skillTable=response.data;
     });
 
-    this.prepareData()
+    
 },
 
 computed : {
@@ -562,6 +587,9 @@ computed : {
 
 
 mounted:function(){
+    if (this.testMode)
+        return;
+    
     console.log('mounted')
     console.log('cookies', document.cookie)
     // $('#table').bootstrapTable({
@@ -584,16 +612,7 @@ mounted:function(){
         allowInput: true
         });
     });
-    // inputs.forEach(function(input) {
-    //     $(input).daterangepicker({
-    //         locale: {
-    //             format: 'YYYY-MM-DD',
-    //             separator: " to "
-    //         }
-    //     }
-    //
-    //     );
-    // });
+    
 
     document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
         // document.getElementById('modal-form-attachment_file').reset()
@@ -696,6 +715,7 @@ mounted:function(){
                 </button>
 
                 <button v-if="user.is_staff || !props.row.approved && props.row.created_by === user.id && user.is_student" type="button"
+                    :id="'edit-button-' + props.row.id"
                     class="btn btn-light mr-1"
                     data-bs-toggle="modal"
                     data-bs-target="#edit-info-modal"
@@ -734,12 +754,11 @@ mounted:function(){
                     <div class="p-1 w-50 bd-highlight">
                         <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
 
-                        <formulate-input ref="formulate-input-title" type="text" v-model="award.title" label="Title" validation="required" :readonly="modalReadonly"></formulate-input>
+                        <formulate-input ref="formulate-input-title" type="text" v-model="award.title" label="Title" validation="required|max:100" :readonly="modalReadonly"></formulate-input>
 
-                        <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"  label="Rank" validation="required|number|min:0|max:5" :readonly="modalReadonly">
+                        <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"  label="Rank" validation="required|number|min:0" :readonly="modalReadonly">
 
                         </formulate-input>
-
 
                         <formulate-input ref="formulate-input-received_date" type="date" v-model="award.received_date"  label="Received Date" validation="required" :readonly="modalReadonly"></formulate-input>
 
@@ -811,17 +830,15 @@ mounted:function(){
                               label="Attachment file"
                               help="The file size must not exceed 2MB."
 
-                              :validation-rules="{lessThan2MB : () => {
-                                    return validateAttachmentFileLessThan2MB(2000000)
-                              }}"
+                              :validation-rules="{maxFileSize : ()=>{return formConstraints.attachment_file.max_file_size.validation_rule()}}"
 
                               :validation-messages="{
-                                  lessThan2MB : 'The file size must not exceed 2MB.'
+                                maxFileSize : formConstraints.attachment_file.max_file_size.validation_message()
                                }"
 
                               error-behavior="live"
                               validation-event="input"
-                              validation="lessThan2MB"
+                              validation="maxFileSize"
 
                               upload-behavior="delayed"
 
@@ -829,7 +846,7 @@ mounted:function(){
 
                             ></FormulateInput>
 <!--                            File Button-->
-                            <button v-if="copiedAward.attachment_file != '' &&  !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-primary" @click="this.window.open(award.attachment_file)"> File URL </button>
+                            <button v-if="copiedAward.attachment_file != '' &&  !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(award.attachment_file)"> File URL </button>
                             <button v-if="copiedAward.attachment_file != '' && !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-outline-danger" @click="formKey += 1; copiedAward.attachment_file=''; award.attachment_file=''" :disabled="modalReadonly"> Remove File </button>
 
                         </div>

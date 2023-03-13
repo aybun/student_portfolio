@@ -13,9 +13,9 @@
             </FormulateInput>
 
         </FormulateForm>
-        <FormulateInput type="submit" @click="seeCookies">
+        <!-- <FormulateInput type="submit" @click="seeCookies">
                 Login
-            </FormulateInput>
+            </FormulateInput> -->
     </div>
 </template>
 
@@ -44,7 +44,7 @@ export default {
             console.log(response, response.headers['x-csrftoken'])
             this.$cookies.set("csrftoken", response.headers['x-csrftoken'], "1d")
             // document.cookie = 'x-csrftoken=' + '; expires=Sun, 1 Jan 2023 00:00:00 UTC; path=/'
-            console.log(document.cookie)
+            // console.log(document.cookie)
 
 
         })
@@ -107,9 +107,9 @@ export default {
 
         },
 
-        seeCookies(){
-            console.log(document.cookie)
-        }
+        // seeCookies(){
+        //     console.log(document.cookie)
+        // }
 
 
     }

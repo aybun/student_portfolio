@@ -493,6 +493,8 @@ let awardtComponent = {
     },
 
     created: async function(){
+        this.prepareData()
+        // return;
         await axios.get(variables.API_URL+"user")
             .then((response)=>{
                 this.user=response.data;
@@ -520,7 +522,7 @@ let awardtComponent = {
             this.skillTable=response.data;
         });
 
-        this.prepareData()
+
     },
 
     computed : {
@@ -529,21 +531,6 @@ let awardtComponent = {
         // }
     },
 
-    // watch:{
-    //     award : {
-    //         handler(newValue, oldValue) {
-    //             // Note: `newValue` will be equal to `oldValue` here
-    //             // on nested mutations as long as the object itself
-    //             // hasn't been replaced.
-    //
-    //             this.formReceiversIsValid = (newValue.receivers.length !== 0);
-    //         },
-    //
-    //         deep: true
-    //
-    //     }
-    // },
-
     mounted:function(){
         // $('#table').bootstrapTable({
         //     // data: this.awards,
@@ -551,7 +538,7 @@ let awardtComponent = {
         // });
         //https://stackoverflow.com/questions/18487056/select2-doesnt-work-when-embedded-in-a-bootstrap-modal/19574076#19574076
         // $.fn.modal.Constructor.prototype._enforceFocus = function() {};
-
+        // return;
         let inputs = [
               'input[placeholder="Filter Received"]',
               // 'input[placeholder="Filter Start Date"]'
