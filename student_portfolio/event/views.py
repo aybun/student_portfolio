@@ -50,7 +50,7 @@ def eventApi(request, event_id=0):
         if ('staff' in groups) or ('student' in groups):
             if (event_id == 0):
                 query_object = EventApiAccessPolicy.scope_query_object(request=request)
-                events = Event.objects.filter(query_object).order_by('id')
+                events = Event.objects.filter(query_object).distinct('id').order_by('id')
 
                 if not events.exists():
                     return JsonResponse([], safe=False)
@@ -69,27 +69,6 @@ def eventApi(request, event_id=0):
                 event_serializer = EventSerializer(event, context={'request' : request})
 
                 return JsonResponse(event_serializer.data, safe=False)
-
-        # elif 'student' in groups:
-        #     if (event_id == 0):
-        #         student = Student.objects.get(userId=request.user.id)
-        #         events_joined_by_user = list(EventAttendanceOfStudents.objects.filter(studentId__exact=student.studentId).values_list('eventId', flat=True))
-        #         events = Event.objects.filter(Q(eventId__in=events_joined_by_user) | Q(created_by=request.user.id))
-        #
-        #         serializer=EventSerializer(events, many=True, context={'request' : request})
-        #         return JsonResponse(serializer.data, safe=False)
-        #     else:
-        #         student = Student.objects.get(userId=request.user.id)
-        #         event_attended = EventAttendanceOfStudents.objects.filter(studentId__exact=student.studentId, id=event_id)
-        #
-        #         if event_attended is not None:
-        #             event = Event.objects.get(id=event_id)
-        #             serializer = EventSerializer(event, context={'request': request})
-        #             return JsonResponse(serializer.data, safe=False)
-        #         else:
-        #             return JsonResponse("Event not found.", safe=False)
-
-
 
     elif request.method=='POST':
 

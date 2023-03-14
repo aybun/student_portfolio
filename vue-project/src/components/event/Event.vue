@@ -50,6 +50,24 @@ export default {
                 },   
             },
 
+            formRenderSpec : {
+                'staff' : {
+                    'edit' : {
+                        'mode' : 'exclude',
+                        'fields' : []
+                    },
+                },
+
+                'student' : {
+                    'edit' : {
+                        'mode' : 'exclude',
+                        'fields' : ['used_for_calculation', 'approved']
+                    },
+                }
+
+            },
+            
+            formRender : {},
             vgtColumns : [
                 {
                     label: 'Event ID',
@@ -165,9 +183,9 @@ export default {
             // this.checkboxes = []
         },
         addClick(){
-
             this.modalTitle="Add Event"
             this.addingNewEvent= true 
+            this.modalReadonly = false
 
             this.event = this.getEmptyEvent()
             this.checkboxes=[]
@@ -329,6 +347,8 @@ export default {
         },
 
         reassignUpdatedElementIntoList(list, element){
+            console.log(list)
+            console.log(element)
             for (let i = 0; i < list.length; ++i){
                 if (list[i].id === element.id){
                     this.$set(list, i, element)
@@ -412,7 +432,34 @@ export default {
             return (Date.parse(data) >= startDate && Date.parse(data) <= endDate);
 
         },
-    
+        _generate_formRender(){
+            //Generate edit
+            let user = this.user
+            let edit_info = {}
+            
+            if (user.is_staff){
+                edit_info = this.formRenderSpec['staff']['edit']
+            } else if (user.is_student){
+                edit_info = this.formRenderSpec['student']['edit']
+            }
+            
+            let formRender = {}
+            formRender['edit'] = {}
+
+            if (edit_info['mode'] === 'exclude'){
+                Object.entries(this.getEmptyEvent()).forEach(([key, _]) => {
+                    formRender.edit[key.toString()] = ! edit_info.fields.includes(key)
+                });
+            } else if (edit_info['mode'] === 'include'){
+                Object.entries(this.getEmptyEvent()).forEach(([key, _]) => {
+                    formRender.edit[key.toString()] = edit_info.fields.includes(key)
+                });
+            } else {
+                throw "The mode must be in { exlude, include }.";
+            }
+
+            this.formRender = formRender
+        }
     },
 
     created: async function () {
@@ -424,25 +471,26 @@ export default {
         await axios.get(this.$API_URL + "user")
             .then((response) => {
                 this.user = response.data;
-                console.log(this.user)
+                // console.log(this.user)
             });
+        this._generate_formRender();
 
         axios.get(this.$API_URL + "event")
             .then((response) => {
                 this.events = response.data;
-                console.log(this.events)
+                // console.log(this.events)
             });
 
         axios.get(this.$API_URL + "staff")
             .then((response) => {
                 this.staffTable = response.data;
-                console.log(this.staffTable)
+                // console.log(this.staffTable)
             });
 
         axios.get(this.$API_URL + "skillTable")
             .then((response) => {
                 this.skillTable = response.data;
-                console.log(this.skillTable)
+                // console.log(this.skillTable)
             });
 
         },
@@ -559,9 +607,9 @@ export default {
 
 
 
-        <div class="modal fade" id="edit-info-modal" tabindex="-1" aria-labelledby="edit-info-modal-label"
+        <div class="modal fade" id="edit-info-modal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="edit-info-modal-label"
             aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
 
                 <div class="modal-content">
                     <div class="modal-header">
@@ -580,53 +628,49 @@ export default {
                                     Show Attendances
                                 </button>
                                 
-                                <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }" :key="formKey">
-                                    <formulate-input ref="formulate-input-title" type="text" v-model="event.title" label="Title" validation="required|max:100" :readonly="modalReadonly"></formulate-input>
-                                    <FormulateInput ref="formulate-input-start_datetime" type="vue-datetime"  datetype="datetime" v-model="event.start_datetime" label="Start" validation="required"  :disabled="modalReadonly"></FormulateInput>
-                                    <FormulateInput ref="formulate-input-end_datetime" type="vue-datetime"  datetype="datetime" v-model="event.end_datetime" label="End" validation="required"  :disabled="modalReadonly"></FormulateInput>
-                                    <formulate-input ref="formulate-input-info" label="Info" type="textarea" v-model="event.info" validation="max:200,length" :readonly="modalReadonly" validation-name="info"></formulate-input>
+                                <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
+                                    <formulate-input ref="formulate-input-title" type="text" v-model="event.title" label="Title" validation="required|max:100" :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
+                                    <FormulateInput ref="formulate-input-start_datetime" type="vue-datetime"  datetype="datetime" v-model="event.start_datetime" label="Start" validation="required"  :disabled="modalReadonly || !formRender.edit.start_datetime"></FormulateInput>
+                                    <FormulateInput ref="formulate-input-end_datetime" type="vue-datetime"  datetype="datetime" v-model="event.end_datetime" label="End" validation="required"  :disabled="modalReadonly || !formRender.edit.end_datetime"></FormulateInput>
+                                    <formulate-input ref="formulate-input-info" :key="'info-'+formKey" label="Info" type="textarea" v-model="event.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
                                     
                                     <h3>Skills</h3>
-                                    <multiselect v-model="event.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="_skill_custome_label" track-by="id" placeholder="Select..." :disabled="modalReadonly">
+                                    <multiselect v-model="event.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="_skill_custome_label" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
                                     </multiselect>
 
                                     <h3>Staffs</h3>
-                                    <multiselect v-model="event.staffs" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="_staff_custom_label" track-by="id" placeholder="Select..." :disabled="modalReadonly"></multiselect>
+                                    <multiselect v-model="event.staffs" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="_staff_custom_label" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.staffs"></multiselect>
                                     
                                     <p></p>
-                                    <FormulateInput  ref="formulate-input-approved" v-model="checkboxes" :options="{approved : 'approved'}" type="checkbox" :disabled="modalReadonly || !user.is_staff"></FormulateInput>
-                                    <FormulateInput  ref="formulate-input-used_for_calculation" v-model="checkboxes" :options="{used_for_calculation : 'Use for calculation'}" type="checkbox" :disabled="modalReadonly || !user.is_staff"></FormulateInput>
+                                    <FormulateInput  ref="formulate-input-approved" v-model="checkboxes" :options="{approved : 'approved'}" type="checkbox" :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
+                                    <FormulateInput  ref="formulate-input-used_for_calculation" v-model="checkboxes" :options="{used_for_calculation : 'Use for calculation'}" type="checkbox" :disabled="modalReadonly || !formRender.edit.used_for_calculation"></FormulateInput>
                                     <FormulateInput  ref="formulate-input-attachment_link" type="url" v-model="event.attachment_link"                                            
-                                            label="Attachment link" placeholder="URL" validation="" :disabled="modalReadonly" >
+                                            label="Attachment link" placeholder="URL" validation="" :disabled="modalReadonly  || !formRender.edit.attachment_link" >
                                     </FormulateInput>                                           
                                         
                                     <FormulateInput
                                         type="file" ref="formulate-input-attachment_file" name="formulate-input-attachment_file"
-                                        
-                                        v-model="event.attachment_file" label="Attachment file"                                  
-    
-                                        
-
-                                        error-behavior="live" validation-event="input" validation="" upload-behavior="delayed" :disabled="modalReadonly" >
+                                        :key="'attachment_file-' + formKey" v-model="event.attachment_file" label="Attachment file"  
+                                        error-behavior="live" validation-event="input" validation="" upload-behavior="delayed" :disabled="modalReadonly || !formRender.edit.attachment_file" >
                                     </FormulateInput>
                             
 
                                         
                                 </FormulateForm>
                             
-                                <hr>
+                            
 
                             </div>
 
                         </div>
-
+                        
                         <div class="modal-footer">
                             <button id="createButton" type="button" @click="createClick()" v-if="addingNewEvent"
                                 class="btn btn-primary">
                                 Create
                             </button>
 
-                            <button id="updateButton" type="button" @click="updateClick()" v-else class="btn btn-primary">
+                            <button v-if="!addingNewEvent && !modalReadonly" id="updateButton" type="button" @click="updateClick()" class="btn btn-primary">
                                 Update
                             </button>
                         </div>

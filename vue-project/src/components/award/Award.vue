@@ -59,8 +59,26 @@ data()  {
             "formulate-input-attachment_link", 'formulate-input-attachment_file'],
 
         modalReadonly : false,
+        
+        formRenderSpec : {
+            'staff' : {
+                'edit' : {
+                    'mode' : 'exclude',
+                    'fields' : []
+                },
+            },
 
-        // selectedRows: [],
+            'student' : {
+                'edit' : {
+                    'mode' : 'exclude',
+                    'fields' : ['used_for_calculation', 'approved']
+                },
+            }
+
+        },
+
+        formRender : {},
+
         vgtColumns : [
             {
                 label: 'Award ID',
@@ -163,7 +181,7 @@ methods:{
 
         this.modalTitle="Add Award"
         this.addingNewAward= true // Signal that we are adding new award.
-
+        this.modalReadonly= false
         this.award = this.getEmptyAward()
         this.checkboxes=[]
 
@@ -262,7 +280,7 @@ methods:{
             }
         }).then((response)=>{
 
-            this.reAssignUpdatedElementIntoList(response.data) //With reactivity.
+            this.reassignUpdatedElementIntoList(this.awards, response.data) //With reactivity.
             this.award = JSON.parse(JSON.stringify(response.data))
             this.copiedAward = JSON.parse(JSON.stringify(response.data))
 
@@ -329,7 +347,7 @@ methods:{
                         return file_field.files[0].file
         }
 
-        return file
+        return file_field
     },
 
     onFileSelected(event){
@@ -399,9 +417,9 @@ methods:{
 
     selectionChanged(params){
         // console.log('heloo')
+        // this.selectedRows = params.selectedRows
         // let selectedRows = this.$refs['vgt'].selectedRows
         // console.log(selectedRows)
-        // this.selectedRows = params.selectedRows
         // console.log(params)
 
     },
@@ -490,6 +508,7 @@ methods:{
         // await Promise.all(vue_formulate_promises)
 
         //Perform validation on the form.
+        console.log(this.$formulate)
         await this.$formulate.submit('formulate-form-1');
 
         let vue_formulate_valid = this.$refs['formulate-form-1'].isValid;
@@ -508,6 +527,35 @@ methods:{
 
     openNewWindow(url){
         window.open(url);
+    },
+
+    _generate_formRender(){
+        //Generate edit
+        let user = this.user
+        let edit_info = {}
+        
+        if (user.is_staff){
+            edit_info = this.formRenderSpec['staff']['edit']
+        } else if (user.is_student){
+            edit_info = this.formRenderSpec['student']['edit']
+        }
+        
+        let formRender = {}
+        formRender['edit'] = {}
+
+        if (edit_info['mode'] === 'exclude'){
+            Object.entries(this.getEmptyAward()).forEach(([key, _]) => {
+                formRender.edit[key.toString()] = ! edit_info.fields.includes(key)
+            });
+        } else if (edit_info['mode'] === 'include'){
+            Object.entries(this.getEmptyAward()).forEach(([key, _]) => {
+                formRender.edit[key.toString()] = edit_info.fields.includes(key)
+            });
+        } else {
+            throw "The mode must be in { exlude, include }.";
+        }
+
+        this.formRender = formRender
     }
 
 },
@@ -522,31 +570,21 @@ created: async function(){
     axios.defaults.xsrfCookieName = 'csrftoken'
     axios.defaults.xsrfHeaderName = "X-CSRFToken"
     axios.defaults.withCredentials = true;
-    // await axios({
-    //         method: 'get',
-    //         url: this.$API_URL+"user",
-    //         xsrfCookieName: 'csrftoken',
-    //         xsrfHeaderName: 'X-CSRFToken',
-    //         headers : {
-    //             'X-CSRFToken': 'csrftoken',
-    //         }
-    //     }).then((response)=>{
-    //         this.user=response.data;
-    //     })
-    
+
     await axios.get(this.$API_URL+"user")
         .then((response)=>{
             this.user=response.data;
-            console.log(this.user)
+            // console.log(this.user)
         }).catch((error) => {
-            
             console.log(error)
         })
+
+    this._generate_formRender();
 
     axios.get(this.$API_URL + "award")
         .then((response)=>{
             this.awards=response.data;
-            console.log(this.awards)
+            // console.log(this.awards)
         })
 
     axios.get(this.$API_URL + "student")
@@ -569,14 +607,14 @@ created: async function(){
     
 },
 
-mounted:function(){
+mounted:function() {
     // if (this.testMode)
     //     return;
     
     let inputs = [
-          'input[placeholder="Filter Received"]',
-          // 'input[placeholder="Filter Start Date"]'
-          // 'input[placeholder="Filter Need By Date"]'
+        'input[placeholder="Filter Received"]',
+        // 'input[placeholder="Filter Start Date"]'
+        // 'input[placeholder="Filter Need By Date"]'
         ];
 
     inputs.forEach(function(input) {
@@ -588,7 +626,7 @@ mounted:function(){
         });
     });
     
-
+    
     document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
         this.veeErrors.clear()
         this.formKey += 1
@@ -618,20 +656,12 @@ mounted:function(){
      </button>
 
     <vue-good-table
-
         ref="vgt"
         :columns="vgtColumns"
         :rows="awards"
-        :select-options="{enabled: true,
-            selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
-        }"
+        :select-options="{enabled: true, selectOnCheckboxOnly: true,}"
         :search-options="{ enabled: true }"
-        :pagination-options="{
-                            enabled: true,
-                            mode: 'records',
-                            perPage: 10,
-                            setCurrentPage: 1,
-                        }"
+        :pagination-options="{ enabled: true, mode: 'records', perPage: 10, setCurrentPage: 1, }"
         @on-selected-rows-change="selectionChanged"
 
     >
@@ -712,56 +742,56 @@ mounted:function(){
                 <div class="d-flex flex-row bd-highlight mb-3">
 
                     <div class="p-1 w-50 bd-highlight">
-                        <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }" :key="formKey">
+                        <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
 
-                        <formulate-input ref="formulate-input-title" type="text" v-model="award.title" label="Title" validation="required|max:100" :readonly="modalReadonly"></formulate-input>
+                        <formulate-input ref="formulate-input-title" type="text" v-model="award.title" label="Title" validation="required|max:100" :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
 
-                        <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"  label="Rank" validation="required|number|min:0" :readonly="modalReadonly">
+                        <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"  label="Rank" validation="required|number|min:0" :readonly="modalReadonly || !formRender.edit.rank">
 
                         </formulate-input>
                         
-                        <formulate-input ref="formulate-input-received_date" type="date" v-model="award.received_date"  label="Received Date" validation="required" :readonly="modalReadonly"></formulate-input>
+                        <formulate-input ref="formulate-input-received_date" type="date" v-model="award.received_date"  label="Received Date" validation="required" :readonly="modalReadonly || !formRender.edit.received_date"></formulate-input>
 
-                        <formulate-input ref="formulate-input-info" label="Info" type="textarea" v-model="award.info" validation="max:200,length" :key="formKey" :readonly="modalReadonly" validation-name="info"></formulate-input>
+                        <formulate-input ref="formulate-input-info" label="Info" :key="'info-'+formKey" type="textarea" v-model="award.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
 
 
-                        <div v-if="!addingNewAward" class="skill">
+                        <div class="skill">
                             <h3>Skills</h3>
 
-                            <multiselect v-model="award.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="skillCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly">
+                            <multiselect v-model="award.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="skillCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
 
                             </multiselect>
-
+                            
                         </div>
 
-                        <div v-if="user.is_staff && !addingNewAward" class="receiver">
+                        <div class="receiver">
                             <h3>Receivers</h3>
                             <div>
 
                                     <multiselect  ref="multiselect-receivers" name="multiselect-receivers" v-model="award.receivers"
                                                 v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="receivers"
 
-                                                  :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly">
+                                                  :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.receivers">
 
                                     </multiselect>
                                 <span v-show="veeErrors.has('multiselect-receivers')" style="color:red;" >{{ veeErrors.first('multiselect-receivers') }}</span>
                             </div>
                         </div>
 
-                        <div v-if="!addingNewAward" class="staff">
+                        <div class="staff">
                             <h3>Supervisors</h3>
-                            <multiselect v-model="award.supervisors" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly"></multiselect>
-
-
-                        </div>
-<!--                            Still working on this.-->
-                        <div v-if="!addingNewAward" class="mb-3">
-
-                            <FormulateInput  ref="formulate-input-approved" v-model="checkboxes" :options="{approved : 'approved'}" type="checkbox" :disabled="modalReadonly || !user.is_staff"></FormulateInput>
-                            <FormulateInput  ref="formulate-input-used_for_calculation" v-model="checkboxes" :options="{used_for_calculation : 'Use for calculation'}" type="checkbox" :disabled="modalReadonly || !user.is_staff"></FormulateInput>
+                            <multiselect v-model="award.supervisors" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.supervisors"></multiselect>
                         </div>
 
-                        <div v-if="!addingNewAward" class="mb-3">
+                        <p></p>
+
+                        <div  class="mb-3">
+
+                            <FormulateInput  ref="formulate-input-approved" v-model="checkboxes" :options="{approved : 'approved'}" type="checkbox" :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
+                            <FormulateInput  ref="formulate-input-used_for_calculation" v-model="checkboxes" :options="{used_for_calculation : 'Use for calculation'}" type="checkbox" :disabled="modalReadonly || !formRender.edit.used_for_calculation"></FormulateInput>
+                        </div>
+
+                        <div  class="mb-3">
 
                             <FormulateInput
                                   ref="formulate-input-attachment_link"
@@ -771,42 +801,38 @@ mounted:function(){
                                   placeholder="Copy and paste url here"
                                   help="copy and paste url"
                                   validation=""
-                                  :disabled="modalReadonly"
+                                  :disabled="modalReadonly || !formRender.edit.attachment_link"
                             ></FormulateInput>
                         </div>
 
                         <p></p>
 
-                        <div v-if="!addingNewAward" class="mb-3">
+                        <div class="mb-3">
 
                             <FormulateInput                        
                               type="file"
-
+                              :key="'attachment_file-'+formKey"  
                               ref="formulate-input-attachment_file"
                               name="formulate-input-attachment_file"
                               v-model="award.attachment_file"
-
                               label="Attachment file"
                               help="The file size must not exceed 2MB."
-
                               :validation-rules="{maxFileSize : ()=>{return formConstraints.attachment_file.max_file_size.validation_rule()}}"
 
-                              :validation-messages="{
-                                maxFileSize : formConstraints.attachment_file.max_file_size.validation_message()
-                               }"
-
+                              :validation-messages="{ maxFileSize : formConstraints.attachment_file.max_file_size.validation_message()}"
+                            
                               error-behavior="live"
                               validation-event="input"
                               validation="maxFileSize"
 
                               upload-behavior="delayed"
 
-                              :disabled="modalReadonly"
+                              :disabled="modalReadonly || !formRender.edit.attachment_file"
 
                             ></FormulateInput>
 <!--                            File Button-->
                             <button v-if="copiedAward.attachment_file != '' &&  !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(award.attachment_file)"> File URL </button>
-                            <button v-if="copiedAward.attachment_file != '' && !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-outline-danger" @click="formKey += 1; copiedAward.attachment_file=''; award.attachment_file=''" :disabled="modalReadonly"> Remove File </button>
+                            <button v-if="copiedAward.attachment_file != '' && !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-outline-danger" @click=" copiedAward.attachment_file=''; award.attachment_file=''" :disabled="modalReadonly"> Remove File </button>
 
                         </div>
 
