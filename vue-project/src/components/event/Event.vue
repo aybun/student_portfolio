@@ -215,7 +215,8 @@ export default {
 
             this.event = JSON.parse(JSON.stringify(event))
             this.copiedEvent = JSON.parse(JSON.stringify(event))
-
+            console.log(Date.parse(this.event.start_datetime) > Date.parse(this.event.end_datetime))
+            console.log(Date.parse(this.event.start_datetime) < Date.parse(this.event.end_datetime))
             this.checkboxes = []
             for (let i = 0; i < this.checkboxFields.length; ++i) {
                 if (this.event[this.checkboxFields[i]])
@@ -251,9 +252,16 @@ export default {
             })
         },
 
-        updateClick() {
+        async updateClick() {
 
             //Form validation
+            let formIsValid =  false;
+            await this.validateForm().then((result) => {
+                formIsValid = result
+            })
+
+            if (!formIsValid)
+                return;
 
             for (let i = 0; i < this.checkboxFields.length; ++i)
                 this.event[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
@@ -459,7 +467,26 @@ export default {
             }
 
             this.formRender = formRender
-        }
+        },
+
+        async validateForm(){
+        
+            //Perform validation on the form.
+            await this.$formulate.submit('formulate-form-1');
+
+            let vue_formulate_valid = this.$refs['formulate-form-1'].isValid;
+            
+
+            //vee-validate
+            // await this.$validator.validate().then((result) => {
+            //     return result
+            // });
+
+            //We could take the result. But we want to be explicit here.
+            // let vee_validate_valid = (!this.veeErrors.has('multiselect-receivers'))
+
+            return vue_formulate_valid 
+        },
     },
 
     created: async function () {
@@ -631,7 +658,7 @@ export default {
                                 <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
                                     <formulate-input ref="formulate-input-title" type="text" v-model="event.title" label="Title" validation="required|max:100" :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
                                     <FormulateInput ref="formulate-input-start_datetime" type="vue-datetime"  datetype="datetime" v-model="event.start_datetime" label="Start" validation="required"  :disabled="modalReadonly || !formRender.edit.start_datetime"></FormulateInput>
-                                    <FormulateInput ref="formulate-input-end_datetime" type="vue-datetime"  datetype="datetime" v-model="event.end_datetime" label="End" validation="required"  :disabled="modalReadonly || !formRender.edit.end_datetime"></FormulateInput>
+                                    <FormulateInput ref="formulate-input-end_datetime" type="vue-datetime"  datetype="datetime" v-model="event.end_datetime" label="End" validation="required|later"  :validation-rules="{ later : ()=>{return Date.parse(event.start_datetime) < Date.parse(event.end_datetime)}}" :validation-messages="{ later : 'End datetime must be later than start datetime.' }"  error-behavior="live" :disabled="modalReadonly || !formRender.edit.end_datetime"></FormulateInput>
                                     <formulate-input ref="formulate-input-info" :key="'info-'+formKey" label="Info" type="textarea" v-model="event.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
                                     
                                     <h3>Skills</h3>

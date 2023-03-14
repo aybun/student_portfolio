@@ -256,7 +256,6 @@ methods:{
             this.award[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
 
         let outDict = new FormData();
-
         for (const [key, value] of Object.entries(this.award)) {
             outDict.append(key.toString(), value)
         }
@@ -497,29 +496,19 @@ methods:{
     },
 
     async validateForm(){
-        //return boolean
-        // vur-formulate
-
-        // const vue_formulate_promises = [];
-        //
-        // this.formulateInputFieldRefs.forEach((e) => {
-        //     vue_formulate_promises.push(this.$refs[e].performValidation())
-        // })
-        // await Promise.all(vue_formulate_promises)
-
+        
         //Perform validation on the form.
-        console.log(this.$formulate)
         await this.$formulate.submit('formulate-form-1');
 
         let vue_formulate_valid = this.$refs['formulate-form-1'].isValid;
-        // console.log(vue_formulate_valid)
+        
 
         //vee-validate
         await this.$validator.validate().then((result) => {
             return result
         });
 
-
+        //We could take the result. But we want to be explicit here.
         let vee_validate_valid = (!this.veeErrors.has('multiselect-receivers'))
 
         return vue_formulate_valid && vee_validate_valid
@@ -773,8 +762,8 @@ mounted:function() {
 
                                                   :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.receivers">
 
-                                    </multiselect>
-                                <span v-show="veeErrors.has('multiselect-receivers')" style="color:red;" >{{ veeErrors.first('multiselect-receivers') }}</span>
+                                    </multiselect>                    
+                                    <span v-show="veeErrors.has('multiselect-receivers')" class="formulate-input-errors" style="color:red;" >{{ veeErrors.first('multiselect-receivers') }}</span>
                             </div>
                         </div>
 
