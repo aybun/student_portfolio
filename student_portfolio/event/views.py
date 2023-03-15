@@ -1,6 +1,8 @@
 # import django.db.transaction
 import csv
 import io
+import os
+from copy import deepcopy
 from http import HTTPStatus
 from django.shortcuts import render
 from django.db import IntegrityError, transaction
@@ -35,7 +37,10 @@ def event(request, id=0):
 
     return render(request, 'event/event.html', {})
 
-
+def _delete_file(path):
+   """ Deletes file from filesystem. """
+   if os.path.isfile(path):
+       os.remove(path)
 
 @parser_classes([JSONParser, MultiPartParser ])
 @permission_classes((EventApiAccessPolicy,))
@@ -44,114 +49,124 @@ def event(request, id=0):
 def eventApi(request, event_id=0):
 
     groups = list(request.user.groups.values_list('name', flat=True))
+    Serializer = EventSerializer
+    AccessPolicyClass = EventApiAccessPolicy
+    Model = Event
 
     if request.method=='GET':
+        if (event_id == 0):
+            query_object = AccessPolicyClass.scope_query_object(request=request)
+            objects = Model.objects.filter(query_object).distinct('id').order_by('id')
 
-        if ('staff' in groups) or ('student' in groups):
-            if (event_id == 0):
-                query_object = EventApiAccessPolicy.scope_query_object(request=request)
-                events = Event.objects.filter(query_object).distinct('id').order_by('id')
+            if not objects.exists():
+                return JsonResponse([], safe=False)
 
-                if not events.exists():
-                    return JsonResponse([], safe=False)
+            event_serializer = Serializer(objects, many=True, context={'request': request})
+            print(event_serializer.data)
+            return JsonResponse(event_serializer.data, safe=False)
+        else:
 
-                event_serializer = EventSerializer(events, many=True, context={'request': request})
-                print(event_serializer.data)
-                return JsonResponse(event_serializer.data, safe=False)
-            else:
+            query_object = AccessPolicyClass.scope_query_object(request=request)
+            object = Model.objects.filter(Q(id=event_id) & query_object).first()
 
-                query_object = EventApiAccessPolicy.scope_query_object(request=request)
-                event = Event.objects.filter(Q(id=event_id) & query_object).first()
+            if object is None:
+                return JsonResponse("The object does not exist.", safe=False)
 
-                if event is None:
-                    return JsonResponse("The object does not exist.", safe=False)
+            event_serializer = Serializer(object, context={'request' : request})
 
-                event_serializer = EventSerializer(event, context={'request' : request})
-
-                return JsonResponse(event_serializer.data, safe=False)
+            return JsonResponse(event_serializer.data, safe=False)
 
     elif request.method=='POST':
 
-        if 'staff' in groups or 'student' in groups:
 
-            event_data = request.data.dict()
-            event_data = EventSerializer.custom_clean(data=event_data, context={'request':request})
-            event_serializer = EventSerializer(data=event_data, context={'request':request})
 
-            if event_serializer.is_valid():
+        event_data = request.data.dict()
+        event_data = Serializer.custom_clean(data=event_data, context={'request':request})
+        serializer = Serializer(data=event_data, context={'request':request})
 
-                success = True
-                try:
-                    with transaction.atomic():
-                        event_serializer.save()
-                except IntegrityError:
-                    success = False
-                if success:
-                    return JsonResponse("Added Successfully", safe=False)
-                else:
-                    return JsonResponse("Failed to add.", safe=False)
-
-            else:
-                print(event_serializer.error_messages)
-                print(event_serializer.errors)
-                return JsonResponse("Failed to Add", safe=False)
-
-    elif request.method=='PUT':
-
-        if 'staff' in groups or 'student' in groups:
-
-            query_object = EventApiAccessPolicy.scope_query_object(request=request)
-            event = Event.objects.filter(Q(id=event_id) & query_object).first()
-            if event is None:
-                return JsonResponse("Failed to update.", safe=False)
-
-            data = request.data.dict()
-            # print(data)
-            event_data = EventSerializer.custom_clean(instance=event, data=data, context={'request' : request})
-            event_serializer = EventSerializer(event, data=event_data, context={'request': request})
-            # print(event_data)
-            # print(event_serializer.is_valid())
-            if event_serializer.is_valid():
-
-                success = True
-                try:
-                    with transaction.atomic():
-                        event_serializer.save()
-
-                except IntegrityError:
-
-                    success = False
-
-                if success:
-                    return JsonResponse(event_serializer.data, safe=False)
-                else:
-                    return JsonResponse("Failed to delete.", safe=False)
-
-            else:
-                print(event_serializer.errors)
-                print(event_serializer.error_messages)
-                return JsonResponse("Failed to Update")
-
-    elif request.method=='DELETE':
-
-        if 'staff' in groups or 'student' in groups:
-
-            query_object = EventApiAccessPolicy.scope_query_object(request=request)
-            event = Event.objects.filter(Q(id=event_id) & query_object).first()
-
-            if event is None:
-                return JsonResponse("Failed to delete.", safe=False)
+        if serializer.is_valid():
 
             success = True
             try:
                 with transaction.atomic():
-                    event.delete()
+                    serializer.save()
             except IntegrityError:
-                success=False
+                success = False
             if success:
-                return JsonResponse("Deleted Successfully", safe=False)
+                return JsonResponse("Added Successfully", safe=False)
+            else:
+                return JsonResponse("Failed to add.", safe=False)
+
+        else:
+            print(serializer.error_messages)
+            print(serializer.errors)
+            return JsonResponse("Failed to Add", safe=False)
+
+    elif request.method=='PUT':
+
+        query_object = AccessPolicyClass.scope_query_object(request=request)
+        object = Model.objects.filter(Q(id=event_id) & query_object).first()
+
+        if object is None:
+            return JsonResponse("Failed to update.", safe=False)
+        old_obj = deepcopy(object) # old_obj : We want the paths of files to be deleted.
+
+        data = request.data.dict()
+        # print(data)
+        event_data = Serializer.custom_clean(instance=object, data=data, context={'request' : request})
+        serializer = Serializer(object, data=event_data, context={'request': request})
+        # print(event_data)
+        # print(event_serializer.is_valid())
+        if serializer.is_valid():
+
+            success = True
+            try:
+                with transaction.atomic():
+                    serializer.save()
+
+            except IntegrityError:
+
+                success = False
+
+
+            # Delete Files
+            if success:
+                #Check if the file field passed is ''. or the new file is passed -> Remove the old file. Note: We have set the instance (we call them object here.) to None in custome_clean.
+
+                if old_obj.attachment_file and not bool(object.attachment_file)\
+                        or old_obj.attachment_file != object.attachment_file:
+                    _delete_file(str(old_obj.attachment_file))
+
+            if success:
+                #We want to get the data.
+                request.method = "GET"
+                return JsonResponse(Serializer(instance=object, context={'request' : request}).data, safe=False)
             else:
                 return JsonResponse("Failed to delete.", safe=False)
+
+        else:
+            print(serializer.errors)
+            print(serializer.error_messages)
+            return JsonResponse("Failed to Update")
+
+    elif request.method=='DELETE':
+
+        query_object = AccessPolicyClass.scope_query_object(request=request)
+        object = Model.objects.filter(Q(id=event_id) & query_object).first()
+
+        if object is None:
+            return JsonResponse("Failed to delete.", safe=False)
+
+        success = True
+        try:
+            with transaction.atomic():
+                object.delete()
+        except IntegrityError:
+            success=False
+        if success:
+            return JsonResponse("Deleted Successfully", safe=False)
+        else:
+            return JsonResponse("Failed to delete.", safe=False)
 
 def eventAttendance(request, event_id=0):
 
@@ -174,95 +189,72 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
     groups = list(request.user.groups.values_list('name', flat=True))
 
     if request.method=='GET':
-        if 'staff' in groups:
-            if (attendance_id == 0):
+        if (attendance_id == 0):
 
-                query_object = EventAttendanceApiAccessPolicy.scope_query_object(request=request)
-                attendances = EventAttendance.objects.filter( Q(event_id_fk=event_id) & query_object ).order_by('id')
-                serializer = EventAttendanceSerializer(attendances, many=True, context={'request' : request})
+            query_object = EventAttendanceApiAccessPolicy.scope_query_object(request=request)
+            attendances = EventAttendance.objects.filter( Q(event_id_fk=event_id) & query_object ).order_by('id')
+            serializer = EventAttendanceSerializer(attendances, many=True, context={'request' : request})
 
-                return JsonResponse(serializer.data, safe=False)
-            else:
-                query_object = EventAttendanceApiAccessPolicy.scope_query_object(request=request)
-                attendance = EventAttendance.objects.filter(Q(id=attendance_id) & query_object).first()
+            return JsonResponse(serializer.data, safe=False)
+        else:
+            query_object = EventAttendanceApiAccessPolicy.scope_query_object(request=request)
+            attendance = EventAttendance.objects.filter(Q(id=attendance_id) & query_object).first()
 
-                if attendance is None:
-                    return JsonResponse("The object does not exist.", safe=False)
+            if attendance is None:
+                return JsonResponse("The object does not exist.", safe=False)
 
-                serializer = EventAttendanceSerializer(attendance, context={'request' : request})
-                return JsonResponse(serializer.data, safe=False)
-
-
-        # elif 'student' in groups:
-        #     # student = Student.objects.get(user_id_fk=request.user.id)
-        #     attendances = EventAttendance.objects.filter(user_id_fk=request.user.id)
-        #
-        #     if not attendances.exists():
-        #         return JsonResponse("The objects do not exist.", safe=False)
-        #
-        #     event_id_list = attendances.values_list('event_id_fk', flat=True)
-        #
-        #     events = Event.objects.filter(id__in=event_id_list)
-        #
-        #     if events.exists():
-        #         event_serializer = EventSerializer(events, many=True, context={'request': request})
-        #         return JsonResponse(event_serializer.data, safe=False)
-        #     else:
-        #         return JsonResponse("The objects do not exist.", safe=False)
+            serializer = EventAttendanceSerializer(attendance, context={'request' : request})
+            return JsonResponse(serializer.data, safe=False)
 
     elif request.method=='POST':
-        if 'staff' in groups:
+        attendance_data = request.data.dict()
+        # print(attendance_data)
+        attendance = EventAttendance.objects.filter(event_id_fk=attendance_data['event_id_fk'],
+                                                    university_id=attendance_data['university_id'])
 
-            attendance_data = request.data.dict()
-            # print(attendance_data)
-            attendance = EventAttendance.objects.filter(event_id_fk=attendance_data['event_id_fk'],
-                                                        university_id=attendance_data['university_id'])
+        if not attendance.exists():
+            serializer = EventAttendanceSerializer(data=attendance_data, context={'request' : request})
+        else:
+            return JsonResponse("The student is present in the attendance table.", safe=False)
 
-            if not attendance.exists():
-                serializer = EventAttendanceSerializer(data=attendance_data, context={'request' : request})
-            else:
-                return JsonResponse("The student is present in the attendance table.", safe=False)
-
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse("Added Successfully", safe=False)
-            else:
-                print(serializer.error_messages)
-                print(serializer.errors)
-                return JsonResponse("Failed to Add", safe=False)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse("Added Successfully", safe=False)
+        else:
+            print(serializer.error_messages)
+            print(serializer.errors)
+            return JsonResponse("Failed to Add", safe=False)
 
     elif request.method=='PUT':
 
-        if 'staff' in groups:
-            attendance_data = request.data.dict()
+        attendance_data = request.data.dict()
 
-            attendance_data = EventAttendanceSerializer.custom_clean(data=attendance_data, context={'request' : request})
+        attendance_data = EventAttendanceSerializer.custom_clean(data=attendance_data, context={'request' : request})
 
-            print(attendance_data)
-            attendance = EventAttendance.objects.filter(id=attendance_data['id']).first()
-            if attendance is None:
-                return JsonResponse("Failed to Update", safe=False)
+        print(attendance_data)
+        attendance = EventAttendance.objects.filter(id=attendance_data['id']).first()
+        if attendance is None:
+            return JsonResponse("Failed to Update", safe=False)
 
-            serializer=EventAttendanceSerializer(instance=attendance, data=attendance_data, context={'request' : request})
+        serializer=EventAttendanceSerializer(instance=attendance, data=attendance_data, context={'request' : request})
 
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse("Updated Successfully",safe=False)
-            else:
-                print(serializer.error_messages)
-                print(serializer.errors)
-                return JsonResponse("Failed to Update", safe=False)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse("Updated Successfully",safe=False)
+        else:
+            print(serializer.error_messages)
+            print(serializer.errors)
+            return JsonResponse("Failed to Update", safe=False)
 
     elif request.method=='DELETE': #Need to handle carefully.
 
-        if 'staff' in groups:
-            attendance = EventAttendance.objects.get(id=attendance_id)
+        attendance = EventAttendance.objects.get(id=attendance_id)
 
-            if attendance is not None:
-                attendance.delete()
-                return JsonResponse("Deleted Successfully", safe=False)
-            else:
-                return JsonResponse("Object not found", safe=False)
+        if attendance is not None:
+            attendance.delete()
+            return JsonResponse("Deleted Successfully", safe=False)
+        else:
+            return JsonResponse("Object not found", safe=False)
 
 
 @parser_classes([JSONParser, MultiPartParser])

@@ -498,9 +498,9 @@ methods:{
     async validateForm(){
         
         //Perform validation on the form.
-        await this.$formulate.submit('formulate-form-1');
-
-        let vue_formulate_valid = this.$refs['formulate-form-1'].isValid;
+        await this.$formulate.submit('award-formulate-form-1');
+        
+        let vue_formulate_valid = this.$refs['award-formulate-form-1'].isValid;
         
 
         //vee-validate
@@ -731,8 +731,8 @@ mounted:function() {
                 <div class="d-flex flex-row bd-highlight mb-3">
 
                     <div class="p-1 w-50 bd-highlight">
-                        <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
-
+                        <FormulateForm name="award-formulate-form-1" ref="award-formulate-form-1"  #default="{ hasErrors }">
+                                
                         <formulate-input ref="formulate-input-title" type="text" v-model="award.title" label="Title" validation="required|max:100" :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
 
                         <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"  label="Rank" validation="required|number|min:0" :readonly="modalReadonly || !formRender.edit.rank">
@@ -741,7 +741,7 @@ mounted:function() {
                         
                         <formulate-input ref="formulate-input-received_date" type="date" v-model="award.received_date"  label="Received Date" validation="required" :readonly="modalReadonly || !formRender.edit.received_date"></formulate-input>
 
-                        <formulate-input ref="formulate-input-info" label="Info" :key="'info-'+formKey" type="textarea" v-model="award.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
+                        <formulate-input ref="formulate-input-info" label="Info" :key="'award-formulate-input-info-' + formKey" type="textarea" v-model="award.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
 
 
                         <div class="skill">
@@ -800,7 +800,7 @@ mounted:function() {
 
                             <FormulateInput                        
                               type="file"
-                              :key="'attachment_file-'+formKey"  
+                              :key="'award-formulate-input-attachment_file-' + formKey"  
                               ref="formulate-input-attachment_file"
                               name="formulate-input-attachment_file"
                               v-model="award.attachment_file"
@@ -820,7 +820,7 @@ mounted:function() {
 
                             ></FormulateInput>
 <!--                            File Button-->
-                            <button v-if="copiedAward.attachment_file != '' &&  !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(award.attachment_file)"> File URL </button>
+                            <button v-if="copiedAward.attachment_file != '' &&  !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(copiedAward.attachment_file)"> File URL </button>
                             <button v-if="copiedAward.attachment_file != '' && !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-outline-danger" @click=" copiedAward.attachment_file=''; award.attachment_file=''" :disabled="modalReadonly"> Remove File </button>
 
                         </div>

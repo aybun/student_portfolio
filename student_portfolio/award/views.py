@@ -86,11 +86,9 @@ def awardApi(request, award_id=0):
         # print(object.approved_by)
         if object is None:
             return JsonResponse("Failed to update.", safe=False)
+        old_obj = deepcopy(object) # old_obj : We want the paths of files to be deleted.
 
         data = request.data.dict()
-
-        # old_obj : We want the paths of files to be deleted.
-        old_obj = deepcopy(object)
 
         object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
         print(data)
@@ -114,8 +112,9 @@ def awardApi(request, award_id=0):
 
             # Sending Messages
             if success:
-                # print('success data : {}'.format(serializer.data))
-                return JsonResponse(serializer.data, safe=False)
+                # We want to get the data.
+                request.method="GET"
+                return JsonResponse(Serializer(instance=object, context={'request' : request}).data, safe=False)
             else:
                 return JsonResponse("Failed to delete.", safe=False)
 

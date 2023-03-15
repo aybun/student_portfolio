@@ -472,9 +472,9 @@ export default {
         async validateForm(){
         
             //Perform validation on the form.
-            await this.$formulate.submit('formulate-form-1');
+            await this.$formulate.submit('event-formulate-form-1');
 
-            let vue_formulate_valid = this.$refs['formulate-form-1'].isValid;
+            let vue_formulate_valid = this.$refs['event-formulate-form-1'].isValid;
             
 
             //vee-validate
@@ -539,6 +539,7 @@ export default {
             });
         });
 
+    
         document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
             this.veeErrors.clear()
             this.formKey += 1
@@ -655,11 +656,11 @@ export default {
                                     Show Attendances
                                 </button>
                                 
-                                <FormulateForm name="formulate-form-1" ref="formulate-form-1" #default="{ hasErrors }">
+                                <FormulateForm name="event-formulate-form-1" ref="event-formulate-form-1"  #default="{ hasErrors }">
                                     <formulate-input ref="formulate-input-title" type="text" v-model="event.title" label="Title" validation="required|max:100" :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
                                     <FormulateInput ref="formulate-input-start_datetime" type="vue-datetime"  datetype="datetime" v-model="event.start_datetime" label="Start" validation="required"  :disabled="modalReadonly || !formRender.edit.start_datetime"></FormulateInput>
                                     <FormulateInput ref="formulate-input-end_datetime" type="vue-datetime"  datetype="datetime" v-model="event.end_datetime" label="End" validation="required|later"  :validation-rules="{ later : ()=>{return Date.parse(event.start_datetime) < Date.parse(event.end_datetime)}}" :validation-messages="{ later : 'End datetime must be later than start datetime.' }"  error-behavior="live" :disabled="modalReadonly || !formRender.edit.end_datetime"></FormulateInput>
-                                    <formulate-input ref="formulate-input-info" :key="'info-'+formKey" label="Info" type="textarea" v-model="event.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
+                                    <formulate-input ref="formulate-input-info" label="Info" :key="'event-formulate-input-info-' + formKey" type="textarea" v-model="event.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
                                     
                                     <h3>Skills</h3>
                                     <multiselect v-model="event.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="_skill_custome_label" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
@@ -677,10 +678,11 @@ export default {
                                         
                                     <FormulateInput
                                         type="file" ref="formulate-input-attachment_file" name="formulate-input-attachment_file"
-                                        :key="'attachment_file-' + formKey" v-model="event.attachment_file" label="Attachment file"  
+                                        :key="'event-formulate-input-attachment_file-' + formKey" v-model="event.attachment_file" label="Attachment file"  
                                         error-behavior="live" validation-event="input" validation="" upload-behavior="delayed" :disabled="modalReadonly || !formRender.edit.attachment_file" >
                                     </FormulateInput>
-                            
+                                    <button v-if="copiedEvent.attachment_file != '' &&  !Object.is(copiedEvent.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(event.attachment_file)"> File URL </button>
+                                    <button v-if="copiedEvent.attachment_file != '' && !Object.is(copiedEvent.attachment_file, null)" type="button" class="btn btn-outline-danger" @click=" copiedEvent.attachment_file=''; event.attachment_file=''" :disabled="modalReadonly"> Remove File </button>
 
                                         
                                 </FormulateForm>
