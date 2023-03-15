@@ -9,6 +9,9 @@ import flatpickr from 'flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
 import * as bootstrap from 'bootstrap'
 
+
+
+
 export default {
 
 components:{
@@ -363,7 +366,7 @@ methods:{
         if (id === '' || Object.is(id,  null)){
             return 'Select'
         }
-        else if (title == null){
+        else if (Object.is(title, null) || typeof title === 'undefined'){
             for (let i = 0; i < this.skillTable.length; ++i){
                 if (this.skillTable[i].id === id){
                     let temp = this.skillTable[i]

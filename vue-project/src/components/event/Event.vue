@@ -7,8 +7,13 @@ import flatpickr from 'flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
 
 import * as bootstrap from 'bootstrap' //where is bootstrap-icons??
-
 import 'vue-datetime/dist/vue-datetime.min.css'
+
+import { $vfm, VueFinalModal, ModalsContainer } from 'vue-final-modal'
+
+// components
+import EventAttendance from "/src/components/event/EventAttendance.vue";
+import AttendanceModal from "/src/components/event/AttendanceModal.vue";
 
 export default {
     components: {
@@ -16,6 +21,11 @@ export default {
         VueGoodTable,
         Multiselect,
         
+        VueFinalModal,
+        
+        //Custom components
+        AttendanceModal,
+        EventAttendance,
     },
 
     data() {
@@ -28,6 +38,8 @@ export default {
             addingNewEvent: false,
             showApproved: true,
             modalReadonly: false,
+
+            showEventAttendanceModal:false,
 
             event: {},
             copiedEvent : {},
@@ -369,23 +381,28 @@ export default {
             window.open(url);
         },
 
-        _skill_custome_label({id, title}){
+        _skills_custom_label({id, title}){
+            
             if (id === '' || Object.is(id,  null)){
                 return 'Select'
             }
-            else if (title == null){
+            else if (Object.is(title, null) || typeof title === 'undefined'){
+                
                 for (let i = 0; i < this.skillTable.length; ++i){
                     if (this.skillTable[i].id === id){
                         let temp = this.skillTable[i]
+                        console.log('in the loop : ', temp)
                         return `${temp.id} ${temp.title}`
                     }
                 }
             }
-
+            
             return `${id} ${title}`
+            
+            
         },
 
-        _staff_custom_label({id, university_id, firstname, lastname}){
+        _staffs_custom_label({id, university_id, firstname, lastname}){
 
             if (id === '' || Object.is(id,  null)){
                 return 'Select'
@@ -651,8 +668,8 @@ export default {
 
 
                                 <button v-if="!addingNewEvent && user.is_staff" type="button"
-                                    class="btn btn-primary m-2 fload-end"
-                                    v-on:click="openNewWindow('/event-attendance/' + event.id)">
+                                    class="btn btn-primary m-2 fload-end" @click="showEventAttendanceModal = true" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
+                                    >
                                     Show Attendances
                                 </button>
                                 
@@ -663,11 +680,11 @@ export default {
                                     <formulate-input ref="formulate-input-info" label="Info" :key="'event-formulate-input-info-' + formKey" type="textarea" v-model="event.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
                                     
                                     <h3>Skills</h3>
-                                    <multiselect v-model="event.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="_skill_custome_label" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
+                                    <multiselect v-model="event.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="_skills_custom_label" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
                                     </multiselect>
 
                                     <h3>Staffs</h3>
-                                    <multiselect v-model="event.staffs" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="_staff_custom_label" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.staffs"></multiselect>
+                                    <multiselect v-model="event.staffs" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="_staffs_custom_label" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.staffs"></multiselect>
                                     
                                     <p></p>
                                     <FormulateInput  ref="formulate-input-approved" v-model="checkboxes" :options="{approved : 'approved'}" type="checkbox" :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
@@ -681,7 +698,7 @@ export default {
                                         :key="'event-formulate-input-attachment_file-' + formKey" v-model="event.attachment_file" label="Attachment file"  
                                         error-behavior="live" validation-event="input" validation="" upload-behavior="delayed" :disabled="modalReadonly || !formRender.edit.attachment_file" >
                                     </FormulateInput>
-                                    <button v-if="copiedEvent.attachment_file != '' &&  !Object.is(copiedEvent.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(event.attachment_file)"> File URL </button>
+                                    <button v-if="copiedEvent.attachment_file != '' &&  !Object.is(copiedEvent.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(copiedEvent.attachment_file)"> File URL </button>
                                     <button v-if="copiedEvent.attachment_file != '' && !Object.is(copiedEvent.attachment_file, null)" type="button" class="btn btn-outline-danger" @click=" copiedEvent.attachment_file=''; event.attachment_file=''" :disabled="modalReadonly"> Remove File </button>
 
                                         
@@ -694,14 +711,9 @@ export default {
                         </div>
                         
                         <div class="modal-footer">
-                            <button id="createButton" type="button" @click="createClick()" v-if="addingNewEvent"
-                                class="btn btn-primary">
-                                Create
-                            </button>
-
-                            <button v-if="!addingNewEvent && !modalReadonly" id="updateButton" type="button" @click="updateClick()" class="btn btn-primary">
-                                Update
-                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button id="createButton" type="button" @click="createClick()" v-if="addingNewEvent" class="btn btn-primary">Create</button>
+                            <button v-if="!addingNewEvent && !modalReadonly" id="updateButton" type="button" @click="updateClick()" class="btn btn-primary">Update</button>    
                         </div>
 
                     </div>
@@ -711,5 +723,92 @@ export default {
         </div>
 
 
+
+
+        <vue-final-modal classes="modal-container" content-class="modal-content">
+      <button class="modal__close" @click="showEventAttendanceModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
+        Close
+      </button>
+      <span class="modal__title">Event Attendance</span>
+      <div class="modal__content">
+        <!-- <p>Vue Final Modal is a renderless, stackable, detachable and lightweight modal component.</p> -->
+        <EventAttendance :event_id="event.id"></EventAttendance>
+      </div>
+    </vue-final-modal>
+    <!-- <v-button @click="showEventAttendanceModal = true">Open modal</v-button> -->
+        
+
+    <AttendanceModal v-model="showEventAttendanceModal">
+      <template v-slot:title>Hello, vue-final-modal</template>
+      <p>Vue Final Modal is a renderless, stackable, detachable and lightweight modal component.</p>
+      <EventAttendance :event_id="event.id"></EventAttendance>
+    </AttendanceModal>
+
+        <div v-if="false" class="modal fade" id="event-attendance-modal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="event-attendance-modal-label"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="event-attendance-modal-label">Event Attendance</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="d-flex flex-row bd-highlight mb-3">
+                            <div class="p-2 w-50 bd-highlight">
+                                
+                                <!-- <ATTENDANCE> -->
+                                    <EventAttendance :event_id="event.id"></EventAttendance>
+
+                            </div>
+
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
+
+<style scoped>
+::v-deep .modal-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+::v-deep .modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0 1rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  background: #fff;
+}
+.modal__title {
+  margin: 0 2rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.modal__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+</style>
+
+<style scoped>
+.dark-mode div::v-deep .modal-content {
+  border-color: #2d3748;
+  background-color: #1a202c;
+}
+</style>

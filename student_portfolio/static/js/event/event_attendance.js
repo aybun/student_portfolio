@@ -20,7 +20,7 @@ let eventAttendanceComponent = {
     },
 
 methods:{
-    getEmptyStudentAttendEvent(){
+    getEmptyEventAttendance(){
             return {
                 id:0,
                 event_id_fk:'',
@@ -35,7 +35,8 @@ methods:{
 
                 used_for_calculation: false,
             }
-        },
+
+    },
 
     refreshData(){
         axios.get(variables.API_URL+"event-attendance/" + this.event_id)
@@ -45,13 +46,15 @@ methods:{
         });
 
     },
+
     addClick(){
         this.modalTitle="Add Student"
         this.addingNewStudent = true // Signal that we are adding a new student -> Create Button.
 
-        this.studentAttendEvent = this.getEmptyStudentAttendEvent()
+        this.studentAttendEvent = this.getEmptyEventAttendance()
 
     },
+
     editClick(attendance){
         this.modalTitle="Edit Student";
         this.addingNewStudent = false
