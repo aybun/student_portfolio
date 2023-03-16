@@ -757,7 +757,7 @@ mounted:function() {
                         </div>
 
                         <div class="receiver">
-                            <h3>Receivers</h3>
+                            <h1>Receivers</h1>
                             <div>
 
                                     <multiselect  ref="multiselect-receivers" name="multiselect-receivers" v-model="award.receivers"

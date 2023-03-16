@@ -40,7 +40,8 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  
+  max-height: 70%;
+  max-width: 50%;
 }
 ::v-deep .modal-content {
   position: relative;

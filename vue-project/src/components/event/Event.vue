@@ -227,8 +227,8 @@ export default {
 
             this.event = JSON.parse(JSON.stringify(event))
             this.copiedEvent = JSON.parse(JSON.stringify(event))
-            console.log(Date.parse(this.event.start_datetime) > Date.parse(this.event.end_datetime))
-            console.log(Date.parse(this.event.start_datetime) < Date.parse(this.event.end_datetime))
+            // console.log(Date.parse(this.event.start_datetime) > Date.parse(this.event.end_datetime))
+            // console.log(Date.parse(this.event.start_datetime) < Date.parse(this.event.end_datetime))
             this.checkboxes = []
             for (let i = 0; i < this.checkboxFields.length; ++i) {
                 if (this.event[this.checkboxFields[i]])
@@ -367,8 +367,8 @@ export default {
         },
 
         reassignUpdatedElementIntoList(list, element){
-            console.log(list)
-            console.log(element)
+            // console.log(list)
+            // console.log(element)
             for (let i = 0; i < list.length; ++i){
                 if (list[i].id === element.id){
                     this.$set(list, i, element)
@@ -391,7 +391,7 @@ export default {
                 for (let i = 0; i < this.skillTable.length; ++i){
                     if (this.skillTable[i].id === id){
                         let temp = this.skillTable[i]
-                        console.log('in the loop : ', temp)
+                        // console.log('in the loop : ', temp)
                         return `${temp.id} ${temp.title}`
                     }
                 }
@@ -732,16 +732,18 @@ export default {
       <span class="modal__title">Event Attendance</span>
       <div class="modal__content">
         <!-- <p>Vue Final Modal is a renderless, stackable, detachable and lightweight modal component.</p> -->
-        <EventAttendance :event_id="event.id"></EventAttendance>
+        <EventAttendance :event_id="event.id" :user="user"></EventAttendance>
       </div>
     </vue-final-modal>
     <!-- <v-button @click="showEventAttendanceModal = true">Open modal</v-button> -->
         
 
-    <AttendanceModal v-model="showEventAttendanceModal">
-      <template v-slot:title>Hello, vue-final-modal</template>
+    <AttendanceModal v-model="showEventAttendanceModal" :click-to-close="false">
+      <template v-slot:title>Event Attendance</template>
       <p>Vue Final Modal is a renderless, stackable, detachable and lightweight modal component.</p>
-      <EventAttendance :event_id="event.id"></EventAttendance>
+      <template v-slot:modal-close-text><button type="button" class="btn btn-secondary" @click="showEventAttendanceModal=false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">Close</button></template>
+      <EventAttendance :event_id="event.id" :user="user"></EventAttendance>
+      <!-- <template v-slot:params><EventAttendance :event_id="event.id"></EventAttendance></template> -->
     </AttendanceModal>
 
         <div v-if="false" class="modal fade" id="event-attendance-modal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="event-attendance-modal-label"
