@@ -352,18 +352,18 @@ export default {
             return nonEmpty
         },
         cleanAttachmentFile(attachment_file_field){
-            // Idea : If there is a file, send it.
-
-            let file_field = attachment_file_field
-
-            if (! Object.is(file_field, null)){
-                if (typeof file_field !== 'string')
-                    if ( ! Object.is(file_field.files, null))
-                        if (file_field.files.length !== 0)
-                            return file_field.files[0].file
-            }
+            // Idea : If there is a file, send it. If it is undefined, set it to ''.
+            // If it is a file path, we can send it to the backend without any issues.
             
-            return file_field
+            let field = attachment_file_field
+
+            if (this.fileObjectExists(field))
+                return field.files[0].file
+            
+            if (typeof field === 'undefined')
+                return ''
+
+            return field
         },
 
         reassignUpdatedElementIntoList(list, element){
@@ -419,25 +419,35 @@ export default {
 
             return `${firstname} ${lastname}`
         },
+
+        fileObjectExists(field){
+            // We want to check if the field contains a file.
+            // We need this function because the current file input field is weird 
+            // but we need (want) to rely on the form compatability. (vue-formulate)
+            let result = false
+            if (typeof field === 'undefined' || typeof field === 'null')
+                result = false
+            else if (typeof field === 'string')
+                result = false
+            else if (field.files.length === 0)
+                result = false
+            else
+                result = true
+                
+            return result
+        },
+        
         attachment_file_max_file_size_validation_function(){
             //Idea : If the file exists, the size must be valid.
             
             let maxFileSize = this.formConstraints.attachment_file.max_file_size.size
-            console.log(this.formConstraints)
-            console.log(this.event)
 
-            let file_field = this.event.attachment_file
-            
-            
-            if (typeof file_field === 'string'){
+            let field = this.event.attachment_file
+            if (this.fileObjectExists(field))
+                return field.files[0].file.size < maxFileSize
+            else
                 return true
-            }else if ( Object.is(file_field, null) ){
-                return true
-            }else if (file_field.files.length === 0){
-                return true
-            }else{
-                return file_field.files[0].file.size < maxFileSize
-            }
+
         },
 
         attachment_file_max_file_size_validation_message_function(){
@@ -723,24 +733,9 @@ export default {
         </div>
 
 
-
-
-        <vue-final-modal classes="modal-container" content-class="modal-content">
-      <button class="modal__close" @click="showEventAttendanceModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
-        Close
-      </button>
-      <span class="modal__title">Event Attendance</span>
-      <div class="modal__content">
-        <!-- <p>Vue Final Modal is a renderless, stackable, detachable and lightweight modal component.</p> -->
-        <EventAttendance :event_id="event.id" :user="user"></EventAttendance>
-      </div>
-    </vue-final-modal>
-    <!-- <v-button @click="showEventAttendanceModal = true">Open modal</v-button> -->
-        
-
     <AttendanceModal v-model="showEventAttendanceModal" :click-to-close="false">
       <template v-slot:title>Event Attendance</template>
-      <p>Vue Final Modal is a renderless, stackable, detachable and lightweight modal component.</p>
+      
       <template v-slot:modal-close-text><button type="button" class="btn btn-secondary" @click="showEventAttendanceModal=false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">Close</button></template>
       <EventAttendance :event_id="event.id" :user="user"></EventAttendance>
       <!-- <template v-slot:params><EventAttendance :event_id="event.id"></EventAttendance></template> -->

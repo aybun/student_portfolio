@@ -29,20 +29,41 @@ export default {
             modalTitle: "",
             addingNewAttendance: false,
             addByFileModalActive: true, //To reset the behavior of the modal.
-            
-            multiselect : {
+
+            multiselect: {
                 // student : {university_id:''}, //multiselect will treat this as a dict.
-                student : null,
+                student: '',
             },
 
-
+            formKey: 1,
             eventAttendance: {},
-            event_id: 0,
+            // event_id: 0,
 
             studentTable: [],
-            showAddAEventAttendanceModal: false,
 
-            csv_file: '',
+            showAddEventAttendanceModal: false,
+            showAddByFileModal: false,
+
+            addByFileFormConstraints: {
+                csvFile: {
+                    max_file_size: {
+                        'size': 2000000,
+                        'validation_message': this._csvFile_max_file_size_validation_message_function,
+                        'validation_rule': this._csvFile_max_file_size_validation_function
+                    },
+                },
+            },
+
+            addByFileForm: {
+                csvFile: '',
+                all_must_valid: true,
+                checkBoxes: ['all_must_valid'],
+
+                //Do not need reset
+                checkboxFields: ['all_must_valid'],
+                formKey : 1,
+            },
+
             eventAttendances: [],
 
             checkboxes: [],
@@ -150,7 +171,7 @@ export default {
 
                 user_id_fk: '',
                 synced: false,
-                
+
                 used_for_calculation: false,
             }
 
@@ -176,8 +197,8 @@ export default {
             this.modalTitle = "Edit Student";
             this.addingNewAttendance = false
 
-            this.multiselect.student = {'university_id': attendance.university_id}
-            
+            this.multiselect.student = { 'university_id': attendance.university_id }
+
 
             this.eventAttendance = attendance
             this.checkboxes = []
@@ -223,7 +244,7 @@ export default {
 
             for (let i = 0; i < this.checkboxFields.length; ++i)
                 this.eventAttendance[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
-            
+
             this.eventAttendance.university_id = this.multiselect.student.university_id
             console.log(this.eventAttendance)
             let outDict = new FormData();
@@ -298,18 +319,33 @@ export default {
             this.csv_file = event.target.files[0]
 
         },
-        bulkAddClick() {
+        async bulkAddClick() {
+
+            let formIsValid = false;
+            await this.validateAddByFileForm().then((result) => {
+                formIsValid = result
+            })
+
+            if (!formIsValid)
+                return;
+
+            let form = this.addByFileForm
+            for (let i = 0; i < form.checkboxFields.length; ++i) {
+                let fieldName = form.checkboxFields[i]
+                form[fieldName] = form.checkboxes.includes(fieldName)
+            }
 
             let outDict = {
                 'event_id': this.event_id,
-                'csv_file': this.csv_file,
+                'csv_file': form.csvFile,
+                'all_must_valid': form.all_must_valid,
             }
-
+            console.log(outDict)
             let outForm = new FormData();
             for (const [key, value] of Object.entries(outDict)) {
                 outForm.append(key.toString(), value)
             }
-            // outForm.set('event_id_fk', this.event_id)
+            outForm.set('csv_file', this.cleanAttachmentFile(form.csvFile))
 
             axios.defaults.xsrfCookieName = 'csrftoken';
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -325,20 +361,13 @@ export default {
                 }
             }).then((response) => {
                 this.refreshData();
-                // console.log(response.data)
-                // console.log(response.data.message)
-                alert(response.data);
-                // alert(response.message);
-
-                //Reset the behavior of the modal.
-                this.addByFileModalActive = false
-                this.addByFileModalActive = true
+                alert(response.data.message + '\n' + response.data.invalid_rows);
 
             }).catch((error) => {
                 this.refreshData();
                 console.log(error.response.data.message)
                 console.log(error.response.data.invalid_rows)
-                alert(error.response.data.invalid_rows)
+                alert(error.response.data.message + '\n' + error.response.data.invalid_rows)
                     // alert(response.message)
                     // alert(response.invalid_rows)
                     // alert(response.message)
@@ -346,12 +375,12 @@ export default {
             }
             )
         },
-        _university_id_custome_label({university_id, firstname, lastname }){
+        _university_id_custome_label({ university_id, firstname, lastname }) {
             if (university_id === '' || Object.is(university_id, null) || typeof university_id === 'undefined')
                 return 'select...'
             else {
-                for (let i = 0; i < this.studentTable.length; ++i){
-                    if (this.studentTable[i].university_id === university_id){
+                for (let i = 0; i < this.studentTable.length; ++i) {
+                    if (this.studentTable[i].university_id === university_id) {
                         let temp = this.studentTable[i]
                         return `${temp.university_id} ${temp.firstname} ${temp.lastname}`
                     }
@@ -360,9 +389,70 @@ export default {
                 return 'select...'
             }
 
-        }
+        },
+        fileObjectExists(field) {
+            // We want to check if the field contains a file.
+            // We need this function because the current file input field is weird 
+            // but we need (want) to rely on the form compatability. (vue-formulate)
+            let result = false
+            if (typeof field === 'undefined' || typeof field === 'null')
+                result = false
+            else if (typeof field === 'string')
+                result = false
+            else if (field.files.length === 0)
+                result = false
+            else
+                result = true
 
+            return result
+        },
 
+        _csvFile_max_file_size_validation_message_function() {
+            return 'The file size must not exceed ' + this.addByFileFormConstraints.csvFile.max_file_size.size + ' bytes.'
+
+        },
+
+        _csvFile_max_file_size_validation_function() {
+            return 'The file size must not exceed ' + this.addByFileFormConstraints.csvFile.max_file_size.size + ' bytes.'
+            let maxFileSize = this.addByFileFormConstraints.csvFile.max_file_size.size
+            let field = this.addByFileForm.csvFile
+
+            if (this.fileObjectExists(field))
+                return field.files[0].file.size < maxFileSize
+            else
+                return true
+        },
+        cleanAttachmentFile(attachment_file_field){
+            // Idea : If there is a file, send it. If it is undefined, set it to ''.
+            // If it is a file path, we can send it to the backend without any issues.
+            let field = attachment_file_field
+
+            if (this.fileObjectExists(field))
+                return field.files[0].file
+            
+            if (typeof field === 'undefined')
+                return ''
+
+            return field
+        },
+        async validateAddByFileForm() {
+            await this.$formulate.submit('event-attendance-formulate-form-2');
+
+            let vue_formulate_valid = this.$refs['event-attendance-formulate-form-2'].isValid;
+
+            return vue_formulate_valid
+        },
+
+        _on_add_attendance_modal_closed(){
+            this.eventAttendance = this.getEmptyEventAttendance()
+        },
+        _on_add_by_file_modal_closed(){
+            this.addByFileForm.formKey += 1
+
+            this.addByFileForm.csvFile = ''
+            this.addByFileForm.all_must_valid = true
+            this.addByFileForm.checkboxes = ['all_must_valid']
+        },
 
     },
 
@@ -375,9 +465,9 @@ export default {
     created: function () {
         // console.log(this.user)
         axios.get(this.$API_URL + "student")
-        .then((response)=>{
-            this.studentTable=response.data;
-        })
+            .then((response) => {
+                this.studentTable = response.data;
+            })
 
     },
     mounted: function () {
@@ -394,7 +484,8 @@ export default {
 <template>
     <div>
 
-        <button type="button" class="btn btn-primary m-2 fload-end" @click="addClick(); showAddAEventAttendanceModal = true;">
+        <button type="button" class="btn btn-primary m-2 fload-end"
+            @click="addClick(); showAddEventAttendanceModal = true;">
             Add Student to The Event
         </button>
 
@@ -402,8 +493,7 @@ export default {
             Sync by university id
         </button>
 
-        <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal"
-            data-bs-target="#add-by-file-modal-label">
+        <button type="button" class="btn btn-primary m-2 fload-end" @click="showAddByFileModal = true;">
             Add attendees by file
         </button>
 
@@ -438,20 +528,20 @@ export default {
             <template slot="table-row" slot-scope="props">
                 <span v-if="props.column.field == 'action'">
 
-                    <button v-if="user.is_staff || user.is_student" type="button" class="btn btn-light mr-1"
-                        @click="viewClick(props.row); showAddAEventAttendanceModal=true">
+                    <!-- <button v-if="user.is_staff || user.is_student" type="button" class="btn btn-light mr-1"
+                        @click="viewClick(props.row); showAddEventAttendanceModal = true">
                         <i class="bi bi-eye"></i>
-                    </button>
+                    </button> -->
 
                     <button
-                        v-if="user.is_staff || !props.row.approved && props.row.created_by === user.id && user.is_student"
-                        type="button" :id="'edit-button-' + props.row.id" class="btn btn-light mr-1" 
-                        @click="editClick(props.row); showAddAEventAttendanceModal=true">
+                        v-if="user.is_staff"
+                        type="button" :id="'edit-button-' + props.row.id" class="btn btn-light mr-1"
+                        @click="editClick(props.row); showAddEventAttendanceModal = true">
                         <i class="bi bi-pencil-square"></i>
                     </button>
 
                     <button
-                        v-if="user.is_staff || !props.row.approved && props.row.created_by === user.id && user.is_student"
+                        v-if="user.is_staff"
                         type="button" @click="deleteClick(props.row.id)" class="btn btn-light mr-1">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -463,138 +553,69 @@ export default {
             </template>
         </vue-good-table>
 
-        <div class="modal fade" id="edit-attendance-info-modal" tabindex="-1"
-            aria-labelledby="edit-attendance-info-modal-label" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="edit-attendance-info-modal-abel">{{ modalTitle }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <div class="d-flex flex-row bd-highlight mb-3">
-                            <div class="p-2 w-50 bd-highlight">
-
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text">University Id</span>
-                                    <input type="text" class="form-control" v-model="eventAttendance.university_id">
-                                </div>
-
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text">Firstname</span>
-                                    <input type="text" class="form-control" v-model="eventAttendance.firstname">
-                                </div>
-
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text">Middlename</span>
-                                    <input type="text" class="form-control" v-model="eventAttendance.middlename">
-                                </div>
-
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text">Lastname</span>
-                                    <input type="text" class="form-control" v-model="eventAttendance.lastname">
-                                </div>
-
-                                <div v-if="!addingNewAttendance" class="mb-3">
-                                    <input type="checkbox" value="used_for_calculation" v-model="checkboxes" />
-                                    <label>&nbsp;Use for calculation</label>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-                        <button type="button" @click="createClick()" v-if="addingNewAttendance" class="btn btn-primary">
-                            Create
-                        </button>
-                        <button type="button" @click="updateClick()" v-else class="btn btn-primary">
-                            Update
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <AddAttendanceModal v-model="showAddAEventAttendanceModal" :click-to-close="false" :hide-overlay="false" :lock-scroll="false">
+        <AddAttendanceModal v-model="showAddEventAttendanceModal" :click-to-close="false" :hide-overlay="false"
+            :lock-scroll="true" @closed="_on_add_attendance_modal_closed()">
 
             <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
-                    @click="showAddAEventAttendanceModal = false"
-                    >Close</button></template>
-            <FormulateForm name="event-attendance-formulate-form-1" ref="event-attendance-formulate-form-1" 
+                    @click="showAddEventAttendanceModal = false">Close</button></template>
+            <FormulateForm name="event-attendance-formulate-form-1" ref="event-attendance-formulate-form-1"
                 #default="{ hasErrors }">
                 <h6>University Id</h6>
                 <div class="multiselect-university_id">
                     <!-- v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="receivers" -->
-                        <multiselect  ref="event-attendance-multiselect-university_id" name="event-attendance-multiselect-university_id" 
-                                    v-model="multiselect.student"
-                                    v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="university id"
+                    <multiselect ref="event-attendance-multiselect-university_id"
+                        name="event-attendance-multiselect-university_id" v-model="multiselect.student"
+                        v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="university id"
+                        :hide-selected="true" :close-on-select="false" :multiple="false" :options="studentTable"
+                        :custom-label="_university_id_custome_label" track-by="university_id" placeholder="Select..."
+                        :disabled="false">
 
-                                        :hide-selected="true"  :close-on-select="false" :multiple="false" :options="studentTable" :custom-label="_university_id_custome_label" track-by="university_id" placeholder="Select..." :disabled="false">
-
-                        </multiselect>                    
-                        <span v-show="veeErrors.has('event-attendance-multiselect-university_id')" class="formulate-input-errors" style="color:red;" >{{ veeErrors.first('event-attendance-multiselect-university_id') }}</span>
+                    </multiselect>
+                    <span v-show="veeErrors.has('event-attendance-multiselect-university_id')"
+                        class="formulate-input-errors" style="color:red;">{{
+                            veeErrors.first('event-attendance-multiselect-university_id') }}</span>
                 </div>
-                <!-- <formulate-input label="University Id" ref="event-attendance-formulate-input-university_id" type="text"
-                    v-model="eventAttendance.university_id" validation="required|min:11|max:11"
-                    :readonly="false"></formulate-input> -->
+
                 <formulate-input label="Firstname" ref="event-attendance-formulate-input-firstname" type="text"
                     v-model="eventAttendance.firstname" validation="max:40" :readonly="false"></formulate-input>
                 <formulate-input label="Middlename" ref="event-attendance-formulate-input-middlename" type="text"
                     v-model="eventAttendance.middlename" validation="max:40" :readonly="false"></formulate-input>
                 <formulate-input label="Lastname" ref="event-attendance-formulate-input-lastname" type="text"
                     v-model="eventAttendance.lastname" validation="max:40" :readonly="false"></formulate-input>
-                <formulate-input  ref="event-attendance-formulate-input-used_for_calculation"
-                    type="checkbox" v-model="checkboxes" :options="{used_for_calculation : 'Use for calculation'}" validation="" :readonly="false"></formulate-input>
+                <formulate-input ref="event-attendance-formulate-input-used_for_calculation" type="checkbox"
+                    v-model="checkboxes" :options="{ used_for_calculation: 'Use for calculation' }" validation=""
+                    :readonly="false"></formulate-input>
             </FormulateForm>
             <button type="button" @click="createClick()" v-if="addingNewAttendance" class="btn btn-primary">
-                            Create
-             </button>
-             <button type="button" @click="updateClick()" v-else class="btn btn-primary">
-                            Update
+                Create
+            </button>
+            <button type="button" @click="updateClick()" v-else class="btn btn-primary">
+                Update
             </button>
         </AddAttendanceModal>
 
-        <div v-if="addByFileModalActive" class="modal fade" id="add-by-file-modal" tabindex="-1"
-            aria-labelledby="add-by-file-modal-label" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="add-by-file-modal-label">Add By CSV File</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
+        <AddAttendanceModal v-model="showAddByFileModal" :click-to-close="false" @closed="_on_add_by_file_modal_closed">
+            <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
+                    @click="showAddByFileModal = false">Close</button></template>
+            <FormulateForm name="event-attendance-formulate-form-2" ref="event-attendance-formulate-form-2">
+                <FormulateInput type="file" :key="'event-attendance-formulate-input-attachment_file-' + addByFileForm.formKey"
+                    ref="event-attendance-formulate-input-attachment_file"
+                    name="event-attendance-formulate-input-attachment_file" v-model="addByFileForm.csvFile"
+                    label="Attachment file" help=""
+                    :validation-rules="{ maxFileSize: () => { return addByFileFormConstraints.csvFile.max_file_size.validation_rule() } }"
+                    :validation-messages="{ maxFileSize: addByFileFormConstraints.csvFile.max_file_size.validation_message() }"
+                    error-behavior="live" validation-event="input" validation="required|maxFileSize" upload-behavior="delayed"
+                    :disabled="false">
+                </FormulateInput>
+                <FormulateInput ref="event-attendance-formulate-input-all-valid-checkbox" v-model="addByFileForm.checkboxes"
+                    :options="{ all_must_valid: 'All rows must be valid' }" type="checkbox" :disabled="false">
+                </FormulateInput>
 
-                    <div class="modal-body">
-                        <div class="d-flex flex-row bd-highlight mb-3">
-                            <div class="p-2 w-50 bd-highlight">
-                                <div class="mb-3">
-                                    <label for="csvFormFile" class="form-label">
-                                        <h3>Attachment file</h3>
-                                    </label>
-                                    <p></p>
-
-                                    <input class="form-control" type="file" id="csvFormFile" @change="onCSVFileSelected"
-                                        accept=".csv">
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <button type="button" @click="bulkAddClick()" class="btn btn-primary">
-                            Process
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-
+                <button type="button" @click="bulkAddClick()" class="btn btn-primary">
+                    Process
+                </button>
+            </FormulateForm>
+        </AddAttendanceModal>
 
     </div>
 </template>
@@ -603,7 +624,7 @@ export default {
 .multiselect-university_id {
     width: 68%;
 }
+
 .formulate-form {
     width: 50%;
-}
-</style>
+}</style>

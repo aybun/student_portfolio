@@ -290,7 +290,7 @@ def eventAttendanceBulkAddApi(request):
 
     data = request.data.dict()
     serializer = EventAttendanceBulkAddSerializer(data=data, context={'request': request})
-
+    print(data)
     if serializer.is_valid():
 
         event_id = serializer.validated_data['event_id']
@@ -319,6 +319,13 @@ def eventAttendanceBulkAddApi(request):
             else: #Note : Send out the invalid row.
                 invalid_rows.append((index, row))
 
+        if data['all_must_valid'] == 'true' and len(invalid_rows) != 0:
+            response_dict = {
+                'message': 'All rows must be valid but the file contains some invalid rows.',
+                'invalid_rows': invalid_rows,
+            }
+            return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
         success = True
         try:
             with transaction.atomic():
@@ -328,10 +335,14 @@ def eventAttendanceBulkAddApi(request):
             success = False
 
         if success and len(invalid_rows) == 0:
-            return JsonResponse("Added Successfully.", safe=False)
+            response_dict = {
+                'message': 'Added Successfully. All rows are valid.',
+                'invalid_rows': invalid_rows,
+            }
+            return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.OK)
         else:
             response_dict = {
-                'message': 'the file contains some invalid rows.',
+                'message': 'Added Successfully. The file contains some invalid rows.',
                 'invalid_rows' : invalid_rows,
             }
             return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -358,17 +369,18 @@ def syncAttendanceByUniversityId(request, event_id=0):
         for e in first_two_letters_set:
             query_string = query_string | Q(university_id__startswith=e)
 
-        user_profiles = UserProfile.objects.filter(query_string).values_list('university_id', 'user_id_fk')
+        user_profiles = UserProfile.objects.filter(query_string).values_list('user_id_fk', 'university_id' , 'firstname', 'middlename', 'lastname')
 
-        university_ids = [e[0] for e in user_profiles]
-        user_id_fks = [e[1] for e in user_profiles]
+
+        user_id_fks = [e[0] for e in user_profiles]
+        university_id_firtname_middlename_lastname_list = [ (e[1], e[2], e[3], e[4]) for e in user_profiles ]
 
         #Delete Duplications.
         to_be_saved = []
-        unique_user_ids = []
+        unique_university_ids = []
         for attendance in attendances:
-            if attendance.university_id not in unique_user_ids:
-                unique_user_ids.append(attendance.university_id)
+            if attendance.university_id not in unique_university_ids:
+                unique_university_ids.append(attendance.university_id)
                 to_be_saved.append(attendance)
             else:
                 attendance.delete()
@@ -376,10 +388,13 @@ def syncAttendanceByUniversityId(request, event_id=0):
         #Set synced=True and Set user_id_fk.
         attendances = to_be_saved
         for attendance in attendances:
-            for i in range(0, len(university_ids)):
-                if attendance.university_id == university_ids[i]:
+            for i in range(0, len(university_id_firtname_middlename_lastname_list)):
+                if attendance.university_id == university_id_firtname_middlename_lastname_list[i][0]:
                     attendance.synced = True
                     attendance.user_id_fk = User.objects.get(id=user_id_fks[i])
+                    attendance.firstname = university_id_firtname_middlename_lastname_list[i][1]
+                    attendance.middlename = university_id_firtname_middlename_lastname_list[i][2]
+                    attendance.lastname = university_id_firtname_middlename_lastname_list[i][3]
 
         #Save to the database.
         success = True

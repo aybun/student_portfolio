@@ -23,7 +23,7 @@ describe("Test fields of Award.", () => {
   //Set beforEach()???
   //Makesure that they donot mutate the data.??
   
-  it("input-title", async () =>  {
+  it("award-input-field-validation", async () =>  {
     
     const localVue = createLocalVue()
     localVue.use(VueFormulate)
@@ -120,7 +120,7 @@ describe("Test fields of Award.", () => {
     await wrapper.setData({award: {attachment_link : "notalink"}});
     attachment_link.performValidation()
     await flushPromises();
-    console.log(attachment_link.validationErrors)
+    // console.log(attachment_link.validationErrors)
     // expect(attachment_link.validationErrors).toContain('');
 
 
@@ -131,7 +131,7 @@ describe("Test fields of Award.", () => {
     await wrapper.setData({award: {attachment_file : {files : [{file : {size: 2500000}}]} }});
     attachment_file.performValidation()
     await flushPromises();
-    console.log(attachment_file.validationErrors)
+    // console.log(attachment_file.validationErrors)
     expect(attachment_file.validationErrors).toContain('The file size must not exceed 2000000 bytes.');
   });
 

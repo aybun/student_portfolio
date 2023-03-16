@@ -28,7 +28,7 @@ data()  {
         formKey:1,
         showApproved:true,
 
-        testMode:false,
+        
         attachment_file_max_file_size : 2000000,
 
         staffTable:[],
@@ -338,18 +338,17 @@ methods:{
     },
 
     cleanAttachmentFile(attachment_file_field){
-        // Idea : If there is a file, send it.
+        // Idea : If there is a file, send it. If it is undefined, set it to ''.
+        // If it is a file path, we can send it to the backend without any issues.
+        let field = attachment_file_field
 
-        let file_field = attachment_file_field
+        if (this.fileObjectExists(field))
+            return field.files[0].file
+        
+        if (typeof field === 'undefined')
+            return ''
 
-        if (! Object.is(file_field, null)){
-            if (typeof file_field !== 'string')
-                if ( ! Object.is(file_field.files, null))
-                    if (file_field.files.length !== 0)
-                        return file_field.files[0].file
-        }
-
-        return file_field
+        return field
     },
 
     onFileSelected(event){
@@ -478,20 +477,33 @@ methods:{
         }
     },
 
+    fileObjectExists(field){
+        // We want to check if the field contains a file.
+        // We need this function because the current file input field is weird 
+        // but we need (want) to rely on the form compatability. (vue-formulate)
+        let result = false
+        if (typeof field === 'undefined' || typeof field === 'null')
+            result = false
+        else if (typeof field === 'string')
+            result = false
+        else if (field.files.length === 0)
+            result = false
+        else
+            result = true
+            
+        return result
+    },  
+
     attachment_file_max_file_size_validation_function(){
         //Idea : If the file exists, the size must be valid.
         
         let maxFileSize = this.formConstraints.attachment_file.max_file_size.size
+        let field = this.award.attachment_file
 
-        if (typeof this.award.attachment_file == 'string'){
+        if (this.fileObjectExists(field))
+            return field.files[0].file.size < maxFileSize
+        else    
             return true
-        }else if (Object.is(this.award.attachment_file, null)){
-            return true
-        }else if (this.award.attachment_file.files.length === 0){
-            return true
-        }else{
-            return this.award.attachment_file.files[0].file.size < maxFileSize
-        }
     },
 
     attachment_file_max_file_size_validation_message_function(){
@@ -555,8 +567,12 @@ methods:{
 created: async function(){
     this.prepareData(); // Assign an empty award.
 
-    if (this.testMode)
+    if (typeof this.testMode !== 'undefined'){
+        this._generate_formRender();
         return;
+    }
+
+        
     // console.log(documuent.cookies)
     console.log("Hello from Award.Vue")
     axios.defaults.xsrfCookieName = 'csrftoken'
@@ -603,27 +619,29 @@ mounted:function() {
     // if (this.testMode)
     //     return;
     
-    let inputs = [
-        'input[placeholder="Filter Received"]',
-        // 'input[placeholder="Filter Start Date"]'
-        // 'input[placeholder="Filter Need By Date"]'
-        ];
+    window.onload=function(){
+            let inputs = [
+            'input[placeholder="Filter Received"]',
+            // 'input[placeholder="Filter Start Date"]'
+            // 'input[placeholder="Filter Need By Date"]'
+            ];
 
-    inputs.forEach(function(input) {
-        flatpickr(input, {
-        dateFormat: "Y-m-d",
-        mode: "range",
-        allowInput: true,
-        // enableTime:true,
+        inputs.forEach(function(input) {
+            flatpickr(input, {
+            dateFormat: "Y-m-d",
+            mode: "range",
+            allowInput: true,
+            // enableTime:true,
+            });
         });
-    });
-    
-    
-    document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
+        
+        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
         this.veeErrors.clear()
         this.formKey += 1
         
     })
+    }
+    
 }
 
 }
