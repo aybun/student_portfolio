@@ -154,13 +154,13 @@ methods:{
             id:0,
             title:"",
             rank: 0,
-            received_date: (new Date()).toISOString().split('T')[0],
+            received_date: '',
 
             info:"",
 
             created_by:"",
             approved:false,
-            approved_by:false,
+            approved_by: '',
             used_for_calculation:false,
 
             attachment_link:"",
@@ -185,17 +185,31 @@ methods:{
         this.modalTitle="Add Award"
         this.addingNewAward= true // Signal that we are adding new award.
         this.modalReadonly= false
-        this.award = this.getEmptyAward()
-        this.checkboxes=[]
 
+        this.assignDataToAwardForm(this.getEmptyAward());
+        
     },
-    createClick(){
+    async createClick(){
+        let formIsValid =  false;
+        await this.validateForm().then((result) => {
+             formIsValid = result
+        })
 
-        let outDict = new FormData();
+        if (typeof testMode !== 'undefined')
+            this.awardFormHasbeenSubmitted = formIsValid;
 
+        if (!formIsValid)
+            return;
+        
+        this.assignBooleanValueToCheckboxFields(this.award, this.checkboxes, this.checkboxFields)
+        let outForm = new FormData();
         for (const [key, value] of Object.entries(this.award)) {
-            outDict.append(key.toString(), value)
+            outForm.append(key.toString(), value)
         }
+        outForm.set('attachment_file', this.cleanAttachmentFile(this.award.attachment_file))
+        outForm.set('skills', JSON.stringify(this.cleanManyToManyFields(this.award.skills)))
+        outForm.set('receivers', JSON.stringify(this.cleanManyToManyFields(this.award.receivers)))
+        outForm.set('supervisors', JSON.stringify(this.cleanManyToManyFields(this.award.supervisors)))
 
         axios.defaults.xsrfCookieName = 'csrftoken';
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -204,7 +218,7 @@ methods:{
             url: this.$API_URL+"award",
             xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
-            data: outDict,
+            data: outForm,
             headers : {
                 'Content-Type': 'multipart/form-data',
                 'X-CSRFToken': 'csrftoken',
@@ -215,34 +229,44 @@ methods:{
         })
 
     },
-    editClick(award){
-        this.modalTitle="Edit award";
-        this.addingNewAward = false
-        this.modalReadonly = false
-
-
-        this.award = JSON.parse(JSON.stringify(award))
-        this.copiedAward = JSON.parse(JSON.stringify(award))
-
-        this.checkboxes = []
-        for(let i=0; i<this.checkboxFields.length; ++i){
-            if (this.award[this.checkboxFields[i]])
-                this.checkboxes.push(this.checkboxFields[i])
-        }
-    },
     viewClick(award){
         this.modalTitle="Award (read only mode)";
         this.addingNewAward = false
         this.modalReadonly = true
 
-        this.award = JSON.parse(JSON.stringify(award))
-        this.copiedAward = JSON.parse(JSON.stringify(award))
+        this.assignDataToAwardForm(award);
+    },
+    editClick(award){
+        this.modalTitle="Edit award";
+        this.addingNewAward = false
+        this.modalReadonly = false
 
-        this.checkboxes = []
-        for(let i=0; i<this.checkboxFields.length; ++i){
-            if (this.award[this.checkboxFields[i]])
-                this.checkboxes.push(this.checkboxFields[i])
-        }
+        this.assignDataToAwardForm(award)
+    },
+
+    assignDataToAwardForm(award){
+        let stringified = JSON.stringify(award)
+        this.award = JSON.parse(stringified)
+        this.copiedAward = JSON.parse(stringified)
+
+        this.checkboxes = this.getListOfTrueCheckboxFields(this.award, this.checkboxFields)
+    },
+
+    getListOfTrueCheckboxFields(formdata, checkboxFields){
+
+            let checkboxes = []
+            for(let i=0; i < checkboxFields.length; ++i){
+                if (formdata[checkboxFields[i]] === true)
+                checkboxes.push(this.checkboxFields[i])
+            }
+            return checkboxes
+    },
+
+    assignBooleanValueToCheckboxFields(formdata, checkboxes, checkboxFields){
+            for (let i=0; i < checkboxFields.length; ++i){
+                let field_name = checkboxFields[i]
+                formdata[field_name] = checkboxes.includes(field_name)
+            }
     },
     async updateClick(){
 
@@ -251,22 +275,21 @@ methods:{
              formIsValid = result
         })
 
+        if (typeof testMode !== 'undefined')
+            this.awardFormHasbeenSubmitted = formIsValid;
+
         if (!formIsValid)
             return;
 
-        //CheckboxFields
-        for (let i=0;i<this.checkboxFields.length; ++i)
-            this.award[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
-
-        let outDict = new FormData();
+        this.assignBooleanValueToCheckboxFields(this.award, this.checkboxes, this.checkboxFields)
+        let outForm = new FormData();
         for (const [key, value] of Object.entries(this.award)) {
-            outDict.append(key.toString(), value)
+            outForm.append(key.toString(), value)
         }
-        
-        outDict.set('attachment_file', this.cleanAttachmentFile(this.award.attachment_file))
-        outDict.set('skills', JSON.stringify(this.cleanManyToManyFields(this.award.skills)))
-        outDict.set('receivers', JSON.stringify(this.cleanManyToManyFields(this.award.receivers)))
-        outDict.set('supervisors', JSON.stringify(this.cleanManyToManyFields(this.award.supervisors)))
+        outForm.set('attachment_file', this.cleanAttachmentFile(this.award.attachment_file))
+        outForm.set('skills', JSON.stringify(this.cleanManyToManyFields(this.award.skills)))
+        outForm.set('receivers', JSON.stringify(this.cleanManyToManyFields(this.award.receivers)))
+        outForm.set('supervisors', JSON.stringify(this.cleanManyToManyFields(this.award.supervisors)))
 
         axios.defaults.xsrfCookieName = 'csrftoken';
         axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -275,21 +298,23 @@ methods:{
             url: this.$API_URL+"award/" + this.award.id,
             xsrfCookieName: 'csrftoken',
             xsrfHeaderName: 'X-CSRFToken',
-            data: outDict,
+            data: outForm,
             headers : {
                 'Content-Type': 'multipart/form-data',
                 'X-CSRFToken': 'csrftoken',
             }
         }).then((response)=>{
-
+            let stringified = JSON.stringify(response.data)
             this.reassignUpdatedElementIntoList(this.awards, response.data) //With reactivity.
-            this.award = JSON.parse(JSON.stringify(response.data))
-            this.copiedAward = JSON.parse(JSON.stringify(response.data))
+            this.award = JSON.parse(stringified)
+            this.copiedAward = JSON.parse(stringified)
 
-            alert(JSON.stringify(response.data));
+            console.log(response.data)
+            alert(stringified);
         })
 
     },
+
     deleteClick(award_id){
         if(!confirm("Are you sure?")){
             return;
@@ -311,16 +336,6 @@ methods:{
         })
     },
 
-    addInputFieldClick(fieldName){
-        this.award[fieldName].push({
-            id:'',
-        })
-
-    },
-    removeInputFieldClick(fieldName){
-        this.award[fieldName].pop()
-    },
-
     cleanManyToManyFields(list){
         //Remove empty or redundant inputs.
         // console.log(list)
@@ -335,20 +350,6 @@ methods:{
             }
         }
         return nonEmpty
-    },
-
-    cleanAttachmentFile(attachment_file_field){
-        // Idea : If there is a file, send it. If it is undefined, set it to ''.
-        // If it is a file path, we can send it to the backend without any issues.
-        let field = attachment_file_field
-
-        if (this.fileObjectExists(field))
-            return field.files[0].file
-        
-        if (typeof field === 'undefined')
-            return ''
-
-        return field
     },
 
     onFileSelected(event){
@@ -412,10 +413,6 @@ methods:{
         return `${firstname} ${lastname}`
     },
 
-    clearAll(){
-        console.log('clear all')
-    },
-
     selectionChanged(params){
         // console.log('heloo')
         // this.selectedRows = params.selectedRows
@@ -477,32 +474,50 @@ methods:{
         }
     },
 
-    fileObjectExists(field){
-        // We want to check if the field contains a file.
-        // We need this function because the current file input field is weird 
-        // but we need (want) to rely on the form compatability. (vue-formulate)
-        let result = false
-        if (typeof field === 'undefined' || typeof field === 'null')
-            result = false
-        else if (typeof field === 'string')
-            result = false
-        else if (field.files.length === 0)
-            result = false
-        else
-            result = true
-            
-        return result
-    },  
+    cleanAttachmentFile(attachment_file_field){
+        // Idea : If there is a file, send it. If it is undefined, set it to ''.
+        // If it is a file path, we can send it to the backend without any issues.
+        let field = attachment_file_field
 
+        let file = this.getFileOrNull(field)
+        if (file instanceof File)
+            return file
+        else{
+            if (typeof field === 'string') //
+                return field
+        }    
+
+        if (typeof field === 'undefined')
+            return ''
+
+        return field
+    },
+    getFileOrNull(field){
+        //We want to support both file and array of files as a field.
+        
+        if (field instanceof File)
+            return field
+        else if (typeof field === 'undefined' || field === null)
+            return null
+        else if (typeof field === 'string')
+            return null
+        else if (field.files.length === 0)
+            return null
+        else
+            return field.files[0].file
+    },      
+    
     attachment_file_max_file_size_validation_function(){
         //Idea : If the file exists, the size must be valid.
         
         let maxFileSize = this.formConstraints.attachment_file.max_file_size.size
         let field = this.award.attachment_file
+        let file = this.getFileOrNull(field)
 
-        if (this.fileObjectExists(field))
-            return field.files[0].file.size < maxFileSize
-        else    
+        if (file instanceof File){
+            return file.size < maxFileSize
+        }
+        else
             return true
     },
 
@@ -566,7 +581,7 @@ methods:{
 
 created: async function(){
     this.prepareData(); // Assign an empty award.
-
+    
     if (typeof this.testMode !== 'undefined'){
         this._generate_formRender();
         return;
@@ -619,7 +634,7 @@ mounted:function() {
     // if (this.testMode)
     //     return;
     
-    window.onload=function(){
+    window.onload=()=>{
             let inputs = [
             'input[placeholder="Filter Received"]',
             // 'input[placeholder="Filter Start Date"]'
@@ -636,10 +651,10 @@ mounted:function() {
         });
         
         document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
-        this.veeErrors.clear()
-        this.formKey += 1
-        
-    })
+            this.veeErrors.clear()
+            this.formKey += 1
+            
+        })
     }
     
 }
@@ -766,7 +781,7 @@ mounted:function() {
 
 
                         <div class="skill">
-                            <h3>Skills</h3>
+                            <h6>Skills</h6>
 
                             <multiselect v-model="award.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="skillCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
 
@@ -842,7 +857,7 @@ mounted:function() {
                             ></FormulateInput>
 <!--                            File Button-->
                             <button v-if="copiedAward.attachment_file != '' &&  !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(copiedAward.attachment_file)"> File URL </button>
-                            <button v-if="copiedAward.attachment_file != '' && !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-outline-danger" @click=" copiedAward.attachment_file=''; award.attachment_file=''" :disabled="modalReadonly"> Remove File </button>
+                            <button v-if="copiedAward.attachment_file != '' && !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-outline-danger" @click=" copiedAward.attachment_file=''; award.attachment_file=''; formKey += 1;" :disabled="modalReadonly"> Remove File </button>
 
                         </div>
 

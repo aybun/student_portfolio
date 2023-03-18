@@ -4,6 +4,7 @@ import HomeView from "../views/HomeView.vue";
 import Award from "../components/award/Award.vue";
 import Login from "../components/registration/Login.vue";
 import Event from "../components/event/Event.vue";
+import Project from "/src/components/project/Project.vue"
 
 Vue.use(VueRouter);
 
@@ -39,7 +40,11 @@ const router = new VueRouter({
       name: "event",
       component: Event,  
     },
-
+    {
+      path: "/project",
+      name: "project",
+      component: Project,  
+    },
 
 
   ],

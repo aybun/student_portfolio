@@ -191,17 +191,13 @@ export default {
                     this.events = response.data;
                 });
 
-            // this.event = this.getEmptyEvent()
-            // this.checkboxes = []
         },
         addClick(){
             this.modalTitle="Add Event"
             this.addingNewEvent= true 
             this.modalReadonly = false
 
-            this.event = this.getEmptyEvent()
-            this.checkboxes=[]
-
+            this.assignDataToEventForm(this.getEmptyEvent())
         },
 
         viewClick(event){
@@ -209,14 +205,7 @@ export default {
             this.addingNewEvent = false
             this.modalReadonly = true
 
-            this.event = JSON.parse(JSON.stringify(event))
-            this.copiedEvent = JSON.parse(JSON.stringify(event))
-
-            this.checkboxes = []
-            for(let i=0; i<this.checkboxFields.length; ++i){
-                if (this.event[this.checkboxFields[i]])
-                    this.checkboxes.push(this.checkboxFields[i])
-            }
+            this.assignDataToEventForm(event)
         },
 
         editClick(event) {
@@ -225,24 +214,53 @@ export default {
             this.addingNewEvent = false
             this.modalReadonly = false
 
-            this.event = JSON.parse(JSON.stringify(event))
-            this.copiedEvent = JSON.parse(JSON.stringify(event))
-            // console.log(Date.parse(this.event.start_datetime) > Date.parse(this.event.end_datetime))
-            // console.log(Date.parse(this.event.start_datetime) < Date.parse(this.event.end_datetime))
-            this.checkboxes = []
-            for (let i = 0; i < this.checkboxFields.length; ++i) {
-                if (this.event[this.checkboxFields[i]])
-                    this.checkboxes.push(this.checkboxFields[i])
-            }
+            this.assignDataToEventForm(event)
+        },
+        assignDataToEventForm(event){
+            let stringified = JSON.stringify(event)
+            this.event = JSON.parse(stringified)
+            this.copiedAward = JSON.parse(stringified)
 
+            this.checkboxes = this.getListOfTrueCheckboxFields(this.event, this.checkboxFields)
+        },
+        
+        getListOfTrueCheckboxFields(formdata, checkboxFields){
+
+            let checkboxes = []
+            for(let i=0; i < checkboxFields.length; ++i){
+                if (formdata[checkboxFields[i]] === true)
+                checkboxes.push(this.checkboxFields[i])
+            }
+            return checkboxes
         },
 
-        createClick() {
+        assignBooleanValueToCheckboxFields(formdata, checkboxes, checkboxFields){
+            for (let i=0; i < checkboxFields.length; ++i){
+                let field_name = checkboxFields[i]
+                formdata[field_name] = checkboxes.includes(field_name)
+            }
+        },
 
+        async createClick() {
+            let formIsValid =  false;
+            await this.validateForm().then((result) => {
+                formIsValid = result
+            })
+
+            if (typeof testMode !== 'undefined')
+                this.eventFormHasbeenSubmitted = formIsValid;
+
+            if (!formIsValid)
+                return;
+            //Packing values.
+            this.assignBooleanValueToCheckboxFields(this.event, this.checkboxes, this.checkboxFields)
             let outDict = new FormData();
             for (const [key, value] of Object.entries(this.event)) {
                 outDict.append(key.toString(), value)
             }
+            outDict.set('attachment_file', this.cleanAttachmentFile(this.event.attachment_file))
+            outDict.set('skills', JSON.stringify(this.cleanManyToManyFields(this.event.skills)))
+            outDict.set('staffs', JSON.stringify(this.cleanManyToManyFields(this.event.staffs)))
 
             axios.defaults.xsrfCookieName = 'csrftoken';
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -275,17 +293,14 @@ export default {
             if (!formIsValid)
                 return;
 
-            for (let i = 0; i < this.checkboxFields.length; ++i)
-                this.event[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
-
-            let outDict = new FormData();
+            this.assignBooleanValueToCheckboxFields(this.event, this.checkboxes, this.checkboxFields)
+            let outForm = new FormData();
             for (const [key, value] of Object.entries(this.event)) {
-                outDict.append(key.toString(), value)
+                outForm.append(key.toString(), value)
             }
-
-            outDict.set('attachment_file', this.cleanAttachmentFile(this.event.attachment_file))
-            outDict.set('skills', JSON.stringify(this.cleanManyToManyFields(this.event.skills)))
-            outDict.set('staffs', JSON.stringify(this.cleanManyToManyFields(this.event.staffs)))
+            outForm.set('attachment_file', this.cleanAttachmentFile(this.event.attachment_file))
+            outForm.set('skills', JSON.stringify(this.cleanManyToManyFields(this.event.skills)))
+            outForm.set('staffs', JSON.stringify(this.cleanManyToManyFields(this.event.staffs)))
 
             //Make a request.
             axios.defaults.xsrfCookieName = 'csrftoken';
@@ -301,10 +316,12 @@ export default {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response) => {
+
+                let stringified = JSON.stringify(response.data)
                 this.reassignUpdatedElementIntoList(this.events, response.data)
-                this.event = JSON.parse(JSON.stringify(response.data))
-                this.copiedEvent = JSON.parse(JSON.stringify(response.data))
-                alert(JSON.stringify(response.data));
+                this.event = JSON.parse(stringified)
+                this.copiedEvent = JSON.parse(stringified)
+                alert(stringified);
 
             }).catch((errors) => {
                 console.log(errors)
@@ -515,7 +532,7 @@ export default {
             return vue_formulate_valid 
         },
     },
-
+    
     created: async function () {
         this.event = this.getEmptyEvent()
 
@@ -550,28 +567,30 @@ export default {
         },
 
     mounted: function () {
-        
-        let inputs = [
-          'input[placeholder="Filter Start"]',
-          // 'input[placeholder="Filter Start Date"]'
-          // 'input[placeholder="Filter Need By Date"]'
-        ];
 
-        inputs.forEach(function(input) {
-            flatpickr(input, {
-            dateFormat: "d-m-Y",
-            mode: "range",
-            allowInput: true,
-            enableTime:true,
+        window.onload=()=>{
+            let inputs = [
+            'input[placeholder="Filter Start"]',
+            // 'input[placeholder="Filter Start Date"]'
+            // 'input[placeholder="Filter Need By Date"]'
+            ];
+
+            inputs.forEach(function(input) {
+                flatpickr(input, {
+                dateFormat: "d-m-Y",
+                mode: "range",
+                allowInput: true,
+                enableTime:true,
+                });
             });
-        });
 
-    
-        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
-            this.veeErrors.clear()
-            this.formKey += 1
-            
-        })
+        
+            document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
+                this.veeErrors.clear()
+                this.formKey += 1
+                
+            })
+        }
     }
 }
 </script>
@@ -591,7 +610,7 @@ export default {
             :columns="vgtColumns"
             :rows="events"
             :select-options="{
-                enabled: true,
+                enabled: false,
                 selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
             }"
             :search-options="{ enabled: true }"
@@ -800,12 +819,5 @@ export default {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-}
-</style>
-
-<style scoped>
-.dark-mode div::v-deep .modal-content {
-  border-color: #2d3748;
-  background-color: #1a202c;
 }
 </style>

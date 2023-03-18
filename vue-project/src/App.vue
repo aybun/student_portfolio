@@ -21,6 +21,8 @@ import HelloWorld from "./components/HelloWorld.vue";
         <nav>
           <router-link to="/">Home</router-link>
           <router-link to="/about">About</router-link>
+          <router-link to="/project">Project</router-link>
+          <router-link to="/event">Event</router-link>
           <router-link to="/award">Award</router-link>
         </nav>
       </div>
@@ -54,22 +56,19 @@ import HelloWorld from "./components/HelloWorld.vue";
           <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
             <li><router-link to="/event" class="link-dark rounded">Event</router-link></li>
             <li><a href="#" class="link-dark rounded">Overview</a></li>
-            <li><a href="#" class="link-dark rounded">Weekly</a></li>
-            <li><a href="#" class="link-dark rounded">Monthly</a></li>
-            <li><a href="#" class="link-dark rounded">Annually</a></li>
+            
           </ul>
         </div>
       </li>
       <li class="mb-1">
         <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
-          Orders
+          Project
         </button>
         <div class="collapse" id="orders-collapse">
           <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-            <li><a href="#" class="link-dark rounded">New</a></li>
-            <li><a href="#" class="link-dark rounded">Processed</a></li>
-            <li><a href="#" class="link-dark rounded">Shipped</a></li>
-            <li><a href="#" class="link-dark rounded">Returned</a></li>
+            <li><router-link to="/project" class="link-dark rounded">Project</router-link></li>
+            <!-- <li><a href="#" class="link-dark rounded">New</a></li> -->
+            
           </ul>
         </div>
       </li>

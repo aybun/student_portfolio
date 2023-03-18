@@ -220,6 +220,7 @@ let projectComponent = {
     },
 
     created: async function(){
+        this.prepareData()
          await axios.get(variables.API_URL+"user")
             .then((response)=>{
                 this.user=response.data;
@@ -240,7 +241,7 @@ let projectComponent = {
             this.skillTable=response.data;
         });
 
-        this.prepareData()
+
     },
 
     mounted:function(){

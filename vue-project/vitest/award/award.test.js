@@ -18,7 +18,7 @@ let studentTable = [{"id": 3, "university_id": "623021039-1", "user_id_fk": 2, "
 let staffTable =[{"id": 2, "university_id": "623021038-2", "user_id_fk": 3, "firstname": "Toto", "middlename": "", "lastname": "Toto", "faculty_role": 1}, {"id": 1, "university_id": "623021038-1", "user_id_fk": 1, "firstname": "Tuta", "middlename": "", "lastname": "Tuta", "faculty_role": 1}]
 let skillTable = [{"id": 1, "title": "\u0e17\u0e31\u0e01\u0e29\u0e30\u0e17\u0e35\u0e48 1"}, {"id": 2, "title": "\u0e17\u0e31\u0e01\u0e29\u0e30\u0e17\u0e35\u0e48 2"}, {"id": 3, "title": "\u0e17\u0e31\u0e01\u0e29\u0e30\u0e17\u0e35\u0e48 3"}, {"id": 4, "title": "\u0e17\u0e31\u0e01\u0e29\u0e30\u0e17\u0e35\u0e48 4"}, {"id": 5, "title": "\u0e17\u0e31\u0e01\u0e29\u0e30\u0e17\u0e35\u0e48 5"}, {"id": 6, "title": "\u0e17\u0e31\u0e01\u0e29\u0e30\u0e17\u0e35\u0e48 6"}]
 
-describe("Test fields of Award.", () => {
+describe("Test award.", () => {
   //Concurrentcy
   //Set beforEach()???
   //Makesure that they donot mutate the data.??
@@ -96,7 +96,7 @@ describe("Test fields of Award.", () => {
     received_date.performValidation()
     await flushPromises();
     expect(received_date.validationErrors).toContain('Received Date is required.');
-
+    
     //Test : info
     let info = wrapper.vm.$refs['formulate-input-info']
 
@@ -135,5 +135,84 @@ describe("Test fields of Award.", () => {
     expect(attachment_file.validationErrors).toContain('The file size must not exceed 2000000 bytes.');
   });
 
+  it("award-form-submission"), async () => {
+    //Working on this.
+     //All fields, except one field, are valid. -> Form should not be submitted. 
 
+    
+    const localVue = createLocalVue()
+    localVue.use(VueFormulate)
+    localVue.use(VeeValidate, {errorBagName: 'veeErrors', })
+    const wrapper = mount(Award, {
+          localVue,
+            data() {
+              return {
+                award: {}, // This is the input
+                testMode : true, //Skill api calls in the award component.
+                awardFormHasBeenSubmitted : false, 
+                
+                user : JSON.parse(JSON.stringify(user)),
+                awards : JSON.parse(JSON.stringify(awards)),
+                studentTable : JSON.parse(JSON.stringify(studentTable)),
+                staffTable : JSON.parse(JSON.stringify(staffTable)),
+                skillTable : JSON.parse(JSON.stringify(skillTable)),
+              }
+            },
+            // created : function(){}
+
+    });
+    let valid_award_data = {
+      "id": 14,
+      "title": "test",
+      "rank": 0,
+      "received_date": "2023-03-19",
+      "info": "",
+      "created_by": 4,
+      "approved": true,
+      "approved_by": 1,
+      "used_for_calculation": false,
+      "attachment_link": "",
+      "attachment_file": "http://localhost/private-media/C%3A/Users/Tuta/Documents/GitHub/year-4/student_portfolio/student_portfolio/private-media/award_14_Fq5EVrNaMAAFkYE.jfif",
+      "skills": [
+          {
+              "id": 1
+          },
+          {
+              "id": 2
+          }
+      ],
+      "receivers": [
+          {
+              "id": 3
+          },
+          {
+              "id": 4
+          }
+      ],
+      "supervisors": [
+          {
+              "id": 2
+          },
+          {
+              "id": 1
+          }
+      ]
+    }
+
+    // Test : valid data.
+    await wrapper.setData({award: JSON.parse(JSON.stringify(valid_award_data))});
+    wrapper.updateClick()
+    await flushPromises();
+    expect(wrapper.awardFormHasBeenSubmitted).toBe(true);
+
+  
+
+    // Test : invalid data : title
+    let copied_award = JSON.parse(JSON.stringify(valid_award_data))
+    copied_award.title = ''
+    await wrapper.setData({award: copied_award});
+    wrapper.updateClick()
+    await flushPromises();
+    expect(wrapper.awardFormHasBeenSubmitted).toBe(false);
+  }
 });
