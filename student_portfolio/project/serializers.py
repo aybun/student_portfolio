@@ -87,31 +87,38 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
         groups = request.user.groups.values_list('name', flat=True)
 
         #Clean data
+        if 'skills' in data:
+            data['skills'] = EventSerializer.custom_clean_skills(
+                data=data['skills'])  # If it contains errors, the function will return a string, might be ''.
+            if isinstance(data.get('skills', None), str):
+                data.pop('skills', None)
+
+        if 'staffs' in data:
+            data['staffs'] = EventSerializer.custom_clean_staffs(data=data['staffs'])
+            if isinstance(data.get('staffs', None), str):
+                data.pop('staffs', None)
+
+        attachment_file = data.get('attachment_file', None)
+        if isinstance(attachment_file, str):
+            data.pop('attachment_file', None)
 
         if method == 'POST':
 
             data['created_by'] = request.user.id
 
+            if 'staff' not in groups:
+                data.pop('approved_by', None)
+            elif 'staff' in groups:
+                if data['approved'] == 'true':
+                    data['approved_by'] = request.user.id
+                else:
+                    data.pop('approved_by', None)
+
         elif method == 'PUT':
-
-            attachment_file = data.get('attachment_file', None)
-            if isinstance(attachment_file, str):
-                data.pop('attachment_file', None)
-
-            if 'skills' in data:
-                data['skills'] = EventSerializer.custom_clean_skills(data=data['skills']) #If it contains errors, the function will return a string, might be ''.
-                if isinstance(data.get('skills', None), str):
-                    data.pop('skills', None)
-
-            if 'staffs' in data:
-                data['staffs'] = EventSerializer.custom_clean_staffs(data=data['staffs'])
-                if isinstance(data.get('staffs', None), str):
-                    data.pop('staffs', None)
-
 
             if 'staff' in groups:
                 if instance.approved: #If the project has already been approved. We won't reassign this user to approved_by.
-                    data.pop('approved')
+                    data.pop('approved', None)
                 else:
                     if data['approved'] == 'true':
                         data['approved_by'] = request.user.id

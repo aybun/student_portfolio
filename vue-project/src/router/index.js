@@ -4,7 +4,7 @@ import HomeView from "../views/HomeView.vue";
 import Award from "../components/award/Award.vue";
 import Login from "../components/registration/Login.vue";
 import Event from "../components/event/Event.vue";
-import Project from "/src/components/project/Project.vue"
+import Project from "/src/components/project/Project.vue";
 
 Vue.use(VueRouter);
 
@@ -28,25 +28,23 @@ const router = new VueRouter({
     {
       path: "/award",
       name: "award",
-      component: Award,  
+      component: Award,
     },
     {
       path: "/login-vue",
       name: "login-vue",
-      component: Login,  
+      component: Login,
     },
     {
       path: "/event",
       name: "event",
-      component: Event,  
+      component: Event,
     },
     {
       path: "/project",
       name: "project",
-      component: Project,  
+      component: Project,
     },
-
-
   ],
 });
 

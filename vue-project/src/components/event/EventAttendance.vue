@@ -1,630 +1,782 @@
 <script>
-import { Multiselect } from 'vue-multiselect';
-import { VueGoodTable } from 'vue-good-table';
-import axios from 'axios';
+import { Multiselect } from "vue-multiselect";
+import { VueGoodTable } from "vue-good-table";
+import axios from "axios";
 
 // import flatpickr from 'flatpickr'
 // import 'flatpickr/dist/flatpickr.min.css'
-import * as bootstrap from 'bootstrap';
+import * as bootstrap from "bootstrap";
 
-import { $vfm, VueFinalModal, ModalsContainer } from 'vue-final-modal'
+import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
 
 // import AttendanceModal from "/src/components/event/AttendanceModal.vue"
-import AddAttendanceModal from "/src/components/event/AddAttendanceModal.vue"
+import AddAttendanceModal from "/src/components/event/AddAttendanceModal.vue";
 
 export default {
-    components: {
-        VueGoodTable,
-        Multiselect,
-        VueFinalModal,
+  components: {
+    VueGoodTable,
+    Multiselect,
+    VueFinalModal,
 
-        AddAttendanceModal
+    AddAttendanceModal,
+  },
+
+  props: ["event_id", "user"],
+
+  data() {
+    return {
+      // user:{},
+      modalTitle: "",
+      addingNewAttendance: false,
+      addByFileModalActive: true, //To reset the behavior of the modal.
+
+      multiselect: {
+        // student : {university_id:''}, //multiselect will treat this as a dict.
+        student: "",
+      },
+
+      formKey: 1,
+      eventAttendance: {},
+      // event_id: 0,
+
+      studentTable: [],
+
+      showAddEventAttendanceModal: false,
+      showAddByFileModal: false,
+
+      addByFileFormConstraints: {
+        csvFile: {
+          max_file_size: {
+            size: 2000000,
+            validation_message:
+              this._csvFile_max_file_size_validation_message_function,
+            validation_rule: this._csvFile_max_file_size_validation_function,
+          },
+        },
+      },
+
+      addByFileForm: {
+        csvFile: "",
+        all_must_valid: true,
+        checkBoxes: ["all_must_valid"],
+
+        //Do not need reset
+        checkboxFields: ["all_must_valid"],
+        formKey: 1,
+      },
+
+      eventAttendances: [],
+
+      checkboxes: [],
+      checkboxFields: ["used_for_calculation"],
+
+      vgtColumns: [
+        {
+          label: "Attendance Id",
+          field: "id",
+          // tooltip: 'A simple tooltip',
+          thClass: "text-center",
+          tdClass: "text-center",
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "Filter This Thing", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnFilterFn, //custom filter function that
+            // trigger: 'enter', //only trigger on enter not on keyup
+          },
+        },
+        {
+          label: "University Id",
+          field: "university_id",
+          // tooltip: 'A simple tooltip',
+          thClass: "text-center",
+          tdClass: "text-center",
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "Filter This Thing", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnFilterFn, //custom filter function that
+            // trigger: 'enter', //only trigger on enter not on keyup
+          },
+        },
+        {
+          label: "Firstname",
+          field: "firstname",
+          thClass: "text-center",
+
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "Filter This Thing", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnFilterFn, //custom filter function that
+            // trigger: 'enter', //only trigger on enter not on keyup
+          },
+        },
+        {
+          label: "Lastname",
+          field: "lastname",
+          thClass: "text-center",
+
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "Filter This Thing", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnFilterFn, //custom filter function that
+            // trigger: 'enter', //only trigger on enter not on keyup
+          },
+        },
+        {
+          label: "Synced",
+          field: "synced",
+          thClass: "text-center",
+          tdClass: "text-center",
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "All", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [true, false], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnApprovedFilterFn, //custom filter function that
+            trigger: "enter", //only trigger on enter not on keyup
+          },
+        },
+        {
+          label: "Action",
+          field: "action",
+          thClass: "text-center",
+          tdClass: "text-center",
+        },
+      ],
+    };
+  },
+
+  methods: {
+    getEmptyEventAttendance() {
+      return {
+        id: 0,
+        event_id_fk: "",
+        university_id: "",
+
+        firstname: "",
+        middlename: "",
+        lastname: "",
+
+        user_id_fk: "",
+        synced: false,
+
+        used_for_calculation: false,
+      };
     },
 
-    props: ['event_id', 'user'],
+    refreshData() {
+      axios
+        .get(this.$API_URL + "event-attendance/" + this.event_id)
+        .then((response) => {
+          this.eventAttendances = response.data;
+          // console.log(this.eventAttendances)
+        });
+    },
+    addClick() {
+      this.modalTitle = "Add Student";
+      this.addingNewAttendance = true; // Signal that we are adding a new student -> Create Button.
 
-    data() {
-        return {
-            // user:{},
-            modalTitle: "",
-            addingNewAttendance: false,
-            addByFileModalActive: true, //To reset the behavior of the modal.
+      this.eventAttendance = this.getEmptyEventAttendance();
+      // this.multiselect.student = {'university_id':''}
+      this.multiselect.student = null;
+    },
+    editClick(attendance) {
+      this.modalTitle = "Edit Student";
+      this.addingNewAttendance = false;
 
-            multiselect: {
-                // student : {university_id:''}, //multiselect will treat this as a dict.
-                student: '',
-            },
+      this.multiselect.student = { university_id: attendance.university_id };
 
-            formKey: 1,
-            eventAttendance: {},
-            // event_id: 0,
+      this.eventAttendance = attendance;
+      this.checkboxes = [];
 
-            studentTable: [],
+      for (let i = 0; i < this.checkboxFields.length; ++i) {
+        if (this.eventAttendance[this.checkboxFields[i]])
+          this.checkboxes.push(this.checkboxFields[i]);
+      }
+    },
 
-            showAddEventAttendanceModal: false,
-            showAddByFileModal: false,
+    createClick() {
+      for (let i = 0; i < this.checkboxFields.length; ++i)
+        this.eventAttendance[this.checkboxFields[i]] = this.checkboxes.includes(
+          this.checkboxFields[i]
+        );
 
-            addByFileFormConstraints: {
-                csvFile: {
-                    max_file_size: {
-                        'size': 2000000,
-                        'validation_message': this._csvFile_max_file_size_validation_message_function,
-                        'validation_rule': this._csvFile_max_file_size_validation_function
-                    },
-                },
-            },
+      this.eventAttendance.university_id =
+        this.multiselect.student.university_id;
 
-            addByFileForm: {
-                csvFile: '',
-                all_must_valid: true,
-                checkBoxes: ['all_must_valid'],
+      const outDict = new FormData();
+      for (const [key, value] of Object.entries(this.eventAttendance)) {
+        outDict.append(key.toString(), value);
+      }
+      outDict.set("event_id_fk", this.event_id);
 
-                //Do not need reset
-                checkboxFields: ['all_must_valid'],
-                formKey : 1,
-            },
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "post",
+        url: this.$API_URL + "event-attendance/",
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        data: outDict,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-CSRFToken": "csrftoken",
+        },
+      }).then((response) => {
+        this.refreshData();
+        alert(response.data);
+      });
+    },
+    updateClick() {
+      for (let i = 0; i < this.checkboxFields.length; ++i)
+        this.eventAttendance[this.checkboxFields[i]] = this.checkboxes.includes(
+          this.checkboxFields[i]
+        );
 
-            eventAttendances: [],
+      this.eventAttendance.university_id =
+        this.multiselect.student.university_id;
+      console.log(this.eventAttendance);
+      const outDict = new FormData();
+      for (const [key, value] of Object.entries(this.eventAttendance)) {
+        outDict.append(key.toString(), value);
+      }
 
-            checkboxes: [],
-            checkboxFields: ['used_for_calculation'],
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "put",
+        url:
+          this.$API_URL +
+          "event-attendance/" +
+          this.event_id +
+          "/" +
+          this.eventAttendance.id,
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        data: outDict,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-CSRFToken": "csrftoken",
+        },
+      }).then((response) => {
+        this.refreshData();
+        alert(response.data);
+      });
+    },
 
-            vgtColumns: [
-                {
-                    label: 'Attendance Id',
-                    field: 'id',
-                    // tooltip: 'A simple tooltip',
-                    thClass: 'text-center',
-                    tdClass: 'text-center',
-                    filterOptions: {
-                        styleClass: 'class1', // class to be added to the parent th element
-                        enabled: true, // enable filter for this column
-                        placeholder: 'Filter This Thing', // placeholder for filter input
-                        filterValue: '', // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
-                        // filterFn: this.columnFilterFn, //custom filter function that
-                        // trigger: 'enter', //only trigger on enter not on keyup
-                    },
-                },
-                {
-                    label: 'University Id',
-                    field: 'university_id',
-                    // tooltip: 'A simple tooltip',
-                    thClass: 'text-center',
-                    tdClass: 'text-center',
-                    filterOptions: {
-                        styleClass: 'class1', // class to be added to the parent th element
-                        enabled: true, // enable filter for this column
-                        placeholder: 'Filter This Thing', // placeholder for filter input
-                        filterValue: '', // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
-                        // filterFn: this.columnFilterFn, //custom filter function that
-                        // trigger: 'enter', //only trigger on enter not on keyup
-                    },
-                },
-                {
-                    label: 'Firstname',
-                    field: 'firstname',
-                    thClass: 'text-center',
+    deleteClick(attendance_id) {
+      if (!confirm("Are you sure?")) {
+        return;
+      }
 
-                    filterOptions: {
-                        styleClass: 'class1', // class to be added to the parent th element
-                        enabled: true, // enable filter for this column
-                        placeholder: 'Filter This Thing', // placeholder for filter input
-                        filterValue: '', // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
-                        // filterFn: this.columnFilterFn, //custom filter function that
-                        // trigger: 'enter', //only trigger on enter not on keyup
-                    },
-                },
-                {
-                    label: 'Lastname',
-                    field: 'lastname',
-                    thClass: 'text-center',
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "delete",
+        url:
+          this.$API_URL +
+          "event-attendance/" +
+          this.event_id +
+          "/" +
+          attendance_id,
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        headers: {
+          "X-CSRFToken": "csrftoken",
+        },
+      }).then((response) => {
+        this.refreshData();
+        alert(response.data);
+      });
+    },
 
-                    filterOptions: {
-                        styleClass: 'class1', // class to be added to the parent th element
-                        enabled: true, // enable filter for this column
-                        placeholder: 'Filter This Thing', // placeholder for filter input
-                        filterValue: '', // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
-                        // filterFn: this.columnFilterFn, //custom filter function that
-                        // trigger: 'enter', //only trigger on enter not on keyup
-                    },
-                },
-                {
-                    label: 'Synced',
-                    field: 'synced',
-                    thClass: 'text-center',
-                    tdClass: 'text-center',
-                    filterOptions: {
-                        styleClass: 'class1', // class to be added to the parent th element
-                        enabled: true, // enable filter for this column
-                        placeholder: 'All', // placeholder for filter input
-                        filterValue: '', // initial populated value for this filter
-                        filterDropdownItems: [true, false], // dropdown (with selected values) instead of text input
-                        // filterFn: this.columnApprovedFilterFn, //custom filter function that
-                        trigger: 'enter', //only trigger on enter not on keyup
-                    },
-                },
-                {
-                    label: 'Action',
-                    field: 'action',
-                    thClass: 'text-center',
-                    tdClass: 'text-center',
-                },
+    syncByUniversityIdClick() {
+      const outDict = {
+        event_id: this.event_id,
+      };
 
-            ],
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "put",
+        url:
+          this.$API_URL + "sync-attendance-by-university-id/" + this.event_id,
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        data: outDict,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-CSRFToken": "csrftoken",
+        },
+      }).then((response) => {
+        this.refreshData();
+        alert(response.data);
+      });
+    },
+
+    onCSVFileSelected(event) {
+      this.csv_file = event.target.files[0];
+    },
+    async bulkAddClick() {
+      let formIsValid = false;
+      await this.validateAddByFileForm().then((result) => {
+        formIsValid = result;
+      });
+
+      if (!formIsValid) return;
+
+      const form = this.addByFileForm;
+      for (let i = 0; i < form.checkboxFields.length; ++i) {
+        const fieldName = form.checkboxFields[i];
+        form[fieldName] = form.checkboxes.includes(fieldName);
+      }
+
+      const outDict = {
+        event_id: this.event_id,
+        csv_file: form.csvFile,
+        all_must_valid: form.all_must_valid,
+      };
+      console.log(outDict);
+      const outForm = new FormData();
+      for (const [key, value] of Object.entries(outDict)) {
+        outForm.append(key.toString(), value);
+      }
+      outForm.set("csv_file", this.cleanAttachmentFile(form.csvFile));
+
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "post",
+        url: this.$API_URL + "event-attendance-bulk-add",
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        data: outForm,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-CSRFToken": "csrftoken",
+        },
+      })
+        .then((response) => {
+          this.refreshData();
+          alert(response.data.message + "\n" + response.data.invalid_rows);
+        })
+        .catch((error) => {
+          this.refreshData();
+          console.log(error.response.data.message);
+          console.log(error.response.data.invalid_rows);
+          alert(
+            error.response.data.message +
+              "\n" +
+              error.response.data.invalid_rows
+          );
+          // alert(response.message)
+          // alert(response.invalid_rows)
+          // alert(response.message)
+        });
+    },
+    _university_id_custome_label({ university_id, firstname, lastname }) {
+      if (
+        university_id === "" ||
+        Object.is(university_id, null) ||
+        typeof university_id === "undefined"
+      )
+        return "select...";
+      else {
+        for (let i = 0; i < this.studentTable.length; ++i) {
+          if (this.studentTable[i].university_id === university_id) {
+            const temp = this.studentTable[i];
+            return `${temp.university_id} ${temp.firstname} ${temp.lastname}`;
+          }
         }
+        //Not Found
+        return "select...";
+      }
+    },
+    fileObjectExists(field) {
+      // We want to check if the field contains a file.
+      // We need this function because the current file input field is weird
+      // but we need (want) to rely on the form compatability. (vue-formulate)
+      let result = false;
+      if (typeof field === "undefined" || typeof field === "null")
+        result = false;
+      else if (typeof field === "string") result = false;
+      else if (field.files.length === 0) result = false;
+      else result = true;
+
+      return result;
     },
 
-    methods: {
-        getEmptyEventAttendance() {
-            return {
-                id: 0,
-                event_id_fk: '',
-                university_id: '',
-
-                firstname: '',
-                middlename: '',
-                lastname: '',
-
-                user_id_fk: '',
-                synced: false,
-
-                used_for_calculation: false,
-            }
-
-        },
-
-        refreshData() {
-            axios.get(this.$API_URL + "event-attendance/" + this.event_id)
-                .then((response) => {
-                    this.eventAttendances = response.data;
-                    // console.log(this.eventAttendances)
-                });
-
-        },
-        addClick() {
-            this.modalTitle = "Add Student"
-            this.addingNewAttendance = true // Signal that we are adding a new student -> Create Button.
-
-            this.eventAttendance = this.getEmptyEventAttendance()
-            // this.multiselect.student = {'university_id':''}
-            this.multiselect.student = null
-        },
-        editClick(attendance) {
-            this.modalTitle = "Edit Student";
-            this.addingNewAttendance = false
-
-            this.multiselect.student = { 'university_id': attendance.university_id }
-
-
-            this.eventAttendance = attendance
-            this.checkboxes = []
-
-            for (let i = 0; i < this.checkboxFields.length; ++i) {
-                if (this.eventAttendance[this.checkboxFields[i]])
-                    this.checkboxes.push(this.checkboxFields[i])
-            }
-        },
-
-        createClick() {
-
-            for (let i = 0; i < this.checkboxFields.length; ++i)
-                this.eventAttendance[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
-
-            this.eventAttendance.university_id = this.multiselect.student.university_id
-
-            let outDict = new FormData();
-            for (const [key, value] of Object.entries(this.eventAttendance)) {
-                outDict.append(key.toString(), value)
-            }
-            outDict.set('event_id_fk', this.event_id)
-
-            axios.defaults.xsrfCookieName = 'csrftoken';
-            axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-            axios({
-                method: 'post',
-                url: this.$API_URL + "event-attendance/",
-                xsrfCookieName: 'csrftoken',
-                xsrfHeaderName: 'X-CSRFToken',
-                data: outDict,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRFToken': 'csrftoken',
-                }
-            }).then((response) => {
-                this.refreshData();
-                alert(response.data);
-            })
-
-        },
-        updateClick() {
-
-            for (let i = 0; i < this.checkboxFields.length; ++i)
-                this.eventAttendance[this.checkboxFields[i]] = this.checkboxes.includes(this.checkboxFields[i])
-
-            this.eventAttendance.university_id = this.multiselect.student.university_id
-            console.log(this.eventAttendance)
-            let outDict = new FormData();
-            for (const [key, value] of Object.entries(this.eventAttendance)) {
-                outDict.append(key.toString(), value)
-            }
-
-            axios.defaults.xsrfCookieName = 'csrftoken';
-            axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-            axios({
-                method: 'put',
-                url: this.$API_URL + "event-attendance/" + this.event_id + '/' + this.eventAttendance.id,
-                xsrfCookieName: 'csrftoken',
-                xsrfHeaderName: 'X-CSRFToken',
-                data: outDict,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRFToken': 'csrftoken',
-                }
-            }).then((response) => {
-                this.refreshData();
-                alert(response.data);
-            })
-        },
-
-        deleteClick(attendance_id) {
-            if (!confirm("Are you sure?")) {
-                return;
-            }
-
-            axios.defaults.xsrfCookieName = 'csrftoken';
-            axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-            axios({
-                method: 'delete',
-                url: this.$API_URL + "event-attendance/" + this.event_id + '/' + attendance_id,
-                xsrfCookieName: 'csrftoken',
-                xsrfHeaderName: 'X-CSRFToken',
-                headers: {
-                    'X-CSRFToken': 'csrftoken',
-                }
-            }).then((response) => {
-                this.refreshData();
-                alert(response.data);
-            })
-        },
-
-        syncByUniversityIdClick() {
-
-            let outDict = {
-                'event_id': this.event_id,
-            }
-
-            axios.defaults.xsrfCookieName = 'csrftoken';
-            axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-            axios({
-                method: 'put',
-                url: this.$API_URL + "sync-attendance-by-university-id/" + this.event_id,
-                xsrfCookieName: 'csrftoken',
-                xsrfHeaderName: 'X-CSRFToken',
-                data: outDict,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRFToken': 'csrftoken',
-                }
-            }).then((response) => {
-                this.refreshData();
-                alert(response.data);
-            })
-        },
-
-        onCSVFileSelected(event) {
-            this.csv_file = event.target.files[0]
-
-        },
-        async bulkAddClick() {
-
-            let formIsValid = false;
-            await this.validateAddByFileForm().then((result) => {
-                formIsValid = result
-            })
-
-            if (!formIsValid)
-                return;
-
-            let form = this.addByFileForm
-            for (let i = 0; i < form.checkboxFields.length; ++i) {
-                let fieldName = form.checkboxFields[i]
-                form[fieldName] = form.checkboxes.includes(fieldName)
-            }
-
-            let outDict = {
-                'event_id': this.event_id,
-                'csv_file': form.csvFile,
-                'all_must_valid': form.all_must_valid,
-            }
-            console.log(outDict)
-            let outForm = new FormData();
-            for (const [key, value] of Object.entries(outDict)) {
-                outForm.append(key.toString(), value)
-            }
-            outForm.set('csv_file', this.cleanAttachmentFile(form.csvFile))
-
-            axios.defaults.xsrfCookieName = 'csrftoken';
-            axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-            axios({
-                method: 'post',
-                url: this.$API_URL + "event-attendance-bulk-add",
-                xsrfCookieName: 'csrftoken',
-                xsrfHeaderName: 'X-CSRFToken',
-                data: outForm,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRFToken': 'csrftoken',
-                }
-            }).then((response) => {
-                this.refreshData();
-                alert(response.data.message + '\n' + response.data.invalid_rows);
-
-            }).catch((error) => {
-                this.refreshData();
-                console.log(error.response.data.message)
-                console.log(error.response.data.invalid_rows)
-                alert(error.response.data.message + '\n' + error.response.data.invalid_rows)
-                    // alert(response.message)
-                    // alert(response.invalid_rows)
-                    // alert(response.message)
-                    ;
-            }
-            )
-        },
-        _university_id_custome_label({ university_id, firstname, lastname }) {
-            if (university_id === '' || Object.is(university_id, null) || typeof university_id === 'undefined')
-                return 'select...'
-            else {
-                for (let i = 0; i < this.studentTable.length; ++i) {
-                    if (this.studentTable[i].university_id === university_id) {
-                        let temp = this.studentTable[i]
-                        return `${temp.university_id} ${temp.firstname} ${temp.lastname}`
-                    }
-                }
-                //Not Found
-                return 'select...'
-            }
-
-        },
-        fileObjectExists(field) {
-            // We want to check if the field contains a file.
-            // We need this function because the current file input field is weird 
-            // but we need (want) to rely on the form compatability. (vue-formulate)
-            let result = false
-            if (typeof field === 'undefined' || typeof field === 'null')
-                result = false
-            else if (typeof field === 'string')
-                result = false
-            else if (field.files.length === 0)
-                result = false
-            else
-                result = true
-
-            return result
-        },
-
-        _csvFile_max_file_size_validation_message_function() {
-            return 'The file size must not exceed ' + this.addByFileFormConstraints.csvFile.max_file_size.size + ' bytes.'
-
-        },
-
-        _csvFile_max_file_size_validation_function() {
-            return 'The file size must not exceed ' + this.addByFileFormConstraints.csvFile.max_file_size.size + ' bytes.'
-            let maxFileSize = this.addByFileFormConstraints.csvFile.max_file_size.size
-            let field = this.addByFileForm.csvFile
-
-            if (this.fileObjectExists(field))
-                return field.files[0].file.size < maxFileSize
-            else
-                return true
-        },
-        cleanAttachmentFile(attachment_file_field){
-            // Idea : If there is a file, send it. If it is undefined, set it to ''.
-            // If it is a file path, we can send it to the backend without any issues.
-            let field = attachment_file_field
-
-            if (this.fileObjectExists(field))
-                return field.files[0].file
-            
-            if (typeof field === 'undefined')
-                return ''
-
-            return field
-        },
-        async validateAddByFileForm() {
-            await this.$formulate.submit('event-attendance-formulate-form-2');
-
-            let vue_formulate_valid = this.$refs['event-attendance-formulate-form-2'].isValid;
-
-            return vue_formulate_valid
-        },
-
-        _on_add_attendance_modal_closed(){
-            this.eventAttendance = this.getEmptyEventAttendance()
-        },
-        _on_add_by_file_modal_closed(){
-            this.addByFileForm.formKey += 1
-
-            this.addByFileForm.csvFile = ''
-            this.addByFileForm.all_must_valid = true
-            this.addByFileForm.checkboxes = ['all_must_valid']
-        },
-
+    _csvFile_max_file_size_validation_message_function() {
+      return (
+        "The file size must not exceed " +
+        this.addByFileFormConstraints.csvFile.max_file_size.size +
+        " bytes."
+      );
     },
 
-    watch: {
-        event_id: function (new_event_id, old_event_id) {
-            this.refreshData()
-        },
+    _csvFile_max_file_size_validation_function() {
+      return (
+        "The file size must not exceed " +
+        this.addByFileFormConstraints.csvFile.max_file_size.size +
+        " bytes."
+      );
+      const maxFileSize =
+        this.addByFileFormConstraints.csvFile.max_file_size.size;
+      const field = this.addByFileForm.csvFile;
+
+      if (this.fileObjectExists(field))
+        return field.files[0].file.size < maxFileSize;
+      else return true;
+    },
+    cleanAttachmentFile(attachment_file_field) {
+      // Idea : If there is a file, send it. If it is undefined, set it to ''.
+      // If it is a file path, we can send it to the backend without any issues.
+      const field = attachment_file_field;
+
+      if (this.fileObjectExists(field)) return field.files[0].file;
+
+      if (typeof field === "undefined") return "";
+
+      return field;
+    },
+    async validateAddByFileForm() {
+      await this.$formulate.submit("event-attendance-formulate-form-2");
+
+      const vue_formulate_valid =
+        this.$refs["event-attendance-formulate-form-2"].isValid;
+
+      return vue_formulate_valid;
     },
 
-    created: function () {
-        // console.log(this.user)
-        axios.get(this.$API_URL + "student")
-            .then((response) => {
-                this.studentTable = response.data;
-            })
-
+    _on_add_attendance_modal_closed() {
+      this.eventAttendance = this.getEmptyEventAttendance();
     },
-    mounted: function () {
+    _on_add_by_file_modal_closed() {
+      this.addByFileForm.formKey += 1;
 
-        // this.event_id = JSON.parse(document.getElementById('event_id-data').textContent);
-        // console.log(this.event_id)
-        // this.refreshData()
-
-
+      this.addByFileForm.csvFile = "";
+      this.addByFileForm.all_must_valid = true;
+      this.addByFileForm.checkboxes = ["all_must_valid"];
     },
-}
+  },
+
+  watch: {
+    event_id: function (new_event_id, old_event_id) {
+      this.refreshData();
+    },
+  },
+
+  created: function () {
+    // console.log(this.user)
+    axios.get(this.$API_URL + "student").then((response) => {
+      this.studentTable = response.data;
+    });
+  },
+  mounted: function () {
+    // this.event_id = JSON.parse(document.getElementById('event_id-data').textContent);
+    // console.log(this.event_id)
+    // this.refreshData()
+  },
+};
 </script>
 
 <template>
-    <div>
+  <div>
+    <button
+      type="button"
+      class="btn btn-primary m-2 fload-end"
+      @click="
+        addClick();
+        showAddEventAttendanceModal = true;
+      "
+    >
+      Add Student to The Event
+    </button>
 
-        <button type="button" class="btn btn-primary m-2 fload-end"
-            @click="addClick(); showAddEventAttendanceModal = true;">
-            Add Student to The Event
-        </button>
+    <button
+      type="button"
+      class="btn btn-primary m-2 fload-end"
+      @click="syncByUniversityIdClick()"
+    >
+      Sync by university id
+    </button>
 
-        <button type="button" class="btn btn-primary m-2 fload-end" @click="syncByUniversityIdClick()">
-            Sync by university id
-        </button>
+    <button
+      type="button"
+      class="btn btn-primary m-2 fload-end"
+      @click="showAddByFileModal = true"
+    >
+      Add attendees by file
+    </button>
 
-        <button type="button" class="btn btn-primary m-2 fload-end" @click="showAddByFileModal = true;">
-            Add attendees by file
-        </button>
+    <vue-good-table
+      ref="vgt"
+      :columns="vgtColumns"
+      :rows="eventAttendances"
+      :select-options="{ enabled: true, selectOnCheckboxOnly: true }"
+      :search-options="{ enabled: true }"
+      :pagination-options="{
+        enabled: true,
+        mode: 'records',
+        perPage: 10,
+        setCurrentPage: 1,
+      }"
+    >
+      <div slot="table-actions">
+        <div class="dropdown">
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            columns
+          </button>
 
-        <vue-good-table ref="vgt" :columns="vgtColumns" :rows="eventAttendances"
-            :select-options="{ enabled: true, selectOnCheckboxOnly: true, }" :search-options="{ enabled: true }"
-            :pagination-options="{ enabled: true, mode: 'records', perPage: 10, setCurrentPage: 1, }">
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a
+              class="dropdown-item"
+              v-for="(column, index) in vgtColumns"
+              :key="index"
+              href="#"
+            >
+              <span
+                href="#"
+                class="small"
+                tabIndex="-1"
+                @click.prevent="toggleColumn(index, $event)"
+              >
+                <formulate-input
+                  type="checkbox"
+                  v-if="!column.hidden"
+                  disabled="true"
+                  checked="true"
+                ></formulate-input>
+                {{ column.label }}
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
 
-            <div slot="table-actions">
-                <div class="dropdown">
-
-                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                        columns
-                    </button>
-
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
-
-                            <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn(index, $event)">
-                                <formulate-input type="checkbox" v-if="!column.hidden" disabled="true"
-                                    checked="true"></formulate-input>
-                                {{ column.label }}
-                            </span>
-
-                        </a>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <template slot="table-row" slot-scope="props">
-                <span v-if="props.column.field == 'action'">
-
-                    <!-- <button v-if="user.is_staff || user.is_student" type="button" class="btn btn-light mr-1"
+      <template slot="table-row" slot-scope="props">
+        <span v-if="props.column.field == 'action'">
+          <!-- <button v-if="user.is_staff || user.is_student" type="button" class="btn btn-light mr-1"
                         @click="viewClick(props.row); showAddEventAttendanceModal = true">
                         <i class="bi bi-eye"></i>
                     </button> -->
 
-                    <button
-                        v-if="user.is_staff"
-                        type="button" :id="'edit-button-' + props.row.id" class="btn btn-light mr-1"
-                        @click="editClick(props.row); showAddEventAttendanceModal = true">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
+          <button
+            v-if="user.is_staff"
+            type="button"
+            :id="'edit-button-' + props.row.id"
+            class="btn btn-light mr-1"
+            @click="
+              editClick(props.row);
+              showAddEventAttendanceModal = true;
+            "
+          >
+            <i class="bi bi-pencil-square"></i>
+          </button>
 
-                    <button
-                        v-if="user.is_staff"
-                        type="button" @click="deleteClick(props.row.id)" class="btn btn-light mr-1">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </span>
+          <button
+            v-if="user.is_staff"
+            type="button"
+            @click="deleteClick(props.row.id)"
+            class="btn btn-light mr-1"
+          >
+            <i class="bi bi-trash"></i>
+          </button>
+        </span>
 
-                <span v-else>
-                    {{ props.formattedRow[props.column.field] }}
-                </span>
-            </template>
-        </vue-good-table>
+        <span v-else>
+          {{ props.formattedRow[props.column.field] }}
+        </span>
+      </template>
+    </vue-good-table>
 
-        <AddAttendanceModal v-model="showAddEventAttendanceModal" :click-to-close="false" :hide-overlay="false"
-            :lock-scroll="true" @closed="_on_add_attendance_modal_closed()">
+    <AddAttendanceModal
+      v-model="showAddEventAttendanceModal"
+      :click-to-close="false"
+      :hide-overlay="false"
+      :lock-scroll="true"
+      @closed="_on_add_attendance_modal_closed()"
+    >
+      <template v-slot:modal-close-text
+        ><button
+          type="button"
+          class="btn btn-secondary"
+          @click="showAddEventAttendanceModal = false"
+        >
+          Close
+        </button></template
+      >
+      <FormulateForm
+        name="event-attendance-formulate-form-1"
+        ref="event-attendance-formulate-form-1"
+        #default="{ hasErrors }"
+      >
+        <h6>University Id</h6>
+        <div class="multiselect-university_id">
+          <!-- v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="receivers" -->
+          <multiselect
+            ref="event-attendance-multiselect-university_id"
+            name="event-attendance-multiselect-university_id"
+            v-model="multiselect.student"
+            v-validate="'required|min:1'"
+            data-vv-validate-on="input"
+            data-vv-as="university id"
+            :hide-selected="true"
+            :close-on-select="false"
+            :multiple="false"
+            :options="studentTable"
+            :custom-label="_university_id_custome_label"
+            track-by="university_id"
+            placeholder="Select..."
+            :disabled="false"
+          >
+          </multiselect>
+          <span
+            v-show="veeErrors.has('event-attendance-multiselect-university_id')"
+            class="formulate-input-errors"
+            style="color: red"
+            >{{
+              veeErrors.first("event-attendance-multiselect-university_id")
+            }}</span
+          >
+        </div>
 
-            <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
-                    @click="showAddEventAttendanceModal = false">Close</button></template>
-            <FormulateForm name="event-attendance-formulate-form-1" ref="event-attendance-formulate-form-1"
-                #default="{ hasErrors }">
-                <h6>University Id</h6>
-                <div class="multiselect-university_id">
-                    <!-- v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="receivers" -->
-                    <multiselect ref="event-attendance-multiselect-university_id"
-                        name="event-attendance-multiselect-university_id" v-model="multiselect.student"
-                        v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="university id"
-                        :hide-selected="true" :close-on-select="false" :multiple="false" :options="studentTable"
-                        :custom-label="_university_id_custome_label" track-by="university_id" placeholder="Select..."
-                        :disabled="false">
+        <formulate-input
+          label="Firstname"
+          ref="event-attendance-formulate-input-firstname"
+          type="text"
+          v-model="eventAttendance.firstname"
+          validation="max:40"
+          :readonly="false"
+        ></formulate-input>
+        <formulate-input
+          label="Middlename"
+          ref="event-attendance-formulate-input-middlename"
+          type="text"
+          v-model="eventAttendance.middlename"
+          validation="max:40"
+          :readonly="false"
+        ></formulate-input>
+        <formulate-input
+          label="Lastname"
+          ref="event-attendance-formulate-input-lastname"
+          type="text"
+          v-model="eventAttendance.lastname"
+          validation="max:40"
+          :readonly="false"
+        ></formulate-input>
+        <formulate-input
+          ref="event-attendance-formulate-input-used_for_calculation"
+          type="checkbox"
+          v-model="checkboxes"
+          :options="{ used_for_calculation: 'Use for calculation' }"
+          validation=""
+          :readonly="false"
+        ></formulate-input>
+      </FormulateForm>
+      <button
+        type="button"
+        @click="createClick()"
+        v-if="addingNewAttendance"
+        class="btn btn-primary"
+      >
+        Create
+      </button>
+      <button
+        type="button"
+        @click="updateClick()"
+        v-else
+        class="btn btn-primary"
+      >
+        Update
+      </button>
+    </AddAttendanceModal>
 
-                    </multiselect>
-                    <span v-show="veeErrors.has('event-attendance-multiselect-university_id')"
-                        class="formulate-input-errors" style="color:red;">{{
-                            veeErrors.first('event-attendance-multiselect-university_id') }}</span>
-                </div>
+    <AddAttendanceModal
+      v-model="showAddByFileModal"
+      :click-to-close="false"
+      @closed="_on_add_by_file_modal_closed"
+    >
+      <template v-slot:modal-close-text
+        ><button
+          type="button"
+          class="btn btn-secondary"
+          @click="showAddByFileModal = false"
+        >
+          Close
+        </button></template
+      >
+      <FormulateForm
+        name="event-attendance-formulate-form-2"
+        ref="event-attendance-formulate-form-2"
+      >
+        <FormulateInput
+          type="file"
+          :key="
+            'event-attendance-formulate-input-attachment_file-' +
+            addByFileForm.formKey
+          "
+          ref="event-attendance-formulate-input-attachment_file"
+          name="event-attendance-formulate-input-attachment_file"
+          v-model="addByFileForm.csvFile"
+          label="Attachment file"
+          help=""
+          :validation-rules="{
+            maxFileSize: () => {
+              return addByFileFormConstraints.csvFile.max_file_size.validation_rule();
+            },
+          }"
+          :validation-messages="{
+            maxFileSize:
+              addByFileFormConstraints.csvFile.max_file_size.validation_message(),
+          }"
+          error-behavior="live"
+          validation-event="input"
+          validation="required|maxFileSize"
+          upload-behavior="delayed"
+          :disabled="false"
+        >
+        </FormulateInput>
+        <FormulateInput
+          ref="event-attendance-formulate-input-all-valid-checkbox"
+          v-model="addByFileForm.checkboxes"
+          :options="{ all_must_valid: 'All rows must be valid' }"
+          type="checkbox"
+          :disabled="false"
+        >
+        </FormulateInput>
 
-                <formulate-input label="Firstname" ref="event-attendance-formulate-input-firstname" type="text"
-                    v-model="eventAttendance.firstname" validation="max:40" :readonly="false"></formulate-input>
-                <formulate-input label="Middlename" ref="event-attendance-formulate-input-middlename" type="text"
-                    v-model="eventAttendance.middlename" validation="max:40" :readonly="false"></formulate-input>
-                <formulate-input label="Lastname" ref="event-attendance-formulate-input-lastname" type="text"
-                    v-model="eventAttendance.lastname" validation="max:40" :readonly="false"></formulate-input>
-                <formulate-input ref="event-attendance-formulate-input-used_for_calculation" type="checkbox"
-                    v-model="checkboxes" :options="{ used_for_calculation: 'Use for calculation' }" validation=""
-                    :readonly="false"></formulate-input>
-            </FormulateForm>
-            <button type="button" @click="createClick()" v-if="addingNewAttendance" class="btn btn-primary">
-                Create
-            </button>
-            <button type="button" @click="updateClick()" v-else class="btn btn-primary">
-                Update
-            </button>
-        </AddAttendanceModal>
-
-        <AddAttendanceModal v-model="showAddByFileModal" :click-to-close="false" @closed="_on_add_by_file_modal_closed">
-            <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
-                    @click="showAddByFileModal = false">Close</button></template>
-            <FormulateForm name="event-attendance-formulate-form-2" ref="event-attendance-formulate-form-2">
-                <FormulateInput type="file" :key="'event-attendance-formulate-input-attachment_file-' + addByFileForm.formKey"
-                    ref="event-attendance-formulate-input-attachment_file"
-                    name="event-attendance-formulate-input-attachment_file" v-model="addByFileForm.csvFile"
-                    label="Attachment file" help=""
-                    :validation-rules="{ maxFileSize: () => { return addByFileFormConstraints.csvFile.max_file_size.validation_rule() } }"
-                    :validation-messages="{ maxFileSize: addByFileFormConstraints.csvFile.max_file_size.validation_message() }"
-                    error-behavior="live" validation-event="input" validation="required|maxFileSize" upload-behavior="delayed"
-                    :disabled="false">
-                </FormulateInput>
-                <FormulateInput ref="event-attendance-formulate-input-all-valid-checkbox" v-model="addByFileForm.checkboxes"
-                    :options="{ all_must_valid: 'All rows must be valid' }" type="checkbox" :disabled="false">
-                </FormulateInput>
-
-                <button type="button" @click="bulkAddClick()" class="btn btn-primary">
-                    Process
-                </button>
-            </FormulateForm>
-        </AddAttendanceModal>
-
-    </div>
+        <button type="button" @click="bulkAddClick()" class="btn btn-primary">
+          Process
+        </button>
+      </FormulateForm>
+    </AddAttendanceModal>
+  </div>
 </template>
 
 <style scoped>
 .multiselect-university_id {
-    width: 68%;
+  width: 68%;
 }
 
 .formulate-form {
-    width: 50%;
-}</style>
+  width: 50%;
+}
+</style>

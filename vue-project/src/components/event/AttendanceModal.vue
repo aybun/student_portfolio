@@ -1,46 +1,45 @@
 <template>
-    <vue-final-modal v-slot="{ params, close }" v-bind="$attrs" classes="modal-container" content-class="modal-content"
-        v-on="$listeners">
-
-        <span class="modal__title">
-            <slot name="title"></slot>
-        </span>
-        <div class="modal__content">
-            <slot v-bind:params="params"></slot>
-        </div>
-        <div class="modal__action">
-            <!-- <v-button @click="$emit('confirm', close)">confirm</v-button>
+  <vue-final-modal
+    v-slot="{ params, close }"
+    v-bind="$attrs"
+    classes="modal-container"
+    content-class="modal-content"
+    v-on="$listeners"
+  >
+    <span class="modal__title">
+      <slot name="title"></slot>
+    </span>
+    <div class="modal__content">
+      <slot v-bind:params="params"></slot>
+    </div>
+    <div class="modal__action">
+      <!-- <v-button @click="$emit('confirm', close)">confirm</v-button>
             <v-button @click="$emit('cancel', close)">cancel</v-button> -->
-        </div>
-        <div class="modal__close">
-            <slot name="modal-close-text"></slot>
-        </div>
-    </vue-final-modal>
+    </div>
+    <div class="modal__close">
+      <slot name="modal-close-text"></slot>
+    </div>
+  </vue-final-modal>
 </template>
 
-
 <script>
-
-import { $vfm, VueFinalModal, ModalsContainer } from 'vue-final-modal'
+import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
 
 export default {
-    //   name: 'CustomModal',
-    components: {
-        VueFinalModal,
+  //   name: 'CustomModal',
+  components: {
+    VueFinalModal,
+  },
 
-    },
-
-    inheritAttrs: false,
-}
+  inheritAttrs: false,
+};
 </script>
-
 
 <style scoped>
 ::v-deep .modal-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  
 }
 ::v-deep .modal-content {
   position: relative;

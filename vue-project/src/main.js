@@ -5,28 +5,25 @@ import router from "./router";
 
 import "./assets/main.css";
 
-import * as VeeValidate from 'vee-validate' 
-import VueFormulate from '@braid/vue-formulate'
-import FormulateVueDatetimePlugin from '@cone2875/vue-formulate-datetime'
+import * as VeeValidate from "vee-validate";
+import VueFormulate from "@braid/vue-formulate";
+import FormulateVueDatetimePlugin from "@cone2875/vue-formulate-datetime";
 
-
-import VueCookies from 'vue-cookies'
-
-
+import VueCookies from "vue-cookies";
 
 Vue.use(VeeValidate, {
-  errorBagName: 'veeErrors', 
-})
+  errorBagName: "veeErrors",
+});
 
 Vue.use(VueFormulate, {
-  plugins : [FormulateVueDatetimePlugin]
-})
+  plugins: [FormulateVueDatetimePlugin],
+});
 
 //URLs
-Vue.prototype.$API_URL = "http://localhost:80/api/"
-// Vue.prototype.$MAIN_BACKEND_URL = "http://127.0.0.1:8000/" 
+Vue.prototype.$API_URL = "http://localhost:80/api/";
+// Vue.prototype.$MAIN_BACKEND_URL = "http://127.0.0.1:8000/"
 
-Vue.use(VueCookies)
+Vue.use(VueCookies);
 
 new Vue({
   router,
@@ -38,11 +35,7 @@ new Vue({
     //   this.$cookies.set("x-csrftoken", response.headers['x-csrftoken'], "1d")
     //   // console.log(this.$cookies.get('x-csrftoken'))
     // })
-
   },
 
-  mounted : function (){
-    
-  },
-
+  mounted: function () {},
 }).$mount("#app");

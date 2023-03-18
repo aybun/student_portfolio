@@ -1,909 +1,1073 @@
 <script>
+import { Multiselect } from "vue-multiselect";
+import { VueGoodTable } from "vue-good-table";
+import axios from "axios";
 
-
-import { Multiselect } from 'vue-multiselect'
-import { VueGoodTable } from  'vue-good-table';
-import axios from 'axios'
-
-import flatpickr from 'flatpickr'
-import 'flatpickr/dist/flatpickr.min.css'
-import * as bootstrap from 'bootstrap'
-
-
-
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
+import * as bootstrap from "bootstrap";
 
 export default {
-
-components:{
-    
+  components: {
     VueGoodTable,
     Multiselect,
-   
-},
+  },
 
-data()  {
+  data() {
     return {
-        modalTitle:"",
-        addingNewAward:false,
-        formKey:1,
-        showApproved:true,
+      modalTitle: "",
+      addingNewAward: false,
+      formKey: 1,
+      showApproved: true,
 
-        
-        attachment_file_max_file_size : 2000000,
+      attachment_file_max_file_size: 2000000,
 
-        staffTable:[],
-        studentTable:[], //Define user Api.
+      staffTable: [],
+      studentTable: [], //Define user Api.
 
+      user: {},
 
-        user:{},
+      award: {},
+      copiedAward: {},
+      awards: [],
 
-        award:{},
-        copiedAward:{},
-        awards:[],
-
-        formConstraints : {
-            attachment_file : {
-                max_file_size : {
-                    'size' : 2000000,
-                    'validation_message' : this.attachment_file_max_file_size_validation_message_function,
-                    'validation_rule' : this.attachment_file_max_file_size_validation_function
-                }
-            },   
+      formConstraints: {
+        attachment_file: {
+          max_file_size: {
+            size: 2000000,
+            validation_message:
+              this.attachment_file_max_file_size_validation_message_function,
+            validation_rule:
+              this.attachment_file_max_file_size_validation_function,
+          },
         },
-        
+      },
 
+      checkboxes: [],
+      checkboxFields: ["approved", "used_for_calculation"],
+      formulateInputFieldRefs: [
+        "formulate-input-title",
+        "formulate-input-rank",
+        "formulate-input-received_date",
+        "formulate-input-info",
+        "formulate-input-approved",
+        "formulate-input-used_for_calculation",
+        "formulate-input-attachment_link",
+        "formulate-input-attachment_file",
+      ],
 
-        checkboxes:[],
-        checkboxFields : ['approved', 'used_for_calculation'],
-        formulateInputFieldRefs: [
-            'formulate-input-title', 'formulate-input-rank',
-            'formulate-input-received_date', 'formulate-input-info',
-            'formulate-input-approved', 'formulate-input-used_for_calculation',
-            "formulate-input-attachment_link", 'formulate-input-attachment_file'],
+      modalReadonly: false,
 
-        modalReadonly : false,
-        
-        formRenderSpec : {
-            'staff' : {
-                'edit' : {
-                    'mode' : 'exclude',
-                    'fields' : []
-                },
-            },
-
-            'student' : {
-                'edit' : {
-                    'mode' : 'exclude',
-                    'fields' : ['used_for_calculation', 'approved']
-                },
-            }
-
+      formRenderSpec: {
+        staff: {
+          edit: {
+            mode: "exclude",
+            fields: [],
+          },
         },
 
-        formRender : {},
+        student: {
+          edit: {
+            mode: "exclude",
+            fields: ["used_for_calculation", "approved"],
+          },
+        },
+      },
 
-        vgtColumns : [
-            {
-                label: 'Award ID',
-                field: 'id',
-                tooltip: 'A simple tooltip',
-                thClass: 'text-center',
-                tdClass: 'text-center',
-            },
-            {
-                label: 'Title',
-                field: 'title',
-                thClass: 'text-center',
+      formRender: {},
 
-                filterOptions: {
-                    styleClass: 'class1', // class to be added to the parent th element
-                    enabled: true, // enable filter for this column
-                    placeholder: 'Filter This Thing', // placeholder for filter input
-                    filterValue: '', // initial populated value for this filter
-                    filterDropdownItems: [], // dropdown (with selected values) instead of text input
-                    // filterFn: this.columnFilterFn, //custom filter function that
-                    // trigger: 'enter', //only trigger on enter not on keyup
-                },
-            },
-            {
-                label: 'Received date',
-                field: 'received_date',
-                filterable: true,
-                type: "date",
-                dateInputFormat: "yyyy-mm-dd",
-                dateOutputFormat: "yyyy-mm-dd",
-                thClass: 'text-center',
-                tdClass: 'text-center',
-                filterOptions: {
-                    enabled: true,
-                    placeholder: "Filter Received",
-                    filterFn: this.dateRangeFilter,
-                }
+      vgtColumns: [
+        {
+          label: "Award ID",
+          field: "id",
+          tooltip: "A simple tooltip",
+          thClass: "text-center",
+          tdClass: "text-center",
+        },
+        {
+          label: "Title",
+          field: "title",
+          thClass: "text-center",
 
-            },
-            {
-                label: 'Approved',
-                field: 'approved',
-                thClass: 'text-center',
-                tdClass: 'text-center',
-                filterOptions: {
-                    styleClass: 'class1', // class to be added to the parent th element
-                    enabled: true, // enable filter for this column
-                    placeholder: 'All', // placeholder for filter input
-                    filterValue: '', // initial populated value for this filter
-                    filterDropdownItems: [true, false], // dropdown (with selected values) instead of text input
-                    // filterFn: this.columnApprovedFilterFn, //custom filter function that
-                    trigger: 'enter', //only trigger on enter not on keyup
-                },
-            },
-            {
-                label: 'Action',
-                field: 'action',
-                thClass: 'text-center',
-                tdClass: 'text-center',
-            },
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "Filter This Thing", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnFilterFn, //custom filter function that
+            // trigger: 'enter', //only trigger on enter not on keyup
+          },
+        },
+        {
+          label: "Received date",
+          field: "received_date",
+          filterable: true,
+          type: "date",
+          dateInputFormat: "yyyy-mm-dd",
+          dateOutputFormat: "yyyy-mm-dd",
+          thClass: "text-center",
+          tdClass: "text-center",
+          filterOptions: {
+            enabled: true,
+            placeholder: "Filter Received",
+            filterFn: this.dateRangeFilter,
+          },
+        },
+        {
+          label: "Approved",
+          field: "approved",
+          thClass: "text-center",
+          tdClass: "text-center",
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "All", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [true, false], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnApprovedFilterFn, //custom filter function that
+            trigger: "enter", //only trigger on enter not on keyup
+          },
+        },
+        {
+          label: "Action",
+          field: "action",
+          thClass: "text-center",
+          tdClass: "text-center",
+        },
+      ],
+    };
+  },
 
-        ],
+  methods: {
+    getEmptyAward() {
+      return {
+        id: 0,
+        title: "",
+        rank: 0,
+        received_date: "",
 
-    }
-},
+        info: "",
 
-methods:{
-    getEmptyAward(){
-        return {
-            id:0,
-            title:"",
-            rank: 0,
-            received_date: '',
+        created_by: "",
+        approved: false,
+        approved_by: "",
+        used_for_calculation: false,
 
-            info:"",
+        attachment_link: "",
+        attachment_file: "",
 
-            created_by:"",
-            approved:false,
-            approved_by: '',
-            used_for_calculation:false,
+        //many-to-many fields
+        skills: [],
+        receivers: [],
+        supervisors: [],
+      };
+    },
 
-            attachment_link:"",
-            attachment_file:"",
+    refreshData() {
+      axios.get(this.$API_URL + "award").then((response) => {
+        this.awards = response.data;
+      });
+    },
 
-            //many-to-many fields
-            skills: [],
-            receivers: [],
-            supervisors: [],
+    addClick() {
+      this.modalTitle = "Add Award";
+      this.addingNewAward = true; // Signal that we are adding new award.
+      this.modalReadonly = false;
+
+      this.assignDataToAwardForm(this.getEmptyAward());
+    },
+    async createClick() {
+      let formIsValid = false;
+      await this.validateForm().then((result) => {
+        formIsValid = result;
+      });
+
+      if (typeof testMode !== "undefined")
+        this.awardFormHasbeenSubmitted = formIsValid;
+
+      if (!formIsValid) return;
+
+      this.assignBooleanValueToCheckboxFields(
+        this.award,
+        this.checkboxes,
+        this.checkboxFields
+      );
+      const outForm = new FormData();
+      for (const [key, value] of Object.entries(this.award)) {
+        outForm.append(key.toString(), value);
+      }
+      outForm.set(
+        "attachment_file",
+        this.cleanAttachmentFile(this.award.attachment_file)
+      );
+      outForm.set(
+        "skills",
+        JSON.stringify(this.cleanManyToManyFields(this.award.skills))
+      );
+      outForm.set(
+        "receivers",
+        JSON.stringify(this.cleanManyToManyFields(this.award.receivers))
+      );
+      outForm.set(
+        "supervisors",
+        JSON.stringify(this.cleanManyToManyFields(this.award.supervisors))
+      );
+
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "post",
+        url: this.$API_URL + "award",
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        data: outForm,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-CSRFToken": "csrftoken",
+        },
+      }).then((response) => {
+        this.refreshData();
+        alert(response.data);
+      });
+    },
+    viewClick(award) {
+      this.modalTitle = "Award (read only mode)";
+      this.addingNewAward = false;
+      this.modalReadonly = true;
+
+      this.assignDataToAwardForm(award);
+    },
+    editClick(award) {
+      this.modalTitle = "Edit award";
+      this.addingNewAward = false;
+      this.modalReadonly = false;
+
+      this.assignDataToAwardForm(award);
+    },
+
+    assignDataToAwardForm(award) {
+      const stringified = JSON.stringify(award);
+      this.award = JSON.parse(stringified);
+      this.copiedAward = JSON.parse(stringified);
+
+      this.checkboxes = this.getListOfTrueCheckboxFields(
+        this.award,
+        this.checkboxFields
+      );
+    },
+
+    getListOfTrueCheckboxFields(formdata, checkboxFields) {
+      const checkboxes = [];
+      for (let i = 0; i < checkboxFields.length; ++i) {
+        if (formdata[checkboxFields[i]] === true)
+          checkboxes.push(this.checkboxFields[i]);
+      }
+      return checkboxes;
+    },
+
+    assignBooleanValueToCheckboxFields(formdata, checkboxes, checkboxFields) {
+      for (let i = 0; i < checkboxFields.length; ++i) {
+        const field_name = checkboxFields[i];
+        formdata[field_name] = checkboxes.includes(field_name);
+      }
+    },
+    async updateClick() {
+      let formIsValid = false;
+      await this.validateForm().then((result) => {
+        formIsValid = result;
+      });
+
+      if (typeof testMode !== "undefined")
+        this.awardFormHasbeenSubmitted = formIsValid;
+
+      if (!formIsValid) return;
+
+      this.assignBooleanValueToCheckboxFields(
+        this.award,
+        this.checkboxes,
+        this.checkboxFields
+      );
+      const outForm = new FormData();
+      for (const [key, value] of Object.entries(this.award)) {
+        outForm.append(key.toString(), value);
+      }
+      outForm.set(
+        "attachment_file",
+        this.cleanAttachmentFile(this.award.attachment_file)
+      );
+      outForm.set(
+        "skills",
+        JSON.stringify(this.cleanManyToManyFields(this.award.skills))
+      );
+      outForm.set(
+        "receivers",
+        JSON.stringify(this.cleanManyToManyFields(this.award.receivers))
+      );
+      outForm.set(
+        "supervisors",
+        JSON.stringify(this.cleanManyToManyFields(this.award.supervisors))
+      );
+
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "put",
+        url: this.$API_URL + "award/" + this.award.id,
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        data: outForm,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-CSRFToken": "csrftoken",
+        },
+      }).then((response) => {
+        const stringified = JSON.stringify(response.data);
+        this.reassignUpdatedElementIntoList(this.awards, response.data); //With reactivity.
+        this.award = JSON.parse(stringified);
+        this.copiedAward = JSON.parse(stringified);
+
+        console.log(response.data);
+        alert(stringified);
+      });
+    },
+
+    deleteClick(award_id) {
+      if (!confirm("Are you sure?")) {
+        return;
+      }
+
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "delete",
+        url: this.$API_URL + "award/" + award_id,
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        headers: {
+          "X-CSRFToken": "csrftoken",
+        },
+      }).then((response) => {
+        this.refreshData();
+        alert(response.data);
+      });
+    },
+
+    cleanManyToManyFields(list) {
+      //Remove empty or redundant inputs.
+      // console.log(list)
+      const nonEmpty = [];
+      const ids = [];
+      for (let i = 0; i < list.length; ++i) {
+        const id = list[i]["id"];
+
+        if (id !== "" && !ids.includes(id)) {
+          ids.push(list[i].id);
+          nonEmpty.push({ id: list[i].id });
         }
+      }
+      return nonEmpty;
     },
 
-    refreshData(){
-        axios.get(this.$API_URL + "award").
-         then((response)=>{
-            this.awards=response.data;
-        })
+    onFileSelected(event) {
+      this.award.attachment_file = event.target.files[0];
     },
 
-    addClick(){
-
-        this.modalTitle="Add Award"
-        this.addingNewAward= true // Signal that we are adding new award.
-        this.modalReadonly= false
-
-        this.assignDataToAwardForm(this.getEmptyAward());
-        
+    prepareData() {
+      this.award = this.getEmptyAward();
     },
-    async createClick(){
-        let formIsValid =  false;
-        await this.validateForm().then((result) => {
-             formIsValid = result
-        })
 
-        if (typeof testMode !== 'undefined')
-            this.awardFormHasbeenSubmitted = formIsValid;
-
-        if (!formIsValid)
-            return;
-        
-        this.assignBooleanValueToCheckboxFields(this.award, this.checkboxes, this.checkboxFields)
-        let outForm = new FormData();
-        for (const [key, value] of Object.entries(this.award)) {
-            outForm.append(key.toString(), value)
+    //custom labels
+    skillCustomLabel({ id, title }) {
+      if (id === "" || Object.is(id, null)) {
+        return "Select";
+      } else if (Object.is(title, null) || typeof title === "undefined") {
+        for (let i = 0; i < this.skillTable.length; ++i) {
+          if (this.skillTable[i].id === id) {
+            const temp = this.skillTable[i];
+            return `${temp.id} ${temp.title}`;
+          }
         }
-        outForm.set('attachment_file', this.cleanAttachmentFile(this.award.attachment_file))
-        outForm.set('skills', JSON.stringify(this.cleanManyToManyFields(this.award.skills)))
-        outForm.set('receivers', JSON.stringify(this.cleanManyToManyFields(this.award.receivers)))
-        outForm.set('supervisors', JSON.stringify(this.cleanManyToManyFields(this.award.supervisors)))
+      }
 
-        axios.defaults.xsrfCookieName = 'csrftoken';
-        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-        axios({
-            method: 'post',
-            url: this.$API_URL+"award",
-            xsrfCookieName: 'csrftoken',
-            xsrfHeaderName: 'X-CSRFToken',
-            data: outForm,
-            headers : {
-                'Content-Type': 'multipart/form-data',
-                'X-CSRFToken': 'csrftoken',
-            }
-        }).then((response)=>{
-            this.refreshData();
-            alert(response.data);
-        })
-
-    },
-    viewClick(award){
-        this.modalTitle="Award (read only mode)";
-        this.addingNewAward = false
-        this.modalReadonly = true
-
-        this.assignDataToAwardForm(award);
-    },
-    editClick(award){
-        this.modalTitle="Edit award";
-        this.addingNewAward = false
-        this.modalReadonly = false
-
-        this.assignDataToAwardForm(award)
+      return `${id} ${title}`;
     },
 
-    assignDataToAwardForm(award){
-        let stringified = JSON.stringify(award)
-        this.award = JSON.parse(stringified)
-        this.copiedAward = JSON.parse(stringified)
-
-        this.checkboxes = this.getListOfTrueCheckboxFields(this.award, this.checkboxFields)
-    },
-
-    getListOfTrueCheckboxFields(formdata, checkboxFields){
-
-            let checkboxes = []
-            for(let i=0; i < checkboxFields.length; ++i){
-                if (formdata[checkboxFields[i]] === true)
-                checkboxes.push(this.checkboxFields[i])
-            }
-            return checkboxes
-    },
-
-    assignBooleanValueToCheckboxFields(formdata, checkboxes, checkboxFields){
-            for (let i=0; i < checkboxFields.length; ++i){
-                let field_name = checkboxFields[i]
-                formdata[field_name] = checkboxes.includes(field_name)
-            }
-    },
-    async updateClick(){
-
-        let formIsValid =  false;
-        await this.validateForm().then((result) => {
-             formIsValid = result
-        })
-
-        if (typeof testMode !== 'undefined')
-            this.awardFormHasbeenSubmitted = formIsValid;
-
-        if (!formIsValid)
-            return;
-
-        this.assignBooleanValueToCheckboxFields(this.award, this.checkboxes, this.checkboxFields)
-        let outForm = new FormData();
-        for (const [key, value] of Object.entries(this.award)) {
-            outForm.append(key.toString(), value)
+    receiverCustomLabel({ id, university_id, firstname, lastname }) {
+      if (id === "" || Object.is(id, null)) {
+        return "Select";
+      } else if (university_id == null) {
+        for (let i = 0; i < this.studentTable.length; ++i) {
+          if (this.studentTable[i].id === id) {
+            const temp = this.studentTable[i];
+            return `${temp.university_id} ${temp.firstname} ${temp.lastname}`;
+          }
         }
-        outForm.set('attachment_file', this.cleanAttachmentFile(this.award.attachment_file))
-        outForm.set('skills', JSON.stringify(this.cleanManyToManyFields(this.award.skills)))
-        outForm.set('receivers', JSON.stringify(this.cleanManyToManyFields(this.award.receivers)))
-        outForm.set('supervisors', JSON.stringify(this.cleanManyToManyFields(this.award.supervisors)))
+      }
 
-        axios.defaults.xsrfCookieName = 'csrftoken';
-        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-        axios({
-            method: 'put',
-            url: this.$API_URL+"award/" + this.award.id,
-            xsrfCookieName: 'csrftoken',
-            xsrfHeaderName: 'X-CSRFToken',
-            data: outForm,
-            headers : {
-                'Content-Type': 'multipart/form-data',
-                'X-CSRFToken': 'csrftoken',
-            }
-        }).then((response)=>{
-            let stringified = JSON.stringify(response.data)
-            this.reassignUpdatedElementIntoList(this.awards, response.data) //With reactivity.
-            this.award = JSON.parse(stringified)
-            this.copiedAward = JSON.parse(stringified)
-
-            console.log(response.data)
-            alert(stringified);
-        })
-
+      return `${university_id} ${firstname} ${lastname}`;
     },
 
-    deleteClick(award_id){
-        if(!confirm("Are you sure?")){
-            return;
+    supervisorCustomLabel({ id, university_id, firstname, lastname }) {
+      if (id === "" || Object.is(id, null)) {
+        return "Select";
+      } else if (university_id == null) {
+        for (let i = 0; i < this.staffTable.length; ++i) {
+          if (this.staffTable[i].id === id) {
+            const temp = this.staffTable[i];
+            return `${temp.firstname} ${temp.lastname}`;
+          }
         }
+      }
 
-        axios.defaults.xsrfCookieName = 'csrftoken';
-        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-        axios({
-            method: 'delete',
-            url: this.$API_URL+"award/"+ award_id,
-            xsrfCookieName: 'csrftoken',
-            xsrfHeaderName: 'X-CSRFToken',
-            headers : {
-                'X-CSRFToken': 'csrftoken',
-            }
-        }).then((response)=>{
-            this.refreshData();
-            alert(response.data);
-        })
+      return `${firstname} ${lastname}`;
     },
 
-    cleanManyToManyFields(list){
-        //Remove empty or redundant inputs.
-        // console.log(list)
-        let nonEmpty = []
-        let ids = []
-        for (let i=0;i<list.length; ++i) {
-            let id = list[i]['id']
-
-            if ( id !== '' && !ids.includes(id)){
-                ids.push(list[i].id);
-                nonEmpty.push({'id' :list[i].id} )
-            }
-        }
-        return nonEmpty
+    selectionChanged(params) {
+      // console.log('heloo')
+      // this.selectedRows = params.selectedRows
+      // let selectedRows = this.$refs['vgt'].selectedRows
+      // console.log(selectedRows)
+      // console.log(params)
     },
 
-    onFileSelected(event){
-        this.award.attachment_file = event.target.files[0]
-    },
-        
-    prepareData(){
-        this.award = this.getEmptyAward()
-        
-    },
-        
-        //custom labels
-    skillCustomLabel({id, title}){
-        if (id === '' || Object.is(id,  null)){
-            return 'Select'
-        }
-        else if (Object.is(title, null) || typeof title === 'undefined'){
-            for (let i = 0; i < this.skillTable.length; ++i){
-                if (this.skillTable[i].id === id){
-                    let temp = this.skillTable[i]
-                    return `${temp.id} ${temp.title}`
-                }
-            }
-        }
+    rowActionDelete() {
+      const selectedRows = this.$refs["vgt"].selectedRows;
+      console.log(selectedRows);
 
-        return `${id} ${title}`
-    },
+      const ids = [];
+      for (let i = 0; i < selectedRows.length; ++i) {
+        ids.push(selectedRows[i].id);
+      }
 
-    receiverCustomLabel({ id, university_id, firstname, lastname }){
+      const outDict = new FormData();
+      outDict.append("ids", JSON.stringify(ids));
 
-        if (id === '' || Object.is(id,  null)){
+      axios.defaults.xsrfCookieName = "csrftoken";
+      axios.defaults.xsrfHeaderName = "X-CSRFToken";
+      axios({
+        method: "delete",
+        url: this.$API_URL + "award/multi-delete",
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+        data: outDict,
+        headers: {
+          "X-CSRFToken": "csrftoken",
+        },
+      }).then((response) => {
+        this.refreshData();
 
-            return 'Select'
-        }
-        else if (university_id == null){
-            for (let i = 0; i < this.studentTable.length; ++i){
-                if (this.studentTable[i].id === id){
-                    let temp = this.studentTable[i]
-                    return `${temp.university_id} ${temp.firstname} ${temp.lastname}`
-                }
-            }
-        }
-
-        return `${university_id} ${firstname} ${lastname}`
-    },
-
-    supervisorCustomLabel({id, university_id, firstname, lastname}){
-
-        if (id === '' || Object.is(id,  null)){
-            return 'Select'
-        }
-        else if (university_id == null){
-            for (let i = 0; i < this.staffTable.length; ++i){
-                if (this.staffTable[i].id === id){
-                    let temp = this.staffTable[i]
-                    return `${temp.firstname} ${temp.lastname}`
-                }
-            }
-        }
-
-        return `${firstname} ${lastname}`
-    },
-
-    selectionChanged(params){
-        // console.log('heloo')
-        // this.selectedRows = params.selectedRows
-        // let selectedRows = this.$refs['vgt'].selectedRows
-        // console.log(selectedRows)
-        // console.log(params)
-
-    },
-
-    rowActionDelete(){
-        let selectedRows = this.$refs['vgt'].selectedRows
-        console.log(selectedRows)
-
-        let ids = []
-        for(let i = 0; i < selectedRows.length; ++i){
-            ids.push(selectedRows[i].id)
-        }
-
-        let outDict = new FormData();
-        outDict.append('ids', JSON.stringify(ids))
-
-        axios.defaults.xsrfCookieName = 'csrftoken';
-        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-        axios({
-            method: 'delete',
-            url: this.$API_URL+"award/multi-delete",
-            xsrfCookieName: 'csrftoken',
-            xsrfHeaderName: 'X-CSRFToken',
-            data: outDict,
-            headers : {
-                'X-CSRFToken': 'csrftoken',
-            }
-        }).then((response)=>{
-            this.refreshData();
-
-            alert(response.data);
-        })
+        alert(response.data);
+      });
     },
 
     dateRangeFilter(data, filterString) {
-
-        let dateRange = filterString.split("to");
-        let startDate = Date.parse(dateRange[0]);
-        let endDate = Date.parse(dateRange[1]);
-        return (Date.parse(data) >= startDate && Date.parse(data) <= endDate);
-
+      const dateRange = filterString.split("to");
+      const startDate = Date.parse(dateRange[0]);
+      const endDate = Date.parse(dateRange[1]);
+      return Date.parse(data) >= startDate && Date.parse(data) <= endDate;
     },
-    toggleColumn( index, event ){
-        // Set hidden to inverse of what it currently is
-        this.$set( this.vgtColumns[ index ], 'hidden', ! this.vgtColumns[ index ].hidden );
+    toggleColumn(index, event) {
+      // Set hidden to inverse of what it currently is
+      this.$set(
+        this.vgtColumns[index],
+        "hidden",
+        !this.vgtColumns[index].hidden
+      );
     },
 
-    reassignUpdatedElementIntoList(list, element){
-        for (let i = 0; i < list.length; ++i){
-            if (list[i].id === element.id){
-                this.$set(list, i, element)
-                break;
-            }
+    reassignUpdatedElementIntoList(list, element) {
+      for (let i = 0; i < list.length; ++i) {
+        if (list[i].id === element.id) {
+          this.$set(list, i, element);
+          break;
         }
+      }
     },
 
-    cleanAttachmentFile(attachment_file_field){
-        // Idea : If there is a file, send it. If it is undefined, set it to ''.
-        // If it is a file path, we can send it to the backend without any issues.
-        let field = attachment_file_field
+    cleanAttachmentFile(attachment_file_field) {
+      // Idea : If there is a file, send it. If it is undefined, set it to ''.
+      // If it is a file path, we can send it to the backend without any issues.
+      const field = attachment_file_field;
 
-        let file = this.getFileOrNull(field)
-        if (file instanceof File)
-            return file
-        else{
-            if (typeof field === 'string') //
-                return field
-        }    
+      const file = this.getFileOrNull(field);
+      if (file instanceof File) return file;
+      else {
+        if (typeof field === "string")
+          //
+          return field;
+      }
 
-        if (typeof field === 'undefined')
-            return ''
+      if (typeof field === "undefined") return "";
 
-        return field
+      return field;
     },
-    getFileOrNull(field){
-        //We want to support both file and array of files as a field.
-        
-        if (field instanceof File)
-            return field
-        else if (typeof field === 'undefined' || field === null)
-            return null
-        else if (typeof field === 'string')
-            return null
-        else if (field.files.length === 0)
-            return null
-        else
-            return field.files[0].file
-    },      
-    
-    attachment_file_max_file_size_validation_function(){
-        //Idea : If the file exists, the size must be valid.
-        
-        let maxFileSize = this.formConstraints.attachment_file.max_file_size.size
-        let field = this.award.attachment_file
-        let file = this.getFileOrNull(field)
+    getFileOrNull(field) {
+      //We want to support both file and array of files as a field.
 
-        if (file instanceof File){
-            return file.size < maxFileSize
-        }
-        else
-            return true
+      if (field instanceof File) return field;
+      else if (typeof field === "undefined" || field === null) return null;
+      else if (typeof field === "string") return null;
+      else if (field.files.length === 0) return null;
+      else return field.files[0].file;
     },
 
-    attachment_file_max_file_size_validation_message_function(){
-        return 'The file size must not exceed ' + this.formConstraints.attachment_file.max_file_size.size + ' bytes.'
+    attachment_file_max_file_size_validation_function() {
+      //Idea : If the file exists, the size must be valid.
+
+      const maxFileSize =
+        this.formConstraints.attachment_file.max_file_size.size;
+      const field = this.award.attachment_file;
+      const file = this.getFileOrNull(field);
+
+      if (file instanceof File) {
+        return file.size < maxFileSize;
+      } else return true;
     },
 
-    async validateForm(){
-        
-        //Perform validation on the form.
-        await this.$formulate.submit('award-formulate-form-1');
-        
-        let vue_formulate_valid = this.$refs['award-formulate-form-1'].isValid;
-        
+    attachment_file_max_file_size_validation_message_function() {
+      return (
+        "The file size must not exceed " +
+        this.formConstraints.attachment_file.max_file_size.size +
+        " bytes."
+      );
+    },
 
-        //vee-validate
-        await this.$validator.validate().then((result) => {
-            return result
+    async validateForm() {
+      //Perform validation on the form.
+      await this.$formulate.submit("award-formulate-form-1");
+
+      const vue_formulate_valid = this.$refs["award-formulate-form-1"].isValid;
+
+      //vee-validate
+      await this.$validator.validate().then((result) => {
+        return result;
+      });
+
+      //We could take the result. But we want to be explicit here.
+      const vee_validate_valid = !this.veeErrors.has("multiselect-receivers");
+
+      return vue_formulate_valid && vee_validate_valid;
+    },
+
+    openNewWindow(url) {
+      window.open(url);
+    },
+
+    _generate_formRender() {
+      //Generate edit
+      const user = this.user;
+      let edit_info = {};
+
+      if (user.is_staff) {
+        edit_info = this.formRenderSpec["staff"]["edit"];
+      } else if (user.is_student) {
+        edit_info = this.formRenderSpec["student"]["edit"];
+      }
+
+      const formRender = {};
+      formRender["edit"] = {};
+
+      if (edit_info["mode"] === "exclude") {
+        Object.entries(this.getEmptyAward()).forEach(([key, _]) => {
+          formRender.edit[key.toString()] = !edit_info.fields.includes(key);
         });
+      } else if (edit_info["mode"] === "include") {
+        Object.entries(this.getEmptyAward()).forEach(([key, _]) => {
+          formRender.edit[key.toString()] = edit_info.fields.includes(key);
+        });
+      } else {
+        throw "The mode must be in { exlude, include }.";
+      }
 
-        //We could take the result. But we want to be explicit here.
-        let vee_validate_valid = (!this.veeErrors.has('multiselect-receivers'))
-
-        return vue_formulate_valid && vee_validate_valid
+      this.formRender = formRender;
     },
+  },
 
-    openNewWindow(url){
-        window.open(url);
-    },
-
-    _generate_formRender(){
-        //Generate edit
-        let user = this.user
-        let edit_info = {}
-        
-        if (user.is_staff){
-            edit_info = this.formRenderSpec['staff']['edit']
-        } else if (user.is_student){
-            edit_info = this.formRenderSpec['student']['edit']
-        }
-        
-        let formRender = {}
-        formRender['edit'] = {}
-
-        if (edit_info['mode'] === 'exclude'){
-            Object.entries(this.getEmptyAward()).forEach(([key, _]) => {
-                formRender.edit[key.toString()] = ! edit_info.fields.includes(key)
-            });
-        } else if (edit_info['mode'] === 'include'){
-            Object.entries(this.getEmptyAward()).forEach(([key, _]) => {
-                formRender.edit[key.toString()] = edit_info.fields.includes(key)
-            });
-        } else {
-            throw "The mode must be in { exlude, include }.";
-        }
-
-        this.formRender = formRender
-    }
-
-},
-
-created: async function(){
+  created: async function () {
     this.prepareData(); // Assign an empty award.
-    
-    if (typeof this.testMode !== 'undefined'){
-        this._generate_formRender();
-        return;
+
+    if (typeof this.testMode !== "undefined") {
+      this._generate_formRender();
+      return;
     }
 
-        
     // console.log(documuent.cookies)
-    console.log("Hello from Award.Vue")
-    axios.defaults.xsrfCookieName = 'csrftoken'
-    axios.defaults.xsrfHeaderName = "X-CSRFToken"
+    console.log("Hello from Award.Vue");
+    axios.defaults.xsrfCookieName = "csrftoken";
+    axios.defaults.xsrfHeaderName = "X-CSRFToken";
     axios.defaults.withCredentials = true;
 
-    await axios.get(this.$API_URL+"user")
-        .then((response)=>{
-            this.user=response.data;
-            // console.log(this.user)
-        }).catch((error) => {
-            console.log(error)
-        })
+    await axios
+      .get(this.$API_URL + "user")
+      .then((response) => {
+        this.user = response.data;
+        // console.log(this.user)
+      })
+      .catch((error) => {
+        console.log(error);
+      });
 
     this._generate_formRender();
 
-    axios.get(this.$API_URL + "award")
-        .then((response)=>{
-            this.awards=response.data;
-            // console.log(this.awards)
-        })
-
-    axios.get(this.$API_URL + "student")
-        .then((response)=>{
-            this.studentTable=response.data;
-        })
-
-
-    axios.get(this.$API_URL+"staff")
-    .then((response)=>{
-        this.staffTable=response.data;
-        
+    axios.get(this.$API_URL + "award").then((response) => {
+      this.awards = response.data;
+      // console.log(this.awards)
     });
 
-    axios.get(this.$API_URL+"skillTable")
-    .then((response)=>{
-        this.skillTable=response.data;
+    axios.get(this.$API_URL + "student").then((response) => {
+      this.studentTable = response.data;
     });
 
-    
-},
+    axios.get(this.$API_URL + "staff").then((response) => {
+      this.staffTable = response.data;
+    });
 
-mounted:function() {
+    axios.get(this.$API_URL + "skillTable").then((response) => {
+      this.skillTable = response.data;
+    });
+  },
+
+  mounted: function () {
     // if (this.testMode)
     //     return;
-    
-    window.onload=()=>{
-            let inputs = [
-            'input[placeholder="Filter Received"]',
-            // 'input[placeholder="Filter Start Date"]'
-            // 'input[placeholder="Filter Need By Date"]'
-            ];
 
-        inputs.forEach(function(input) {
-            flatpickr(input, {
-            dateFormat: "Y-m-d",
-            mode: "range",
-            allowInput: true,
-            // enableTime:true,
-            });
+    window.onload = () => {
+      const inputs = [
+        'input[placeholder="Filter Received"]',
+        // 'input[placeholder="Filter Start Date"]'
+        // 'input[placeholder="Filter Need By Date"]'
+      ];
+
+      inputs.forEach(function (input) {
+        flatpickr(input, {
+          dateFormat: "Y-m-d",
+          mode: "range",
+          allowInput: true,
+          // enableTime:true,
         });
-        
-        document.getElementById('edit-info-modal').addEventListener('hidden.bs.modal', (event)=> {
-            this.veeErrors.clear()
-            this.formKey += 1
-            
-        })
-    }
-    
-}
+      });
 
-}
+      document
+        .getElementById("edit-info-modal")
+        .addEventListener("hidden.bs.modal", (event) => {
+          this.veeErrors.clear();
+          this.formKey += 1;
+        });
+    };
+  },
+};
 </script>
 
 <template>
   <div>
-    <button type="button"
-            class="btn btn-primary m-2 fload-end"
-            data-bs-toggle="modal"
-            data-bs-target="#edit-info-modal"
-            @click="addClick()"
+    <button
+      type="button"
+      class="btn btn-primary m-2 fload-end"
+      data-bs-toggle="modal"
+      data-bs-target="#edit-info-modal"
+      @click="addClick()"
     >
-         Create Award
+      Create Award
     </button>
 
-    <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = true">
-         show approved
-     </button>
-    <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = false">
-         show unapproved
-     </button>
+    <button
+      type="button"
+      class="btn btn-primary m-2 fload-end"
+      v-on:click="showApproved = true"
+    >
+      show approved
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary m-2 fload-end"
+      v-on:click="showApproved = false"
+    >
+      show unapproved
+    </button>
 
     <vue-good-table
-        ref="vgt"
-        :columns="vgtColumns"
-        :rows="awards"
-        :select-options="{enabled: true, selectOnCheckboxOnly: true,}"
-        :search-options="{ enabled: true }"
-        :pagination-options="{ enabled: true, mode: 'records', perPage: 10, setCurrentPage: 1, }"
-        @on-selected-rows-change="selectionChanged"
-
+      ref="vgt"
+      :columns="vgtColumns"
+      :rows="awards"
+      :select-options="{ enabled: true, selectOnCheckboxOnly: true }"
+      :search-options="{ enabled: true }"
+      :pagination-options="{
+        enabled: true,
+        mode: 'records',
+        perPage: 10,
+        setCurrentPage: 1,
+      }"
+      @on-selected-rows-change="selectionChanged"
     >
+      <div slot="selected-row-actions">
+        <button @click="rowActionDelete">delete</button>
+      </div>
 
+      <div slot="table-actions">
+        <div class="dropdown">
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            columns
+          </button>
 
-        <div slot="selected-row-actions">
-            <button @click="rowActionDelete">delete</button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a
+              class="dropdown-item"
+              v-for="(column, index) in vgtColumns"
+              :key="index"
+              href="#"
+            >
+              <span
+                href="#"
+                class="small"
+                tabIndex="-1"
+                @click.prevent="toggleColumn(index, $event)"
+              >
+                <formulate-input
+                  type="checkbox"
+                  v-if="!column.hidden"
+                  disabled="true"
+                  checked="true"
+                ></formulate-input>
+                {{ column.label }}
+              </span>
+            </a>
+          </div>
         </div>
+      </div>
 
-        <div slot="table-actions">
-            <div class="dropdown">
+      <template slot="table-row" slot-scope="props">
+        <span v-if="props.column.field == 'action'">
+          <button
+            v-if="user.is_staff || user.is_student"
+            type="button"
+            class="btn btn-light mr-1"
+            data-bs-toggle="modal"
+            data-bs-target="#edit-info-modal"
+            @click="viewClick(props.row)"
+          >
+            <i class="bi bi-eye"></i>
+          </button>
 
-                  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    columns
-                  </button>
+          <button
+            v-if="
+              user.is_staff ||
+              (!props.row.approved &&
+                props.row.created_by === user.id &&
+                user.is_student)
+            "
+            type="button"
+            :id="'edit-button-' + props.row.id"
+            class="btn btn-light mr-1"
+            data-bs-toggle="modal"
+            data-bs-target="#edit-info-modal"
+            @click="editClick(props.row)"
+          >
+            <i class="bi bi-pencil-square"></i>
+          </button>
 
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
+          <button
+            v-if="
+              user.is_staff ||
+              (!props.row.approved &&
+                props.row.created_by === user.id &&
+                user.is_student)
+            "
+            type="button"
+            @click="deleteClick(props.row.id)"
+            class="btn btn-light mr-1"
+          >
+            <i class="bi bi-trash"></i>
+          </button>
+        </span>
 
-                            <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn( index, $event )" >
-                                <formulate-input type="checkbox" v-if="!column.hidden" disabled="true" checked="true"></formulate-input>
-                                {{ column.label }}
-                            </span>
-
-                        </a>
-                  </div>
-
-            </div>
-
-        </div>
-
-        <template slot="table-row" slot-scope="props">
-            <span v-if="props.column.field == 'action'">
-
-                <button v-if="user.is_staff || user.is_student" type="button"
-                    class="btn btn-light mr-1"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit-info-modal"
-                    @click="viewClick(props.row);">
-                        <i class="bi bi-eye"></i>
-                </button>
-
-                <button v-if="user.is_staff || !props.row.approved && props.row.created_by === user.id && user.is_student" type="button"
-                    :id="'edit-button-' + props.row.id"
-                    class="btn btn-light mr-1"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit-info-modal"
-                    @click="editClick(props.row)">
-                        <i class="bi bi-pencil-square"></i>
-                </button>
-
-                <button v-if="user.is_staff || !props.row.approved && props.row.created_by === user.id && user.is_student" type="button" @click="deleteClick(props.row.id)"
-                    class="btn btn-light mr-1">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </span>
-
-            <span v-else>
-              {{props.formattedRow[props.column.field]}}
-            </span>
+        <span v-else>
+          {{ props.formattedRow[props.column.field] }}
+        </span>
       </template>
     </vue-good-table>
 
-<!--    <div class="modal fade" id="edit-info-modal" tabindex="-1"-->
-    <div class="modal fade" id="edit-info-modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"
-         aria-labelledby="ModalLabel" aria-hidden="true">
-
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+    <!--    <div class="modal fade" id="edit-info-modal" tabindex="-1"-->
+    <div
+      class="modal fade"
+      id="edit-info-modal"
+      tabindex="-1"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      aria-labelledby="ModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                    <h5 class="modal-title" id="ModalLabel">{{modalTitle}}</h5>
+          <div class="modal-header">
+            <h5 class="modal-title" id="ModalLabel">{{ modalTitle }}</h5>
 
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
 
-            <div class="modal-body">
+          <div class="modal-body">
+            <div class="d-flex flex-row bd-highlight mb-3">
+              <div class="p-1 w-50 bd-highlight">
+                <FormulateForm
+                  name="award-formulate-form-1"
+                  ref="award-formulate-form-1"
+                  #default="{ hasErrors }"
+                >
+                  <formulate-input
+                    ref="formulate-input-title"
+                    type="text"
+                    v-model="award.title"
+                    label="Title"
+                    validation="required|max:100"
+                    :readonly="modalReadonly || !formRender.edit.title"
+                  ></formulate-input>
 
-                <div class="d-flex flex-row bd-highlight mb-3">
+                  <formulate-input
+                    ref="formulate-input-rank"
+                    type="number"
+                    v-model="award.rank"
+                    label="Rank"
+                    validation="required|number|min:0"
+                    :readonly="modalReadonly || !formRender.edit.rank"
+                  >
+                  </formulate-input>
 
-                    <div class="p-1 w-50 bd-highlight">
-                        <FormulateForm name="award-formulate-form-1" ref="award-formulate-form-1"  #default="{ hasErrors }">
-                                
-                        <formulate-input ref="formulate-input-title" type="text" v-model="award.title" label="Title" validation="required|max:100" :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
+                  <formulate-input
+                    ref="formulate-input-received_date"
+                    type="date"
+                    v-model="award.received_date"
+                    label="Received Date"
+                    validation="required"
+                    :readonly="modalReadonly || !formRender.edit.received_date"
+                  ></formulate-input>
 
-                        <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"  label="Rank" validation="required|number|min:0" :readonly="modalReadonly || !formRender.edit.rank">
+                  <formulate-input
+                    ref="formulate-input-info"
+                    label="Info"
+                    :key="'award-formulate-input-info-' + formKey"
+                    type="textarea"
+                    v-model="award.info"
+                    validation="max:200,length"
+                    :readonly="modalReadonly || !formRender.edit.info"
+                    validation-name="info"
+                  ></formulate-input>
 
-                        </formulate-input>
-                        
-                        <formulate-input ref="formulate-input-received_date" type="date" v-model="award.received_date"  label="Received Date" validation="required" :readonly="modalReadonly || !formRender.edit.received_date"></formulate-input>
+                  <div class="skill">
+                    <h6>Skills</h6>
 
-                        <formulate-input ref="formulate-input-info" label="Info" :key="'award-formulate-input-info-' + formKey" type="textarea" v-model="award.info" validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
+                    <multiselect
+                      v-model="award.skills"
+                      :hide-selected="true"
+                      :close-on-select="false"
+                      :multiple="true"
+                      :options="skillTable"
+                      :custom-label="skillCustomLabel"
+                      track-by="id"
+                      placeholder="Select..."
+                      :disabled="modalReadonly || !formRender.edit.skills"
+                    >
+                    </multiselect>
+                  </div>
 
-
-                        <div class="skill">
-                            <h6>Skills</h6>
-
-                            <multiselect v-model="award.skills" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="skillTable" :custom-label="skillCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
-
-                            </multiselect>
-                            
-                        </div>
-
-                        <div class="receiver">
-                            <h1>Receivers</h1>
-                            <div>
-
-                                    <multiselect  ref="multiselect-receivers" name="multiselect-receivers" v-model="award.receivers"
-                                                v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="receivers"
-
-                                                  :hide-selected="true"  :close-on-select="false" :multiple="true" :options="studentTable" :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.receivers">
-
-                                    </multiselect>                    
-                                    <span v-show="veeErrors.has('multiselect-receivers')" class="formulate-input-errors" style="color:red;" >{{ veeErrors.first('multiselect-receivers') }}</span>
-                            </div>
-                        </div>
-
-                        <div class="staff">
-                            <h3>Supervisors</h3>
-                            <multiselect v-model="award.supervisors" :hide-selected="true"  :close-on-select="false" :multiple="true" :options="staffTable" :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..." :disabled="modalReadonly || !formRender.edit.supervisors"></multiselect>
-                        </div>
-
-                        <p></p>
-
-                        <div  class="mb-3">
-
-                            <FormulateInput  ref="formulate-input-approved" v-model="checkboxes" :options="{approved : 'approved'}" type="checkbox" :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
-                            <FormulateInput  ref="formulate-input-used_for_calculation" v-model="checkboxes" :options="{used_for_calculation : 'Use for calculation'}" type="checkbox" :disabled="modalReadonly || !formRender.edit.used_for_calculation"></FormulateInput>
-                        </div>
-
-                        <div  class="mb-3">
-
-                            <FormulateInput
-                                  ref="formulate-input-attachment_link"
-                                  type="url"
-                                  v-model="award.attachment_link"
-                                  label="Attachment link"
-                                  placeholder="Copy and paste url here"
-                                  help="copy and paste url"
-                                  validation=""
-                                  :disabled="modalReadonly || !formRender.edit.attachment_link"
-                            ></FormulateInput>
-                        </div>
-
-                        <p></p>
-
-                        <div class="mb-3">
-
-                            <FormulateInput                        
-                              type="file"
-                              :key="'award-formulate-input-attachment_file-' + formKey"  
-                              ref="formulate-input-attachment_file"
-                              name="formulate-input-attachment_file"
-                              v-model="award.attachment_file"
-                              label="Attachment file"
-                              help="The file size must not exceed 2MB."
-                              :validation-rules="{maxFileSize : ()=>{return formConstraints.attachment_file.max_file_size.validation_rule()}}"
-
-                              :validation-messages="{ maxFileSize : formConstraints.attachment_file.max_file_size.validation_message()}"
-                            
-                              error-behavior="live"
-                              validation-event="input"
-                              validation="maxFileSize"
-
-                              upload-behavior="delayed"
-
-                              :disabled="modalReadonly || !formRender.edit.attachment_file"
-
-                            ></FormulateInput>
-<!--                            File Button-->
-                            <button v-if="copiedAward.attachment_file != '' &&  !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-primary" @click="openNewWindow(copiedAward.attachment_file)"> File URL </button>
-                            <button v-if="copiedAward.attachment_file != '' && !Object.is(copiedAward.attachment_file, null)" type="button" class="btn btn-outline-danger" @click=" copiedAward.attachment_file=''; award.attachment_file=''; formKey += 1;" :disabled="modalReadonly"> Remove File </button>
-
-                        </div>
-
-                        <!--                        <End of inputs>-->
-                    <FormulateInput v-if="false"  type="submit" :disabled="hasErrors" @click="updateClick()">
-
-                        Update
-
-                    </FormulateInput>
-
-
-                </FormulateForm>
+                  <div class="receiver">
+                    <h1>Receivers</h1>
+                    <div>
+                      <multiselect
+                        ref="multiselect-receivers"
+                        name="multiselect-receivers"
+                        v-model="award.receivers"
+                        v-validate="'required|min:1'"
+                        data-vv-validate-on="input"
+                        data-vv-as="receivers"
+                        :hide-selected="true"
+                        :close-on-select="false"
+                        :multiple="true"
+                        :options="studentTable"
+                        :custom-label="receiverCustomLabel"
+                        track-by="id"
+                        placeholder="Select..."
+                        :disabled="modalReadonly || !formRender.edit.receivers"
+                      >
+                      </multiselect>
+                      <span
+                        v-show="veeErrors.has('multiselect-receivers')"
+                        class="formulate-input-errors"
+                        style="color: red"
+                        >{{ veeErrors.first("multiselect-receivers") }}</span
+                      >
                     </div>
+                  </div>
 
+                  <div class="staff">
+                    <h3>Supervisors</h3>
+                    <multiselect
+                      v-model="award.supervisors"
+                      :hide-selected="true"
+                      :close-on-select="false"
+                      :multiple="true"
+                      :options="staffTable"
+                      :custom-label="supervisorCustomLabel"
+                      track-by="id"
+                      placeholder="Select..."
+                      :disabled="modalReadonly || !formRender.edit.supervisors"
+                    ></multiselect>
+                  </div>
 
+                  <p></p>
 
-                </div>
+                  <div class="mb-3">
+                    <FormulateInput
+                      ref="formulate-input-approved"
+                      v-model="checkboxes"
+                      :options="{ approved: 'approved' }"
+                      type="checkbox"
+                      :disabled="modalReadonly || !formRender.edit.approved"
+                    ></FormulateInput>
+                    <FormulateInput
+                      ref="formulate-input-used_for_calculation"
+                      v-model="checkboxes"
+                      :options="{ used_for_calculation: 'Use for calculation' }"
+                      type="checkbox"
+                      :disabled="
+                        modalReadonly || !formRender.edit.used_for_calculation
+                      "
+                    ></FormulateInput>
+                  </div>
 
-            </div>
+                  <div class="mb-3">
+                    <FormulateInput
+                      ref="formulate-input-attachment_link"
+                      type="url"
+                      v-model="award.attachment_link"
+                      label="Attachment link"
+                      placeholder="Copy and paste url here"
+                      help="copy and paste url"
+                      validation=""
+                      :disabled="
+                        modalReadonly || !formRender.edit.attachment_link
+                      "
+                    ></FormulateInput>
+                  </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button id="createButton" type="button" @click="createClick()"
-                    v-if="addingNewAward" class="btn btn-primary" >
-                    Create
-                </button>
-<!--                type="button" class="btn btn-primary"-->
-                <button type="button" class="btn btn-primary" v-if="!modalReadonly && !addingNewAward && (user.is_staff || user.is_student && (award.created_by == user.id))" id="updateButton"
-                      @click="updateClick();">
+                  <p></p>
+
+                  <div class="mb-3">
+                    <FormulateInput
+                      type="file"
+                      :key="'award-formulate-input-attachment_file-' + formKey"
+                      ref="formulate-input-attachment_file"
+                      name="formulate-input-attachment_file"
+                      v-model="award.attachment_file"
+                      label="Attachment file"
+                      help="The file size must not exceed 2MB."
+                      :validation-rules="{
+                        maxFileSize: () => {
+                          return formConstraints.attachment_file.max_file_size.validation_rule();
+                        },
+                      }"
+                      :validation-messages="{
+                        maxFileSize:
+                          formConstraints.attachment_file.max_file_size.validation_message(),
+                      }"
+                      error-behavior="live"
+                      validation-event="input"
+                      validation="maxFileSize"
+                      upload-behavior="delayed"
+                      :disabled="
+                        modalReadonly || !formRender.edit.attachment_file
+                      "
+                    ></FormulateInput>
+                    <!--                            File Button-->
+                    <button
+                      v-if="
+                        copiedAward.attachment_file != '' &&
+                        !Object.is(copiedAward.attachment_file, null)
+                      "
+                      type="button"
+                      class="btn btn-primary"
+                      @click="openNewWindow(copiedAward.attachment_file)"
+                    >
+                      File URL
+                    </button>
+                    <button
+                      v-if="
+                        copiedAward.attachment_file != '' &&
+                        !Object.is(copiedAward.attachment_file, null)
+                      "
+                      type="button"
+                      class="btn btn-outline-danger"
+                      @click="
+                        copiedAward.attachment_file = '';
+                        award.attachment_file = '';
+                        formKey += 1;
+                      "
+                      :disabled="modalReadonly"
+                    >
+                      Remove File
+                    </button>
+                  </div>
+
+                  <!--                        <End of inputs>-->
+                  <FormulateInput
+                    v-if="false"
+                    type="submit"
+                    :disabled="hasErrors"
+                    @click="updateClick()"
+                  >
                     Update
-                </button>
+                  </FormulateInput>
+                </FormulateForm>
+              </div>
             </div>
+          </div>
 
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              id="createButton"
+              type="button"
+              @click="createClick()"
+              v-if="addingNewAward"
+              class="btn btn-primary"
+            >
+              Create
+            </button>
+            <!--                type="button" class="btn btn-primary"-->
+            <button
+              type="button"
+              class="btn btn-primary"
+              v-if="
+                !modalReadonly &&
+                !addingNewAward &&
+                (user.is_staff ||
+                  (user.is_student && award.created_by == user.id))
+              "
+              id="updateButton"
+              @click="updateClick()"
+            >
+              Update
+            </button>
+          </div>
         </div>
-
-
-        </div>
-
+      </div>
     </div>
-</div>
+  </div>
 </template>
 
-
-
-
-
-<style scoped>
-
-</style>
+<style scoped></style>
