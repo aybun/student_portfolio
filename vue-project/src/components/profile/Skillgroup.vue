@@ -57,7 +57,7 @@
             </template>
         </vue-good-table>
         <div class="modal fade" id="edit-info-modal" tabindex="-1" aria-labelledby="edit-info-modal-label"
-            aria-hidden="true">
+            aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog modal-xl modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -79,23 +79,20 @@
                                         v-model="skillgroup.info" validation="max:200,length"
                                         :readonly="modalReadonly || !formRender.edit.info"
                                         validation-name="info"></formulate-input>
-                                    <div>
-                                        <h6>Skills</h6>
-                                        <multiselect v-model="skillgroup.skills" :hide-selected="true"
-                                            :close-on-select="false" ref="skillgroup-multiselect-skills"
-                                            name="skillgroup-multiselect-skills" :multiple="true" :options="skillTable"
-                                            :custom-label="_skills_custom_label" track-by="id" placeholder="Select..."
-                                            v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="skills"
-                                            data-vv-scope="skillgroup" :disabled="modalReadonly || !formRender.edit.skills">
-                                        </multiselect>
-                                        <span v-show="
-                                            veeErrors.has('skillgroup.skillgroup-multiselect-skills')
-                                        " style="color: red">{{
-    veeErrors.first(
-        "'skillgroup.skillgroup-multiselect-skills'"
-    )
-}}</span>
-                                    </div>
+                                        <FormulateInput
+                                            v-model="skillgroup.skills"
+                                            type="group"
+                                            name="skills"
+                                            :key="'skillgroup-group-' + formKey"
+                                            :repeatable="!modalReadonly"
+                                            label="Skills"
+                                            add-label="+ Add Skill"
+                                            validation="required"
+                                        >                        
+                                            <FormulateInput type="vue-select" name="skill_id_fk" label="Skill" :options="skillTableVueSelect" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput>
+                                            <FormulateInput type="number" name='goal_point' label="Point" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput> 
+                                            
+                                        </FormulateInput>
                                 </FormulateForm>
 
 
@@ -106,12 +103,12 @@
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                 Close
                             </button>
-                            <button id="createButton" type="button" @click="createClick()" v-if="addingNewSkillgroup"
+                            <button id="createButton" type="button" @click="createClick()" v-if="addingNewSkillgroup && !modalReadonly"
                                 class="btn btn-primary">
                                 Create
                             </button>
 
-                            <button id="updateButton" type="button" @click="updateClick()" v-if="!addingNewSkillgroup"
+                            <button id="updateButton" type="button" @click="updateClick()" v-if="!addingNewSkillgroup && !modalReadonly"
                                 class="btn btn-primary">
                                 Update
                             </button>
@@ -145,7 +142,11 @@ export default {
             copiedSkillgroup: {},
             skillgroups: [],
 
+            // inputGroup : [],
+
+            skillTableVueSelect : [],
             skillTable: [],
+
             user: {},
             addingNewSkillgroup: false,
             formKey: 1,
@@ -241,6 +242,8 @@ export default {
             this.addingNewSkillgroup = false;
             this.modalReadonly = true;
 
+            // this.formKey += 1
+            
             this.assignDataToSkillgroupForm(skillgroup);
         },
         editClick(skillgroup) {
@@ -300,13 +303,15 @@ export default {
 
             if (!formIsValid) return;
 
+            console.log(this.skillgroup)
             const outForm = new FormData();
             for (const [key, value] of Object.entries(this.skillgroup)) {
                 outForm.append(key.toString(), value);
             }
+            console.log(this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']))
             outForm.set(
                 "skills",
-                JSON.stringify(this.cleanManyToMantFields(this.skillgroup.skills))
+                JSON.stringify(this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']))
             );
 
             //Make a request.
@@ -348,19 +353,30 @@ export default {
                 alert(response.data);
             });
         },
-        cleanManyToManyFields(list) {
+        cleanManyToManyFieldsWithFieldSelection(list, distintFieldName="id", selectedFields=[]) {
             //Remove empty or redundant inputs.
-            // console.log(list)
+            
+            // id (distintFieldName) is selected by default.
+
             const nonEmpty = [];
             const ids = [];
             for (let i = 0; i < list.length; ++i) {
-                const id = list[i]["id"];
+                let element = list[i]
+                const elemnt_id = element[distintFieldName];
 
-                if (id !== "" && !ids.includes(id)) {
-                    ids.push(list[i].id);
-                    nonEmpty.push({ id: list[i].id });
+                if (elemnt_id !== "" && !ids.includes(elemnt_id)) {
+                    ids.push(elemnt_id);
+                    
+                    let tempDict = {}
+                    tempDict[distintFieldName] = elemnt_id
+                    selectedFields.forEach((fieldName)=>{
+                        tempDict[fieldName] = element[fieldName]
+                    })
+
+                    nonEmpty.push(tempDict);
                 }
             }
+            
             return nonEmpty;
         },
 
@@ -423,27 +439,45 @@ export default {
             return `${id} ${title}`;
         },
 
+        _generate_skillTableVueSelect(){
+            let arr = []
+            this.skillTable.forEach((element)=>{
+                arr.push({'value' : `${element.id}`, 'label' : `${element.id} ${element.title}`})
+            })
+            console.log(arr)
+            this.skillTableVueSelect = arr
+        },
+
     },
     created: async function () {
         this.skillgroup = this.getEmptySkillgroup();
 
         if (typeof this.testMode !== "undefined") {
             this._generate_formRender();
+            this.__generate_skillTableVueSelect();
             return;
         }
+
         this.variables.API_URL = this.$API_URL
         await axios.get(this.variables.API_URL + "user").then((response) => {
             this.user = response.data;
+            this._generate_formRender(); //Generate the form rendering rule based on user.
         });
-
-        this._generate_formRender();
 
         axios.get(this.variables.API_URL + "skillgroup").then((response) => {
             this.skillgroups = response.data;
+            this.skillgroups.forEach((skillgroup) => {
+                for(let i = 0; i < skillgroup.skills.length; ++i){
+                    skillgroup.skills[i].skill_id_fk = String(skillgroup.skills[i].skill_id_fk)
+                }
+            })
+            
         });
 
         axios.get(this.variables.API_URL + "skillTable").then((response) => {
             this.skillTable = response.data;
+            this._generate_skillTableVueSelect();
+            // console.log(this.)
         });
     },
 
@@ -454,7 +488,7 @@ export default {
                 // 'input[placeholder="Filter Start Date"]',
                 // 'input[placeholder="Filter Need By Date"]'
             ];
-
+            
             inputs.forEach(function (input) {
                 flatpickr(input, {
                     dateFormat: "Y-m-d",

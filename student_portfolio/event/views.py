@@ -612,8 +612,10 @@ def skillGroupApi(request, skillgroup_id=0):
             return JsonResponse("Failed to update.", safe=False)
 
         data = request.data.dict()
-        # print(data)
+        print(data)
         data = Serializer.custom_clean(data=data, context={'request': request})
+        print('cleaned data :')
+        print(data)
         serializer = Serializer(object, data=data, context={'request': request})
         # print(data)
         if serializer.is_valid():

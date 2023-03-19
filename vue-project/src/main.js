@@ -8,6 +8,8 @@ import "./assets/main.css";
 import * as VeeValidate from "vee-validate";
 import VueFormulate from "@braid/vue-formulate";
 import FormulateVueDatetimePlugin from "@cone2875/vue-formulate-datetime";
+import FormulateVSelectPlugin from '@cone2875/vue-formulate-select'
+import 'vue-select/dist/vue-select.css';
 
 import VueCookies from "vue-cookies";
 
@@ -16,7 +18,7 @@ Vue.use(VeeValidate, {
 });
 
 Vue.use(VueFormulate, {
-  plugins: [FormulateVueDatetimePlugin],
+  plugins: [FormulateVueDatetimePlugin, FormulateVSelectPlugin ],
 });
 
 //URLs

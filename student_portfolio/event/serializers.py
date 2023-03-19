@@ -446,13 +446,13 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
         if (not isinstance(list_of_dicts, list)) or len(
                 list_of_dicts) == 0:  # If it is not a list, return an empty string ''. So that we could pop this field.
             return ''
-
+        print(list_of_dicts)
         # Do We really need this???
         unique_ids = []
         out_list = []
         for e in list_of_dicts:
 
-            id = e['skill_id_fk']
+            id = int(e['skill_id_fk'])
             if id not in skill_ids:
                 raise serializers.ValidationError(
                     "The skill id is not present in the Skill table : " + id)
@@ -460,8 +460,9 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
             if id not in unique_ids:
                 unique_ids.append(id)
                 out_list.append(e)
-        # print('outlist {}'.format(out_list))
-        # print(type(out_list))
+
+        print('outlist {}'.format(out_list))
+        print(type(out_list))
         return out_list
 
     @staticmethod
@@ -478,7 +479,8 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 data['skills'] = SkillGroupSerializer.custom_clean_skills(data=data['skills'])
                 if isinstance(data.get('skills', None), str):
                     data.pop('skills', None)
-        # print(data)
+        print('in custom clean')
+        print(data)
         return data
 
 
