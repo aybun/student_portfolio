@@ -539,13 +539,14 @@ export default {
 
             const vue_formulate_valid = this.$refs["award-formulate-form-1"].isValid;
 
-            //vee-validate
-            await this.$validator.validate().then((result) => {
-                return result;
+            //vee-validate scope : award
+            let vee_validate_valid = false;
+            await this.$validator.validateAll('award-formulate-form-1').then((result) => {
+                vee_validate_valid = result;
             });
-
+            
             //We could take the result. But we want to be explicit here.
-            const vee_validate_valid = !this.veeErrors.has("multiselect-receivers");
+            // const vee_validate_valid = !this.veeErrors.has("multiselect-receivers");
 
             return vue_formulate_valid && vee_validate_valid;
         },
@@ -781,18 +782,16 @@ export default {
                                     </div>
 
                                     <div class="receiver">
-                                        <h1>Receivers</h1>
+                                        <h6>Receivers</h6>
                                         <div>
-                                            <multiselect ref="multiselect-receivers" name="multiselect-receivers"
+                                            <multiselect ref="award-multiselect-receivers" name="award-multiselect-receivers"
                                                 v-model="award.receivers" v-validate="'required|min:1'"
-                                                data-vv-validate-on="input" data-vv-as="receivers" :hide-selected="true"
+                                                data-vv-validate-on="input" data-vv-as="receivers" data-vv-scope="award-formulate-form-1" :hide-selected="true"
                                                 :close-on-select="false" :multiple="true" :options="studentTable"
                                                 :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..."
                                                 :disabled="modalReadonly || !formRender.edit.receivers">
                                             </multiselect>
-                                            <span v-show="veeErrors.has('multiselect-receivers')"
-                                                class="formulate-input-errors" style="color: red">{{
-                                                    veeErrors.first("multiselect-receivers") }}</span>
+                                            <span v-show="veeErrors.has('award-multiselect-receivers')" style="color: red">{{ veeErrors.first("award-multiselect-receivers") }}</span>
                                         </div>
                                     </div>
 

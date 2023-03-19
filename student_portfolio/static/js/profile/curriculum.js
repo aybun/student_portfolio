@@ -22,8 +22,8 @@ let curriculumComponent = {
                 id : 0,
                 th_name : '',
                 en_name : '',
-                start_date : (new Date()).toLocaleString(),
-                end_date : (new Date()).toLocaleString(),
+                start_date : '',
+                end_date : '',
                 info : '',
                 attachment_file : '',
 

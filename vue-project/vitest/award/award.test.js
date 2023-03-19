@@ -222,11 +222,11 @@ describe("Test award.", () => {
     //Test : receivers
 
     //receivers : required|min:1
-    const receivers = wrapper.vm.$refs["multiselect-receivers"];
+    const receivers = wrapper.vm.$refs["award-multiselect-receivers"];
     await wrapper.setData({ award: { receivers: [] } });
     wrapper.vm.$validator.validate(); //vee-validate's validator.
     await flushPromises();
-    expect(wrapper.vm.veeErrors.first("multiselect-receivers")).toContain(
+    expect(wrapper.vm.veeErrors.first("award-multiselect-receivers")).toContain(
       "The receivers field is required"
     );
 

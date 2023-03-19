@@ -303,12 +303,11 @@ export default {
 
             if (!formIsValid) return;
 
-            console.log(this.skillgroup)
+            this.skillgroup.skills = this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']);
             const outForm = new FormData();
             for (const [key, value] of Object.entries(this.skillgroup)) {
                 outForm.append(key.toString(), value);
             }
-            console.log(this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']))
             outForm.set(
                 "skills",
                 JSON.stringify(this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']))
@@ -364,7 +363,7 @@ export default {
                 let element = list[i]
                 const elemnt_id = element[distintFieldName];
 
-                if (elemnt_id !== "" && !ids.includes(elemnt_id)) {
+                if (!ids.includes(elemnt_id) && elemnt_id !== "" && elemnt_id !== null && typeof elemnt_id !== 'undefined' ) {
                     ids.push(elemnt_id);
                     
                     let tempDict = {}
@@ -386,13 +385,13 @@ export default {
             const vue_formulate_valid =
                 this.$refs["skillgroup-formulate-form-1"].isValid;
 
-            //vee-validate :validate the scope : skillgroup
-            let vee_validate_valid = false;
-            await this.$validator.validateAll("skillgroup").then((result) => {
-                vee_validate_valid = result;
-            });
+            // //vee-validate :validate the scope : skillgroup
+            // let vee_validate_valid = false;
+            // await this.$validator.validateAll("skillgroup").then((result) => {
+            //     vee_validate_valid = result;
+            // });
 
-            return vue_formulate_valid && vee_validate_valid;
+            return vue_formulate_valid;
         },
         _generate_formRender() {
             //Generate edit
@@ -446,6 +445,13 @@ export default {
             })
             console.log(arr)
             this.skillTableVueSelect = arr
+        },
+        
+        dateRangeFilter(data, filterString) {
+            const dateRange = filterString.split("to");
+            const startDate = Date.parse(dateRange[0]);
+            const endDate = Date.parse(dateRange[1]);
+            return Date.parse(data) >= startDate && Date.parse(data) <= endDate;
         },
 
     },

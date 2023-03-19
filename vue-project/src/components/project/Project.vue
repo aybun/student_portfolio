@@ -182,7 +182,7 @@ export default {
         return {
             modalTitle: "",
             addingNewProject: false,
-            showApproved: true,
+            
             modalReadonly: false,
             formKey: 1,
 
@@ -231,6 +231,16 @@ export default {
                     // tooltip: '',
                     thClass: "text-center",
                     tdClass: "text-center",
+                    
+                    filterOptions: {
+                        styleClass: "class1", // class to be added to the parent th element
+                        enabled: true, // enable filter for this column
+                        placeholder: "Filter This Thing", // placeholder for filter input
+                        filterValue: "", // initial populated value for this filter
+                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterFn: this.columnFilterFn, //custom filter function that
+                        // trigger: 'enter', //only trigger on enter not on keyup
+                    },
                 },
                 {
                     label: "Title",
