@@ -5,6 +5,7 @@ import Award from "../components/award/Award.vue";
 import Login from "../components/registration/Login.vue";
 import Event from "../components/event/Event.vue";
 import Project from "/src/components/project/Project.vue";
+import Skillgroup from "/src/components/profile/Skillgroup.vue";
 
 Vue.use(VueRouter);
 
@@ -44,6 +45,11 @@ const router = new VueRouter({
       path: "/project",
       name: "project",
       component: Project,
+    },
+    {
+      path: "/skillgroup",
+      name: "skillgroup",
+      component: Skillgroup,
     },
   ],
 });

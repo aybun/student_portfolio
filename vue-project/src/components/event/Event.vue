@@ -250,19 +250,19 @@ export default {
         this.checkboxes,
         this.checkboxFields
       );
-      const outDict = new FormData();
+      const outForm = new FormData();
       for (const [key, value] of Object.entries(this.event)) {
-        outDict.append(key.toString(), value);
+        outForm.append(key.toString(), value);
       }
-      outDict.set(
+      outForm.set(
         "attachment_file",
         this.cleanAttachmentFile(this.event.attachment_file)
       );
-      outDict.set(
+      outForm.set(
         "skills",
         JSON.stringify(this.cleanManyToManyFields(this.event.skills))
       );
-      outDict.set(
+      outForm.set(
         "staffs",
         JSON.stringify(this.cleanManyToManyFields(this.event.staffs))
       );
@@ -274,7 +274,7 @@ export default {
         url: this.$API_URL + "event",
         xsrfCookieName: "csrftoken",
         xsrfHeaderName: "X-CSRFToken",
-        data: outDict,
+        data: outForm,
         headers: {
           "Content-Type": "multipart/form-data",
           "X-CSRFToken": "csrftoken",
@@ -328,7 +328,7 @@ export default {
         url: this.$API_URL + "event/" + this.event.id,
         xsrfCookieName: "csrftoken",
         xsrfHeaderName: "X-CSRFToken",
-        data: outDict,
+        data: outForm,
         headers: {
           "Content-Type": "multipart/form-data",
           "X-CSRFToken": "csrftoken",
@@ -605,7 +605,7 @@ export default {
     </button>
 
     <vue-good-table
-      ref="vgt"
+      ref="event-vgt"
       :columns="vgtColumns"
       :rows="events"
       :select-options="{
