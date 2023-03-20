@@ -553,7 +553,7 @@ export default {
             await this.$validator.validateAll('award-formulate-form-1').then((result) => {
                 vee_validate_valid = result;
             });
-            
+
             //We could take the result. But we want to be explicit here.
             // const vee_validate_valid = !this.veeErrors.has("multiselect-receivers");
 
@@ -638,8 +638,8 @@ export default {
             this.skillTable = response.data;
         });
 
-        this.$nextTick(()=>{
-            
+        this.$nextTick(() => {
+
             const inputs = [
                 'input[placeholder="Filter Received"]',
                 // 'input[placeholder="Filter Start Date"]'
@@ -661,14 +661,14 @@ export default {
                     this.veeErrors.clear();
                     this.formKey += 1;
                 });
-            
+
         })
     },
 
     mounted: function () {
 
-       
-        
+
+
     },
 };
 </script>
@@ -797,14 +797,18 @@ export default {
                                     <div class="receiver">
                                         <h6>Receivers</h6>
                                         <div>
-                                            <multiselect ref="award-multiselect-receivers" name="award-multiselect-receivers"
-                                                v-model="award.receivers" v-validate="'required|min:1'"
-                                                data-vv-validate-on="input" data-vv-as="receivers" data-vv-scope="award-formulate-form-1" :hide-selected="true"
-                                                :close-on-select="false" :multiple="true" :options="studentTable"
-                                                :custom-label="receiverCustomLabel" track-by="id" placeholder="Select..."
+                                            <multiselect ref="award-multiselect-receivers"
+                                                name="award-multiselect-receivers" v-model="award.receivers"
+                                                v-validate="'required|min:1'" data-vv-validate-on="input"
+                                                data-vv-as="receivers" data-vv-scope="award-formulate-form-1"
+                                                :hide-selected="true" :close-on-select="false" :multiple="true"
+                                                :options="studentTable" :custom-label="receiverCustomLabel" track-by="id"
+                                                placeholder="Select..."
                                                 :disabled="modalReadonly || !formRender.edit.receivers">
                                             </multiselect>
-                                            <span v-show="veeErrors.has('award-multiselect-receivers')" style="color: red">{{ veeErrors.first("award-multiselect-receivers") }}</span>
+                                            <span v-show="veeErrors.has('award-multiselect-receivers')"
+                                                style="color: red">{{ veeErrors.first("award-multiselect-receivers")
+                                                }}</span>
                                         </div>
                                     </div>
 
@@ -845,32 +849,29 @@ export default {
                                             :key="'award-formulate-input-attachment_file-' + formKey"
                                             ref="formulate-input-attachment_file" name="formulate-input-attachment_file"
                                             v-model="award.attachment_file" label="Attachment file"
-                                            help="The file size must not exceed 2MB." :validation-rules="{
-                                                maxFileSize: () => {
-                                                    return formConstraints.attachment_file.max_file_size.validation_rule();
-                                                },
-                                            }" :validation-messages="{
-    maxFileSize:
-        formConstraints.attachment_file.max_file_size.validation_message(),
-}" error-behavior="live" validation-event="input" validation="maxFileSize" upload-behavior="delayed" :disabled="
+                                            help="The file size must not exceed 2MB." 
+                                            :validation-rules="{ 
+                                                maxFileSize :  (context, ... args) => {
+                                                    if (getFileOrNull(context.value) !== null)
+                                                        return context.value.files[0].file.size < parseInt(args[0]);
+                                                    return true;
+                                                },           
+                                            }"
+                                                                
+                                            :validation-messages="{ maxFileSize : (context) => {
+                                                return 'The file size must not exceed ' + context.args[0] + ' bytes.';},                                     
+                                            }"
+ error-behavior="live" validation-event="input" validation="maxFileSize" upload-behavior="delayed" :disabled="
     modalReadonly || !formRender.edit.attachment_file
 "></FormulateInput>
                                         <!--                            File Button-->
-                                        <button v-if="
-                                            copiedAward.attachment_file != '' &&
-                                            !Object.is(copiedAward.attachment_file, null)
-                                        " type="button" class="btn btn-primary"
-                                            @click="openNewWindow(copiedAward.attachment_file)">
+                                        <button v-if="(copiedAward.attachment_file !== null)" type="button"
+                                            class="btn btn-primary" @click="openNewWindow(copiedAward.attachment_file)">
                                             File URL
                                         </button>
-                                        <button v-if="
-                                            copiedAward.attachment_file != '' &&
-                                            !Object.is(copiedAward.attachment_file, null)
-                                        " type="button" class="btn btn-outline-danger" @click="
-    copiedAward.attachment_file = '';
-award.attachment_file = '';
-formKey += 1;
-                                                    " :disabled="modalReadonly">
+                                        <button v-if="(copiedAward.attachment_file !== null)" type="button"
+                                            class="btn btn-outline-danger" @click="copiedAward.attachment_file = null; award.attachment_file = ''; formKey += 1;"       
+                                            :disabled="modalReadonly">
                                             Remove File
                                         </button>
                                     </div>

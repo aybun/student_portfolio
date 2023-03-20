@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#addByFileModal">
+        <button type="button" class="btn btn-primary m-2 fload-end" @click="showAddByFileModal=true;">
             Add student by csv file
         </button>
 
@@ -20,7 +20,7 @@
                     </button>
 
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="column.label + '-' + index" href="#">
+                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="column.label + '--' + index" href="#">
                             <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn(index, $event)">
                                 <formulate-input type="checkbox" v-if="!column.hidden" disabled="true"
                                     checked="true"></formulate-input>
@@ -67,15 +67,20 @@
                 <FormulateInput type="file" :key="'curriculum-student-formulate-form-add-by-file-csvFile-' + addByFileForm.formKey"
                 
                     ref="curriculum-student-formulate-form-add-by-file-csvFile"
-                    name="curriculum-student-formulate-form-add-by-file-csvFile" v-model="addByFileForm.csvFile"
+                    v-model="addByFileForm.csvFile"
                     label="Attachment file"
-                    :validation-rules="{ maxFileSize :  (context, ... args) => { return context.value.files[0].file.size < parseInt(args[0]);}}"
-                                        
+                    :validation-rules="{ 
+                        maxFileSize :  (context, ... args) => {
+                            if (getFileOrNull(context.value) !== null)
+                                return context.value.files[0].file.size < parseInt(args[0]);
+                            return true;
+                        },           
+                    }"
                     :validation-messages="{ maxFileSize : (context) => {
                         return 'The file size must not exceed ' + context.args[0] + ' bytes.';},                                     
                     }"
                     error-behavior="live" 
-                    validation-event="input" validation="required|maxFileSize" upload-behavior="delayed"
+                    validation-event="input" validation="required|maxFileSize:2000000" upload-behavior="delayed"
                     :disabled="false">
                 </FormulateInput>
                 <FormulateInput ref="event-attendance-formulate-input-all-valid-checkbox" v-model="addByFileForm.checkboxes"
@@ -99,7 +104,7 @@ import axios from "axios";
 
 import * as bootstrap from "bootstrap";
 
-import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
+// import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
 
 import AddAttendanceModal from "/src/components/event/AddAttendanceModal.vue";
 
@@ -107,20 +112,21 @@ export default {
 
     components: {
         VueGoodTable,
-        Multiselect,
-        VueFinalModal,
+        // Multiselect,
+        // VueFinalModal,
 
-        AddAttendanceModal,
+        //custom components
+        AddAttendanceModal, 
     },
 
     props: ["curriculum_id", "user"],
 
     data() {
         return {
-            curriculum_id: 0,
+            // curriculum_id: 0,
             students: [],
 
-            showAddByFileModal=false,
+            showAddByFileModal:false,
 
             modalTitle: '',
             
@@ -133,12 +139,63 @@ export default {
                 checkboxFields: ["all_must_valid"],
                 formKey: 1,
             },
+            variables: {
+                API_URL: "",
+            },
+            vgtColumns:[
+            {
+                    label: "University Id",
+                    field: "university_id",
+                    // tooltip: "A simple tooltip",
+                    thClass: "text-center",
+                    tdClass: "text-center",
+                    filterOptions: {
+                        styleClass: "class1", // class to be added to the parent th element
+                        enabled: true, // enable filter for this column
+                        placeholder: "", // placeholder for filter input
+                        filterValue: "", // initial populated value for this filter
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterFn: this.columnFilterFn, //custom filter function that
+                        // trigger: 'enter', //only trigger on enter not on keyup
+                    },
+                },
+                {
+                    label: "Firstname",
+                    field: "firstname",
+                    thClass: "text-center",
+
+                    filterOptions: {
+                        styleClass: "class1", // class to be added to the parent th element
+                        enabled: true, // enable filter for this column
+                        placeholder: "", // placeholder for filter input
+                        filterValue: "", // initial populated value for this filter
+                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterFn: this.columnFilterFn, //custom filter function that
+                        // trigger: 'enter', //only trigger on enter not on keyup
+                    },
+                },
+                {
+                    label: "Lastname",
+                    field: "lastname",
+                    thClass: "text-center",
+
+                    filterOptions: {
+                        styleClass: "class1", // class to be added to the parent th element
+                        enabled: true, // enable filter for this column
+                        placeholder: "", // placeholder for filter input
+                        filterValue: "", // initial populated value for this filter
+                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterFn: this.columnFilterFn, //custom filter function that
+                        // trigger: 'enter', //only trigger on enter not on keyup
+                    },
+                },
+            ]
         }
     },
 
     methods: {
         refreshData() {
-            axios.get(variables.API_URL + "student",
+            axios.get(this.variables.API_URL + "student",
                 { params: { curriculum_id: this.curriculum_id } })
                 .then((response) => {
                     this.students = response.data;
@@ -160,21 +217,22 @@ export default {
                 form[fieldName] = form.checkboxes.includes(fieldName);
             }
 
-            let outDict = {
+            const outDict = {
                 'curriculum_id': this.curriculum_id,
-                'csv_file': this.csv_file,
+                'csv_file': this.cleanAttachmentFile(form.csvFile),
             }
-
-            let outForm = new FormData();
+            
+            const outForm = new FormData();
             for (const [key, value] of Object.entries(outDict)) {
                 outForm.append(key.toString(), value)
             }
+            
 
             axios.defaults.xsrfCookieName = 'csrftoken';
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
             axios({
                 method: 'post',
-                url: variables.API_URL + "curriculum-student-bulk-add",
+                url: this.variables.API_URL + "curriculum-student-bulk-add",
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 data: outForm,
@@ -203,16 +261,53 @@ export default {
             this.addByFileForm.all_must_valid = true;
             this.addByFileForm.checkboxes = ["all_must_valid"];
         },
+        cleanAttachmentFile(attachment_file_field) {
+            // Idea : If there is a file, send it. If it is undefined, set it to ''.
+            // If it is a file path, we can send it to the backend without any issues.
+            const field = attachment_file_field;
+
+            const file = this.getFileOrNull(field);
+            if (file instanceof File) return file;
+            else {
+                if (typeof field === "string")
+                    //
+                    return field;
+            }
+
+            if (typeof field === "undefined") return "";
+
+            return field;
+        },
+        getFileOrNull(field) {
+            //We want to support both file and array of files as a field.
+
+            if (field instanceof File) return field;
+            else if (typeof field === "undefined" || field === null) return null;
+            else if (typeof field === "string") return null;
+            else if (field.files.length === 0) return null;
+            else return field.files[0].file;
+        },
+        toggleColumn(index, event) {
+            // Set hidden to inverse of what it currently is
+            this.$set(
+                this.vgtColumns[index],
+                "hidden",
+                !this.vgtColumns[index].hidden
+            );
+        },
     },
 
     watch: {
         curriculum_id: function (new_curriculum_id, old_curriculum_id) {
-            this.refreshData();
+            if (new_curriculum_id !== 0)
+                this.refreshData();
         },
     },
     created: function () {
 
-        axios.get(variables.API_URL + "student", { params: { curriculum_id: this.curriculum_id } })
+        this.variables.API_URL = this.$API_URL
+
+        axios.get(this.variables.API_URL + "student", { params: { curriculum_id: this.curriculum_id } })
             .then((response) => {
                 this.students = response.data;
             });

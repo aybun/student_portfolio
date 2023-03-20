@@ -138,6 +138,15 @@
 }" error-behavior="live" validation-event="input" validation="maxFileSize" upload-behavior="delayed" :disabled="
     modalReadonly || !formRender.edit.attachment_file
 "></FormulateInput>
+                                    <button v-if="(copiedProject.attachment_file !== null)" type="button"
+                                        class="btn btn-primary" @click="openNewWindow(copiedProject.attachment_file)">
+                                        File URL
+                                    </button>
+                                    <button v-if="(copiedProject.attachment_file !== null)" type="button"
+                                        class="btn btn-outline-danger" @click="copiedProject.attachment_file = null; project.attachment_file = ''; formKey += 1;"       
+                                        :disabled="modalReadonly">
+                                        Remove File
+                                    </button>
                                 </FormulateForm>
                             </div>
                         </div>
@@ -686,6 +695,9 @@ export default {
             }
 
             return `${firstname} ${lastname}`;
+        },
+        openNewWindow(url) {
+            window.open(url);
         },
     },
 

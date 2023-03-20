@@ -91,7 +91,7 @@ def projectApi(request, project_id=0):
             return JsonResponse("Failed to update.", safe=False)
 
         data = request.data.dict()
-        print(data)
+        # print(data)
         data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
         serializer = Serializer(object, data=data, context={'request': request})
 

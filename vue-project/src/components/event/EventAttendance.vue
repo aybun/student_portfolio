@@ -69,9 +69,9 @@ export default {
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
-                        placeholder: "Filter This Thing", // placeholder for filter input
+                        placeholder: "", // placeholder for filter input
                         filterValue: "", // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
                         // filterFn: this.columnFilterFn, //custom filter function that
                         // trigger: 'enter', //only trigger on enter not on keyup
                     },
@@ -85,9 +85,9 @@ export default {
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
-                        placeholder: "Filter This Thing", // placeholder for filter input
+                        placeholder: "", // placeholder for filter input
                         filterValue: "", // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
                         // filterFn: this.columnFilterFn, //custom filter function that
                         // trigger: 'enter', //only trigger on enter not on keyup
                     },
@@ -100,9 +100,9 @@ export default {
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
-                        placeholder: "Filter This Thing", // placeholder for filter input
+                        placeholder: "", // placeholder for filter input
                         filterValue: "", // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
                         // filterFn: this.columnFilterFn, //custom filter function that
                         // trigger: 'enter', //only trigger on enter not on keyup
                     },
@@ -115,9 +115,9 @@ export default {
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
-                        placeholder: "Filter This Thing", // placeholder for filter input
+                        placeholder: "", // placeholder for filter input
                         filterValue: "", // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
                         // filterFn: this.columnFilterFn, //custom filter function that
                         // trigger: 'enter', //only trigger on enter not on keyup
                     },
@@ -334,7 +334,7 @@ export default {
 
             const outDict = {
                 event_id: this.event_id,
-                csv_file: form.csvFile,
+                csv_file: this.cleanAttachmentFile(form.csvFile),
                 all_must_valid: form.all_must_valid,
             };
             console.log(outDict);
@@ -342,7 +342,6 @@ export default {
             for (const [key, value] of Object.entries(outDict)) {
                 outForm.append(key.toString(), value);
             }
-            outForm.set("csv_file", this.cleanAttachmentFile(form.csvFile));
 
             axios.defaults.xsrfCookieName = "csrftoken";
             axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -439,6 +438,14 @@ export default {
             this.addByFileForm.all_must_valid = true;
             this.addByFileForm.checkboxes = ["all_must_valid"];
         },
+        toggleColumn(index, event) {
+            // Set hidden to inverse of what it currently is
+            this.$set(
+                this.vgtColumns[index],
+                "hidden",
+                !this.vgtColumns[index].hidden
+            );
+        },
     },
 
     watch: {
@@ -494,7 +501,7 @@ export default {
                     </button>
 
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
+                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="column.label + '--'+index" href="#">
                             <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn(index, $event)">
                                 <formulate-input type="checkbox" v-if="!column.hidden" disabled="true"
                                     checked="true"></formulate-input>
@@ -585,10 +592,13 @@ export default {
                     addByFileForm.formKey
                 " ref="event-attendance-formulate-form-2-attachment_file"
                     name="event-attendance-formulate-form-2-attachment_file" v-model="addByFileForm.csvFile"
-                    label="Attachment file" help="" :validation-rules="{
-                        maxFileSize: (context, ...args) => {
-                            return context.value.files[0].file.size < parseInt(args[0]);
-                        }
+                    label="Attachment file" help="" 
+                    :validation-rules="{ 
+                        maxFileSize :  (context, ... args) => {
+                            if (getFileOrNull(context.value) !== null)
+                                return context.value.files[0].file.size < parseInt(args[0]);
+                            return true;
+                        },           
                     }"
                     :validation-messages="{
                         maxFileSize: (context) => {

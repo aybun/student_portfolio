@@ -24,7 +24,7 @@
                     </button>
 
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
+                        <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="column.label +'-'+index" href="#">
                             <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn(index, $event)">
                                 <formulate-input type="checkbox" v-if="!column.hidden" disabled="true"
                                     checked="true"></formulate-input>
@@ -97,7 +97,7 @@
                                     ref="curriculum-formulate-input-start_date"
                                     type="date"
                                     v-model="curriculum.start_date"
-                                    label="End"
+                                    label="Start Date"
                                     validation="required"
                                     error-behavior="live"
                                     :disabled="modalReadonly || !formRender.edit.start_date"
@@ -106,7 +106,7 @@
                                     ref="curriculum-formulate-input-end_date"
                                     type="date"
                                     v-model="curriculum.end_date"
-                                    label="End"
+                                    label="End Date"
                                     validation="required|later"
                                     
                                     :validation-rules="{
@@ -131,15 +131,30 @@
                                 <FormulateInput type="file"
                                     :key="'curriculum-formulate-input-attachment_file-' + formKey" ref="curriculum-formulate-input-attachment_file"
                                     name="formulate-input-attachment_file" v-model="curriculum.attachment_file" label="Attachment file"
-                                    help="The file size must not exceed 2MB." 
-                                    :validation-rules="{ maxFileSize :  (context, ... args) => {
-                                        return context.value.files[0].file.size < parseInt(args[0]);}}"
+                                    help="" 
+                                    :validation-rules="{ 
+                                        maxFileSize :  (context, ... args) => {
+                                            if (getFileOrNull(context.value) !== null)
+                                                return context.value.files[0].file.size < parseInt(args[0]);
+                                            return true;
+                                        },
+                                        
+                                    }"
                                     :validation-messages="{ maxFileSize : (context) => {
                                         return 'The file size must not exceed ' + context.args[0] + ' bytes.';},                                    
                                     }" 
                                     error-behavior="live" validation-event="input" validation="maxFileSize:2000000" upload-behavior="delayed" :disabled="
                                         modalReadonly || !formRender.edit.attachment_file
                                     "></FormulateInput>
+                                    <button v-if="(copiedCurriculum.attachment_file !== null)" type="button"
+                                        class="btn btn-primary" @click="openNewWindow(copiedCurriculum.attachment_file)">
+                                        File URL
+                                    </button>
+                                    <button v-if="(copiedCurriculum.attachment_file !== null)" type="button"
+                                        class="btn btn-outline-danger" @click="copiedCurriculum.attachment_file = null; curriculum.attachment_file = ''; formKey += 1;"       
+                                        :disabled="modalReadonly">
+                                        Remove File
+                                    </button>
                                     <div>
                                         <h6>Skillgroups</h6>
                                         <multiselect ref="curriculum-multiselect-skillgroups" name="multiselect-skillgroups"
@@ -182,7 +197,7 @@
     
     <EventAttendanceModal v-model="showCurriculumStudentModal" :click-to-close="false">
         <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
-          @click="showEventAttendanceModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
+          @click="showCurriculumStudentModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
           Close
         </button></template>
         <CurriculumStudent :curriculum_id="curriculum.id" :user="user"></CurriculumStudent>
@@ -200,24 +215,27 @@ import axios from "axios";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import * as bootstrap from "bootstrap";
-
+import EventAttendanceModal from "/src/components/event/EventAttendanceModal.vue";
+import CurriculumStudent from "/src/components/profile/CurriculumStudent.vue";
 
 export default {
     components: {
         VueGoodTable,
-        Multiselect
+        Multiselect,
+
+        //Custom components
+        EventAttendanceModal,
+        CurriculumStudent,
     },
 
     data(){
         return {
             curriculum:{},
+            copiedCurriculum:{},
             curriculums:{},
-            showCurriculumStudentModal = false;
-            // tempContext : {},
-            // tempArgs : [],
-            // tempInt : 0,
-            // tempEval : '',
 
+            showCurriculumStudentModal: false,
+    
             skillgroupTable:{},
 
             addingNewCurriculum:false,
@@ -364,7 +382,13 @@ export default {
             this.assignDataToCurriculumForm(this.getEmptyCurriculum());
 
         },
+        viewClick(curriculum){
+            this.modalTitle="Edit Curriculum"
+            this.addingNewCurriculum = false
+            this.modalReadonly = true;
 
+            this.assignDataToCurriculumForm(curriculum);
+        },
         editClick(curriculum){
             this.modalTitle="Edit Curriculum"
             this.addingNewCurriculum = false

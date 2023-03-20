@@ -131,17 +131,16 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
         groups = request.user.groups.values_list('name', flat=True)
 
         #Clean data
+        attachment_file = data.get('attachment_file', None)
+        if isinstance(attachment_file, str):
+            if attachment_file == '':  # We want '' to signal delete.
+                instance.attachment_file = None
+            data.pop('attachment_file', None)
 
         if method == 'POST':
             data['created_by'] = request.user.id
 
         elif method == 'PUT':
-
-            attachment_file = data.get('attachment_file', None)
-            if isinstance(attachment_file, str):
-                if attachment_file == '':  # We want '' to signal delete.
-                    instance.attachment_file = None
-                data.pop('attachment_file', None)
 
             if 'skills' in data:
                 data['skills'] = EventSerializer.custom_clean_skills(data=data['skills']) #If it contains errors, the function will return a string, might be ''.

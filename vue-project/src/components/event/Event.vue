@@ -91,7 +91,7 @@ export default {
             enabled: true, // enable filter for this column
             placeholder: "", // placeholder for filter input
             filterValue: "", // initial populated value for this filter
-            filterDropdownItems: [], // dropdown (with selected values) instead of text input
+            // filterDropdownItems: [], // dropdown (with selected values) instead of text input
             // filterFn: this.columnFilterFn, //custom filter function that
             // trigger: 'enter', //only trigger on enter not on keyup
           },
@@ -106,7 +106,7 @@ export default {
             enabled: true, // enable filter for this column
             placeholder: "", // placeholder for filter input
             filterValue: "", // initial populated value for this filter
-            filterDropdownItems: [], // dropdown (with selected values) instead of text input
+            // filterDropdownItems: [], // dropdown (with selected values) instead of text input
             // filterFn: this.columnFilterFn, //custom filter function that
             // trigger: 'enter', //only trigger on enter not on keyup
           },
@@ -219,7 +219,7 @@ export default {
     assignDataToEventForm(event) {
       const stringified = JSON.stringify(event);
       this.event = JSON.parse(stringified);
-      this.copiedAward = JSON.parse(stringified);
+      this.copiedEvent = JSON.parse(stringified);
 
       this.checkboxes = this.getListOfTrueCheckboxFields(
         this.event,
@@ -627,7 +627,7 @@ export default {
           <!-- <input :checked="!column.hidden" type="checkbox" disabled/> -->
 
           <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
+            <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="column.label + '-' +index" href="#">
               <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn(index, $event)">
                 <formulate-input type="checkbox" v-if="!column.hidden" disabled="true" checked="true"></formulate-input>
                 {{ column.label }}
@@ -735,25 +735,21 @@ export default {
                     ">
                   </FormulateInput>
 
-                  <FormulateInput type="file" ref="formulate-input-attachment_file" name="formulate-input-attachment_file"
+                  <FormulateInput type="file" ref="formulate-input-attachment_file" 
                     :key="'event-formulate-input-attachment_file-' + formKey" v-model="event.attachment_file"
                     label="Attachment file" error-behavior="live" validation-event="input" validation=""
                     upload-behavior="delayed" :disabled="
                       modalReadonly || !formRender.edit.attachment_file
                     ">
                   </FormulateInput>
-                  <button v-if="
-                    copiedEvent.attachment_file != '' &&
-                    !Object.is(copiedEvent.attachment_file, null)
-                  " type="button" class="btn btn-primary" @click="openNewWindow(copiedEvent.attachment_file)">
+                  <button v-if="(copiedEvent.attachment_file !== null)"
+                   type="button" class="btn btn-primary" @click="openNewWindow(copiedEvent.attachment_file)">
                     File URL
                   </button>
-                  <button v-if="
-                    copiedEvent.attachment_file != '' &&
-                    !Object.is(copiedEvent.attachment_file, null)
-                  " type="button" class="btn btn-outline-danger" @click="
-  copiedEvent.attachment_file = '';
-event.attachment_file = '';
+                  <button v-if="(copiedEvent.attachment_file !== null)"
+                  type="button" class="btn btn-outline-danger" @click="
+  copiedEvent.attachment_file = null;
+event.attachment_file = ''; formKey += 1;
                       " :disabled="modalReadonly">
                     Remove File
                   </button>
