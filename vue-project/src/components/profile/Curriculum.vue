@@ -131,16 +131,12 @@
                                     :key="'curriculum-formulate-input-attachment_file-' + formKey" ref="curriculum-formulate-input-attachment_file"
                                     name="formulate-input-attachment_file" v-model="curriculum.attachment_file" label="Attachment file"
                                     help="The file size must not exceed 2MB." 
-                                    :validation-rules="{
-                                        maxFileSize: () => {
-                                            return true;
-                                        }
+                                    :validation-rules="{ maxFileSize :  (context, ... args) => {
+                                        return context.value.files[0].file.size < parseInt(args[0]);}}"
+                                    :validation-messages="{ maxFileSize : (context) => {
+                                        return 'The file size must not exceed ' + context.args[0] + ' bytes.';},                                    
                                     }" 
-                                    :validation-messages="{
-                                        maxFileSize : 'You are wrong.',
-                                            
-                                    }" 
-                                    error-behavior="live" validation-event="input" validation="maxFileSize" upload-behavior="delayed" :disabled="
+                                    error-behavior="live" validation-event="input" validation="maxFileSize:2000000" upload-behavior="delayed" :disabled="
                                         modalReadonly || !formRender.edit.attachment_file
                                     "></FormulateInput>
 
@@ -210,6 +206,10 @@ export default {
             curriculum:{},
             curriculums:{},
 
+            // tempContext : {},
+            // tempArgs : [],
+            // tempInt : 0,
+            // tempEval : '',
 
             skillgroupTable:{},
 
@@ -241,7 +241,7 @@ export default {
             
             vgtColumns: [
                 {
-                    label: "Project ID",
+                    label: "Curriculum ID",
                     field: "id",
                     // tooltip: '',
                     thClass: "text-center",
@@ -314,21 +314,6 @@ export default {
                         enabled: true,
                         placeholder: "Filter End Date",
                         filterFn: this.dateRangeFilter,
-                    },
-                },
-                {
-                    label: "Approved",
-                    field: "approved",
-                    thClass: "text-center",
-                    tdClass: "text-center",
-                    filterOptions: {
-                        styleClass: "class1", // class to be added to the parent th element
-                        enabled: true, // enable filter for this column
-                        placeholder: "All", // placeholder for filter input
-                        filterValue: "", // initial populated value for this filter
-                        filterDropdownItems: [true, false], // dropdown (with selected values) instead of text input
-                        // filterFn: this.columnApprovedFilterFn, //custom filter function that
-                        trigger: "enter", //only trigger on enter not on keyup
                     },
                 },
                 {
@@ -611,9 +596,10 @@ export default {
             );
         },
 
-        maxFileSize(context, ...args){
-
-        }
+        // maxFileSize(context, ...args){
+        //     console.log(context);
+        //     return true;
+        // }
     },
 
     created: async function(){
@@ -669,7 +655,7 @@ export default {
 
     mounted: function(){
 
-        
+
     },
     
 }

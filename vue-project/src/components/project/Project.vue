@@ -719,7 +719,7 @@ export default {
             'input[placeholder="Filter Start Date"]',
             'input[placeholder="Filter End Date"]',
             ];
-
+            
             inputs.forEach(function (input) {
                 flatpickr(input, {
                     dateFormat: "d-m-Y",
