@@ -80,21 +80,30 @@ export default {
                 {
                     label: "Award ID",
                     field: "id",
-                    tooltip: "A simple tooltip",
+                    // tooltip: "A simple tooltip",
                     thClass: "text-center",
                     tdClass: "text-center",
+                    filterOptions: {
+                        styleClass: "class1", // class to be added to the parent th element
+                        enabled: true, // enable filter for this column
+                        placeholder: "", // placeholder for filter input
+                        filterValue: "", // initial populated value for this filter
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterFn: this.columnFilterFn, //custom filter function that
+                        // trigger: 'enter', //only trigger on enter not on keyup
+                    },
                 },
                 {
                     label: "Title",
                     field: "title",
                     thClass: "text-center",
-
+                    tdClass: "text-center",
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
-                        placeholder: "Filter This Thing", // placeholder for filter input
+                        placeholder: "", // placeholder for filter input
                         filterValue: "", // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
                         // filterFn: this.columnFilterFn, //custom filter function that
                         // trigger: 'enter', //only trigger on enter not on keyup
                     },
@@ -583,6 +592,7 @@ export default {
 
             this.formRender = formRender;
         },
+
     },
 
     created: async function () {
@@ -627,13 +637,9 @@ export default {
         axios.get(this.$API_URL + "skillTable").then((response) => {
             this.skillTable = response.data;
         });
-    },
 
-    mounted: function () {
-        // if (this.testMode)
-        //     return;
-
-        window.onload = () => {
+        this.$nextTick(()=>{
+            
             const inputs = [
                 'input[placeholder="Filter Received"]',
                 // 'input[placeholder="Filter Start Date"]'
@@ -655,7 +661,14 @@ export default {
                     this.veeErrors.clear();
                     this.formKey += 1;
                 });
-        };
+            
+        })
+    },
+
+    mounted: function () {
+
+       
+        
     },
 };
 </script>
@@ -675,7 +688,7 @@ export default {
         </button>
 
         <vue-good-table ref="award-vgt" :columns="vgtColumns" :rows="awards"
-            :select-options="{ enabled: true, selectOnCheckboxOnly: true }" :search-options="{ enabled: true }"
+            :select-options="{ enabled: false, selectOnCheckboxOnly: true }" :search-options="{ enabled: true }"
             :pagination-options="{
                 enabled: true,
                 mode: 'records',

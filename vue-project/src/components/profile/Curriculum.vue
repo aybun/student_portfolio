@@ -8,7 +8,7 @@
          Add Curriculum
     </button>
 
-    <vue-good-table ref="curriculum-vgt" :columns="vgtColumns" :rows="curriculumns"
+    <vue-good-table ref="curriculum-vgt" :columns="vgtColumns" :rows="curriculums"
             :select-options="{ enabled: false, selectOnCheckboxOnly: true }" :search-options="{ enabled: true }"
             :pagination-options="{
                 enabled: true,
@@ -63,14 +63,15 @@
             </template>
         </vue-good-table>
     
-    <div class="modal fade" id="edit-info-modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"
+    <div class="modal fade" id="edit-info-modal" ref="curriculum-edit-info-modal"
+        tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" 
         aria-labelledby="edit-info-modal-label" aria-hidden="true">
 
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="edit-info-modal-label">{% verbatim block %}{{ modalTitle }}{% endverbatim block %}</h5>
+                    <h5 class="modal-title" id="edit-info-modal-label">{{ modalTitle }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -85,16 +86,15 @@
                             </button>
                             
                             <FormulateForm name="curriculum-formulate-form-1" ref="curriculum-formulate-form-1">
-                                <formulate-input ref="curriculum-formulate-input-title" type="text" v-model="curriculum.th_name"
-                                        label="Title" validation="required|max:100"
-                                        :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
-                                <formulate-input ref="curriculum-formulate-input-title" type="text" v-model="curriculum.en_name"
-                                    label="Title" validation="required|max:100"
-                                    :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
+                                <formulate-input ref="curriculum-formulate-input-th_name" type="text" v-model="curriculum.th_name"
+                                        label="Thai Name" validation="required|max:100"
+                                        :readonly="modalReadonly || !formRender.edit.th_name"></formulate-input>
+                                <formulate-input ref="curriculum-formulate-input-en_name" type="text" v-model="curriculum.en_name"
+                                    label="English Name" validation="required|max:100"
+                                    :readonly="modalReadonly || !formRender.edit.en_name"></formulate-input>
                                 <FormulateInput
                                     ref="curriculum-formulate-input-start_date"
-                                    type="vue-datetime"
-                                    datetype="date"
+                                    type="date"
                                     v-model="curriculum.start_date"
                                     label="End"
                                     validation="required"
@@ -103,11 +103,11 @@
                                     ></FormulateInput>
                                 <FormulateInput
                                     ref="curriculum-formulate-input-end_date"
-                                    type="vue-datetime"
-                                    datetype="date"
-                                    v-model="curriculum.end_datetime"
+                                    type="date"
+                                    v-model="curriculum.end_date"
                                     label="End"
                                     validation="required|later"
+                                    
                                     :validation-rules="{
                                         later: () => {
                                             return (
@@ -117,7 +117,7 @@
                                         },
                                     }"
                                     :validation-messages="{
-                                        later: 'End datetime must be later than start datetime.',
+                                        later: 'End datetime must be later than start date.',
                                     }"
                                     error-behavior="live"
                                     :disabled="modalReadonly || !formRender.edit.end_date"
@@ -137,8 +137,8 @@
                                         }
                                     }" 
                                     :validation-messages="{
-                                        maxFileSize:
-                                            formConstraints.attachment_file.max_file_size.validation_message(),
+                                        maxFileSize : 'You are wrong.',
+                                            
                                     }" 
                                     error-behavior="live" validation-event="input" validation="maxFileSize" upload-behavior="delayed" :disabled="
                                         modalReadonly || !formRender.edit.attachment_file
@@ -215,9 +215,12 @@ export default {
 
             addingNewCurriculum:false,
             modalTitle:"",
+            modalReadonly:false,
             variables: {
                 API_URL: "",
             },
+
+            formKey:1,
             user:{},
             formRender: {},
             formRenderSpec: {
@@ -246,43 +249,43 @@ export default {
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
-                        placeholder: "Filter This Thing", // placeholder for filter input
+                        placeholder: "", // placeholder for filter input
                         filterValue: "", // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
                         // filterFn: this.columnFilterFn, //custom filter function that
                         // trigger: 'enter', //only trigger on enter not on keyup
                     },
                 },
                 {
-                    label: "Title",
-                    field: "title",
+                    label: "Thai Name",
+                    field: "th_name",
                     thClass: "text-center",
 
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
-                        placeholder: "Filter This Thing", // placeholder for filter input
+                        placeholder: "", // placeholder for filter input
                         filterValue: "", // initial populated value for this filter
-                        filterDropdownItems: [], // dropdown (with selected values) instead of text input
+                        // filterDropdownItems: [], // dropdown (with selected values) instead of text input
                         // filterFn: this.columnFilterFn, //custom filter function that
                         // trigger: 'enter', //only trigger on enter not on keyup
                     },
                 },
-                {
-                    label: "Academic Year",
-                    field: "start_date",
-                    filterable: true,
-                    type: "date",
-                    dateInputFormat: "yyyy-mm-dd",
-                    dateOutputFormat: "yyyy",
-                    thClass: "text-center",
-                    tdClass: "text-center",
-                    filterOptions: {
-                        enabled: true,
-                        placeholder: "Filter Start Date",
-                        filterFn: this.dateRangeFilter,
-                    },
-                },
+                // {
+                //     label: "Academic Year",
+                //     field: "start_date",
+                //     filterable: true,
+                //     type: "date",
+                //     dateInputFormat: "yyyy-mm-dd",
+                //     dateOutputFormat: "yyyy",
+                //     thClass: "text-center",
+                //     tdClass: "text-center",
+                //     filterOptions: {
+                //         enabled: true,
+                //         placeholder: "",
+                //         // filterFn: this.dateRangeFilter,
+                //     },
+                // },
                 {
                     label: "Start Date",
                     field: "start_date",
@@ -383,6 +386,7 @@ export default {
             this.copiedCurriculum = JSON.parse(stringified);
 
         },
+        
         async createClick(){
             let formIsValid = false;
             await this.validateForm().then((result) => {
@@ -395,7 +399,7 @@ export default {
             if (!formIsValid) return;
 
 
-            let outForm = new FormData();
+            const outForm = new FormData();
             for (const [key, value] of Object.entries(this.curriculum)) {
                 outForm.append(key.toString(), value)
             }
@@ -406,10 +410,10 @@ export default {
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
             axios({
                 method: 'post',
-                url: variables.API_URL+"curriculum",
+                url: this.variables.API_URL+"curriculum",
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
-                data: outDict,
+                data: outForm,
                 headers : {
                     'Content-Type': 'multipart/form-data',
                     'X-CSRFToken': 'csrftoken',
@@ -421,7 +425,7 @@ export default {
 
         },
 
-        updateClick(){
+        async updateClick(){
             let formIsValid = false;
             await this.validateForm().then((result) => {
                 formIsValid = result;
@@ -432,9 +436,9 @@ export default {
 
             if (!formIsValid) return;
 
-            let outDict = new FormData();
+            const outForm = new FormData();
             for (const [key, value] of Object.entries(this.curriculum)) {
-                outDict.append(key.toString(), value)
+                outForm.append(key.toString(), value)
             }
             outForm.set("skillgroups", JSON.stringify(this.cleanManyToManyFields(this.curriculum.skillgroups)));
             outForm.set("attachment_file", this.cleanAttachmentFile(this.curriculum.attachment_file));
@@ -444,10 +448,10 @@ export default {
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
             axios({
                 method: 'put',
-                url: variables.API_URL+"curriculum/" + this.curriculum.id,
+                url: this.variables.API_URL+"curriculum/" + this.curriculum.id,
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
-                data: outDict,
+                data: outForm,
                 headers : {
                     'Content-Type': 'multipart/form-data',
                     'X-CSRFToken': 'csrftoken',
@@ -468,7 +472,7 @@ export default {
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
             axios({
                 method: 'delete',
-                url: variables.API_URL+"curriculum/"+ curriculum_id,
+                url: this.variables.API_URL+"curriculum/"+ curriculum_id,
                 xstfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 headers : {
@@ -494,7 +498,7 @@ export default {
             });
 
             return vue_formulate_valid && vee_validate_valid;
-        }
+        },
 
         onFileSelected(event){
             this.curriculum.attachment_file = event.target.files[0]
@@ -504,8 +508,8 @@ export default {
         },
         _generate_formRender() {
             //Generate edit
-            let getEmptyObjectFunction = this.getEmptyCurriculum
-
+            const getEmptyObjectFunction = this.getEmptyCurriculum
+            // console.log(getEmptyObjectFunction())
             const user = this.user;
             let edit_info = {};
 
@@ -532,9 +536,87 @@ export default {
 
             this.formRender = formRender;
         },
+        _skillgroups_custom_label({ id, name }) {
+
+            const table = this.skillgroupTable;
+
+            if (id === "" || id === null || typeof id === "undefined") {
+                return "Select";
+            } else if (name === null || typeof name === "undefined") {
+                for (let i = 0; i < table.length; ++i) {
+                    if (table[i].id === id) {
+                        const temp = table[i];
+                        // console.log('in the loop : ', temp)
+                        return `${temp.id} ${temp.name}`;
+                    }
+                }
+            }
+
+            return `${id} ${name}`;
+        },
+        cleanManyToManyFields(list) {
+            //Remove empty or redundant inputs.
+            // console.log(list)
+            const nonEmpty = [];
+            const ids = [];
+            for (let i = 0; i < list.length; ++i) {
+                const id = list[i]["id"];
+
+                if (id !== "" && !ids.includes(id)) {
+                    ids.push(list[i].id);
+                    nonEmpty.push({ id: list[i].id });
+                }
+            }
+
+            return nonEmpty;
+        },
+        cleanAttachmentFile(attachment_file_field) {
+            // Idea : If there is a file, send it. If it is undefined, set it to ''.
+            // If it is a file path, we can send it to the backend without any issues.
+            const field = attachment_file_field;
+
+            const file = this.getFileOrNull(field);
+            if (file instanceof File) return file;
+            else {
+                if (typeof field === "string")
+                    //
+                    return field;
+            }
+
+            if (typeof field === "undefined") return "";
+
+            return field;
+        },
+        getFileOrNull(field) {
+            //We want to support both file and array of files as a field.
+
+            if (field instanceof File) return field;
+            else if (typeof field === "undefined" || field === null) return null;
+            else if (typeof field === "string") return null;
+            else if (field.files.length === 0) return null;
+            else return field.files[0].file;
+        },
+        dateRangeFilter(data, filterString) {
+            const dateRange = filterString.split("to");
+            const startDate = Date.parse(dateRange[0]);
+            const endDate = Date.parse(dateRange[1]);
+            return Date.parse(data) >= startDate && Date.parse(data) <= endDate;
+        },
+        toggleColumn(index, event) {
+            // Set hidden to inverse of what it currently is
+            this.$set(
+                this.vgtColumns[index],
+                "hidden",
+                !this.vgtColumns[index].hidden
+            );
+        },
+
+        maxFileSize(context, ...args){
+
+        }
     },
 
-    created: function(){
+    created: async function(){
         this.curriculum = this.getEmptyCurriculum()
 
         if (typeof testMode !== 'undefined'){
@@ -543,6 +625,13 @@ export default {
         }
 
         this.variables.API_URL = this.$API_URL
+        await axios.get(this.$API_URL + "user")
+            .then((response) => {
+                this.user = response.data;
+                
+            })
+
+        this._generate_formRender()
         axios.get(this.variables.API_URL+"curriculum")
             .then((response)=>{
                 this.curriculums=response.data;
@@ -553,34 +642,36 @@ export default {
                 this.skillgroupTable=response.data;
             });
 
-    },
+        this.$nextTick(() => {
 
-    mounted:function(){
-        window.onload = () => {
-            const inputs = [
-                'input[placeholder="Filter Start Date"]',
-                'input[placeholder="Filter End Date"]',
-                // 'input[placeholder="Filter Need By Date"]'
-            ];
-            
-            inputs.forEach(function (input) {
-                flatpickr(input, {
-                    dateFormat: "d-m-Y",
-                    mode: "range",
-                    allowInput: true,
-                    // enableTime:true,
-                });
-            });
-
-            document
-                .getElementById("edit-info-modal")
-                .addEventListener("hidden.bs.modal", (event) => {
+                document.getElementById('edit-info-modal').addEventListener("hidden.bs.modal", (event) => {
                     this.veeErrors.clear();
                     this.formKey += 1;
                 });
-        };
+
+                const inputs = [
+                    // 'input[placeholder="Filter Received"]',
+                    'input[placeholder="Filter Start Date"]',
+                    'input[placeholder="Filter End Date"]',
+                ];
+
+                inputs.forEach(function (input) {
+                    flatpickr(input, {
+                        dateFormat: "d-m-Y",
+                        mode: "range",
+                        allowInput: true,
+                        // enableTime:true,
+                    });
+                });
+            });
+
     },
+
+    mounted: function(){
+
+        
     },
+    
 }
 
 </script>

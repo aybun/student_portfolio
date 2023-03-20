@@ -22,7 +22,8 @@ import HelloWorld from "./components/HelloWorld.vue";
           <router-link to="/project">Project</router-link>
           <router-link to="/event">Event</router-link>
           <router-link to="/award">Award</router-link>
-          <router-link to="/skillgroup">Award</router-link>
+          <router-link to="/skillgroup">Skillgroup</router-link>
+          <router-link to="/curriculum">Curriculum</router-link>
         </nav>
       </div>
     </header>

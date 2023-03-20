@@ -506,6 +506,7 @@ def curriculumApi(request, curriculum_id=0):
             return JsonResponse("Failed to update.", safe=False)
 
         curriculum_data = request.data.dict()
+        print(curriculum_data)
         curriculum_data = CurriculumSerializer.custom_clean(instance=curriculum, data=curriculum_data, context={'request': request})
         curriculum_serializer = CurriculumSerializer(curriculum, data=curriculum_data, context={'request': request})
 

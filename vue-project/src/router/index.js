@@ -6,6 +6,7 @@ import Login from "../components/registration/Login.vue";
 import Event from "../components/event/Event.vue";
 import Project from "/src/components/project/Project.vue";
 import Skillgroup from "/src/components/profile/Skillgroup.vue";
+import Curriculum from "/src/components/profile/Curriculum.vue"
 
 Vue.use(VueRouter);
 
@@ -50,6 +51,11 @@ const router = new VueRouter({
       path: "/skillgroup",
       name: "skillgroup",
       component: Skillgroup,
+    },
+    {
+      path: "/curriculum",
+      name: "curriculum",
+      component: Curriculum,
     },
   ],
 });

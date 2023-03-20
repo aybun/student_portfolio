@@ -712,13 +712,12 @@ export default {
         axios.get(this.$API_URL + "skillTable").then((response) => {
             this.skillTable = response.data;
         });
-    },
-    mounted: function () {
-        window.onload = () => {
+
+        this.$nextTick(()=>{
             const inputs = [
-                // 'input[placeholder="Filter Received"]',
-                'input[placeholder="Filter Start Date"]',
-                'input[placeholder="Filter End Date"]',
+            // 'input[placeholder="Filter Received"]',
+            'input[placeholder="Filter Start Date"]',
+            'input[placeholder="Filter End Date"]',
             ];
 
             inputs.forEach(function (input) {
@@ -735,8 +734,14 @@ export default {
                 .addEventListener("hidden.bs.modal", (event) => {
                     this.veeErrors.clear();
                     this.formKey += 1;
-                });
-        };
+            });
+        })
+    },
+    mounted: function () {
+
+
+        
+        
     },
 };
 </script>

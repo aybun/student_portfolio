@@ -25,7 +25,7 @@ Vue.use(VueFormulate, {
 Vue.prototype.$API_URL = "http://localhost:80/api/";
 // Vue.prototype.$MAIN_BACKEND_URL = "http://127.0.0.1:8000/"
 
-Vue.use(VueCookies);
+// Vue.use(VueCookies);
 
 new Vue({
   router,

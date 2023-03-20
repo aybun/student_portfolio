@@ -83,9 +83,18 @@ export default {
         {
           label: "Event ID",
           field: "id",
-          tooltip: "A simple tooltip",
+          // tooltip: "A simple tooltip",
           thClass: "text-center",
           tdClass: "text-center",
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnFilterFn, //custom filter function that
+            // trigger: 'enter', //only trigger on enter not on keyup
+          },
         },
         {
           label: "Title",
@@ -95,7 +104,7 @@ export default {
           filterOptions: {
             styleClass: "class1", // class to be added to the parent th element
             enabled: true, // enable filter for this column
-            placeholder: "Filter This Thing", // placeholder for filter input
+            placeholder: "", // placeholder for filter input
             filterValue: "", // initial populated value for this filter
             filterDropdownItems: [], // dropdown (with selected values) instead of text input
             // filterFn: this.columnFilterFn, //custom filter function that
@@ -112,13 +121,13 @@ export default {
           thClass: "text-center",
           tdClass: "text-center",
           filterOptions: {
-            enabled: true,
+            enabled: false,
             placeholder: "Filter Start",
             filterFn: this.datetimeRangeFilter,
           },
         },
         {
-          label: "Start",
+          label: "End",
           field: "end_datetime",
           filterable: true,
           type: "date",
@@ -127,7 +136,7 @@ export default {
           thClass: "text-center",
           tdClass: "text-center",
           filterOptions: {
-            enabled: true,
+            enabled: false,
             placeholder: "Filter Start",
             filterFn: this.datetimeRangeFilter,
           },
@@ -385,10 +394,15 @@ export default {
     cleanAttachmentFile(attachment_file_field) {
       // Idea : If there is a file, send it. If it is undefined, set it to ''.
       // If it is a file path, we can send it to the backend without any issues.
-
       const field = attachment_file_field;
 
-      if (this.fileObjectExists(field)) return field.files[0].file;
+      const file = this.getFileOrNull(field);
+      if (file instanceof File) return file;
+      else {
+        if (typeof field === "string")
+          //
+          return field;
+      }
 
       if (typeof field === "undefined") return "";
 
@@ -440,31 +454,26 @@ export default {
 
       return `${firstname} ${lastname}`;
     },
+    getFileOrNull(field) {
+      //We want to support both file and array of files as a field.
 
-    fileObjectExists(field) {
-      // We want to check if the field contains a file.
-      // We need this function because the current file input field is weird
-      // but we need (want) to rely on the form compatability. (vue-formulate)
-      let result = false;
-      if (typeof field === "undefined" || typeof field === "null")
-        result = false;
-      else if (typeof field === "string") result = false;
-      else if (field.files.length === 0) result = false;
-      else result = true;
-
-      return result;
+      if (field instanceof File) return field;
+      else if (typeof field === "undefined" || field === null) return null;
+      else if (typeof field === "string") return null;
+      else if (field.files.length === 0) return null;
+      else return field.files[0].file;
     },
-
     attachment_file_max_file_size_validation_function() {
       //Idea : If the file exists, the size must be valid.
 
       const maxFileSize =
         this.formConstraints.attachment_file.max_file_size.size;
+      const field = this.award.attachment_file;
+      const file = this.getFileOrNull(field);
 
-      const field = this.event.attachment_file;
-      if (this.fileObjectExists(field))
-        return field.files[0].file.size < maxFileSize;
-      else return true;
+      if (file instanceof File) {
+        return file.size < maxFileSize;
+      } else return true;
     },
 
     attachment_file_max_file_size_validation_message_function() {
@@ -562,10 +571,8 @@ export default {
       this.skillTable = response.data;
       // console.log(this.skillTable)
     });
-  },
 
-  mounted: function () {
-    window.onload = () => {
+    this.$nextTick(() => {
       const inputs = [
         'input[placeholder="Filter Start"]',
         // 'input[placeholder="Filter Start Date"]'
@@ -587,70 +594,42 @@ export default {
           this.veeErrors.clear();
           this.formKey += 1;
         });
-    };
+    })
+  },
+
+  mounted: function () {
+
   },
 };
 </script>
 
 <template>
   <div>
-    <button
-      type="button"
-      class="btn btn-primary m-2 fload-end"
-      data-bs-toggle="modal"
-      data-bs-target="#edit-info-modal"
-      @click="addClick()"
-    >
+    <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
+      @click="addClick()">
       Add Event
     </button>
 
-    <vue-good-table
-      ref="event-vgt"
-      :columns="vgtColumns"
-      :rows="events"
-      :select-options="{
-        enabled: false,
-        selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
-      }"
-      :search-options="{ enabled: true }"
-      :pagination-options="{
-        enabled: true,
-        mode: 'records',
-        perPage: 10,
-        setCurrentPage: 1,
-      }"
-    >
+    <vue-good-table ref="event-vgt" :columns="vgtColumns" :rows="events" :select-options="{
+      enabled: false,
+      selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
+    }" :search-options="{ enabled: true }" :pagination-options="{
+  enabled: true,
+  mode: 'records',
+  perPage: 20,
+  setCurrentPage: 1,
+}">
       <div slot="table-actions">
         <div class="dropdown">
-          <button
-            class="btn btn-secondary dropdown-toggle"
-            type="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
+          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             columns
           </button>
           <!-- <input :checked="!column.hidden" type="checkbox" disabled/> -->
 
           <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a
-              class="dropdown-item"
-              v-for="(column, index) in vgtColumns"
-              :key="index"
-              href="#"
-            >
-              <span
-                href="#"
-                class="small"
-                tabIndex="-1"
-                @click.prevent="toggleColumn(index, $event)"
-              >
-                <formulate-input
-                  type="checkbox"
-                  v-if="!column.hidden"
-                  disabled="true"
-                  checked="true"
-                ></formulate-input>
+            <a class="dropdown-item" v-for="(column, index) in vgtColumns" :key="index" href="#">
+              <span href="#" class="small" tabIndex="-1" @click.prevent="toggleColumn(index, $event)">
+                <formulate-input type="checkbox" v-if="!column.hidden" disabled="true" checked="true"></formulate-input>
                 {{ column.label }}
               </span>
             </a>
@@ -660,45 +639,27 @@ export default {
 
       <template slot="table-row" slot-scope="props">
         <span v-if="props.column.field == 'action'">
-          <button
-            v-if="user.is_staff || user.is_student"
-            type="button"
-            class="btn btn-light mr-1"
-            data-bs-toggle="modal"
-            data-bs-target="#edit-info-modal"
-            @click="viewClick(props.row)"
-          >
+          <button v-if="user.is_staff || user.is_student" type="button" class="btn btn-light mr-1" data-bs-toggle="modal"
+            data-bs-target="#edit-info-modal" @click="viewClick(props.row)">
             <i class="bi bi-eye"></i>
           </button>
 
-          <button
-            v-if="
-              user.is_staff ||
-              (!props.row.approved &&
-                props.row.created_by === user.id &&
-                user.is_student)
-            "
-            type="button"
-            :id="'edit-button-' + props.row.id"
-            class="btn btn-light mr-1"
-            data-bs-toggle="modal"
-            data-bs-target="#edit-info-modal"
-            @click="editClick(props.row)"
-          >
+          <button v-if="
+            user.is_staff ||
+            (!props.row.approved &&
+              props.row.created_by === user.id &&
+              user.is_student)
+          " type="button" :id="'edit-button-' + props.row.id" class="btn btn-light mr-1" data-bs-toggle="modal"
+            data-bs-target="#edit-info-modal" @click="editClick(props.row)">
             <i class="bi bi-pencil-square"></i>
           </button>
 
-          <button
-            v-if="
-              user.is_staff ||
-              (!props.row.approved &&
-                props.row.created_by === user.id &&
-                user.is_student)
-            "
-            type="button"
-            @click="deleteClick(props.row.id)"
-            class="btn btn-light mr-1"
-          >
+          <button v-if="
+            user.is_staff ||
+            (!props.row.approved &&
+              props.row.created_by === user.id &&
+              user.is_student)
+          " type="button" @click="deleteClick(props.row.id)" class="btn btn-light mr-1">
             <i class="bi bi-trash"></i>
           </button>
         </span>
@@ -709,193 +670,91 @@ export default {
       </template>
     </vue-good-table>
 
-    <div
-      class="modal fade"
-      id="edit-info-modal"
-      tabindex="-1"
-      data-bs-backdrop="static"
-      aria-labelledby="edit-info-modal-label"
-      aria-hidden="true"
-    >
+    <div class="modal fade" id="edit-info-modal" tabindex="-1" data-bs-backdrop="static"
+      aria-labelledby="edit-info-modal-label" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="edit-info-modal-label">
               {{ modalTitle }}
             </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
           <div class="modal-body">
             <div class="d-flex flex-row bd-highlight mb-3">
               <div class="p-2 w-50 bd-highlight">
-                <button
-                  v-if="!addingNewEvent && user.is_staff"
-                  type="button"
-                  class="btn btn-primary m-2 fload-end"
-                  @click="showEventAttendanceModal = true"
-                  data-bs-toggle="modal"
-                  data-bs-target="#edit-info-modal"
-                >
+                <button v-if="!addingNewEvent && user.is_staff" type="button" class="btn btn-primary m-2 fload-end"
+                  @click="showEventAttendanceModal = true" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
                   Show Attendances
                 </button>
 
-                <FormulateForm
-                  name="event-formulate-form-1"
-                  ref="event-formulate-form-1"
-                  #default="{ hasErrors }"
-                >
-                  <formulate-input
-                    ref="formulate-input-title"
-                    type="text"
-                    v-model="event.title"
-                    label="Title"
-                    validation="required|max:100"
-                    :readonly="modalReadonly || !formRender.edit.title"
-                  ></formulate-input>
-                  <FormulateInput
-                    ref="formulate-input-start_datetime"
-                    type="vue-datetime"
-                    datetype="datetime"
-                    v-model="event.start_datetime"
-                    label="Start"
-                    validation="required"
-                    :disabled="modalReadonly || !formRender.edit.start_datetime"
-                  ></FormulateInput>
-                  <FormulateInput
-                    ref="formulate-input-end_datetime"
-                    type="vue-datetime"
-                    datetype="datetime"
-                    v-model="event.end_datetime"
-                    label="End"
-                    validation="required|later"
-                    :validation-rules="{
+                <FormulateForm name="event-formulate-form-1" ref="event-formulate-form-1" #default="{ hasErrors }">
+                  <formulate-input ref="formulate-input-title" type="text" v-model="event.title" label="Title"
+                    validation="required|max:100" :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
+                  <FormulateInput ref="formulate-input-start_datetime" type="vue-datetime" datetype="datetime"
+                    v-model="event.start_datetime" label="Start" validation="required"
+                    :disabled="modalReadonly || !formRender.edit.start_datetime"></FormulateInput>
+                  <FormulateInput ref="formulate-input-end_datetime" type="vue-datetime" datetype="datetime"
+                    v-model="event.end_datetime" label="End" validation="required|later" :validation-rules="{
                       later: () => {
                         return (
                           Date.parse(event.start_datetime) <
                           Date.parse(event.end_datetime)
                         );
                       },
-                    }"
-                    :validation-messages="{
-                      later: 'End datetime must be later than start datetime.',
-                    }"
-                    error-behavior="live"
-                    :disabled="modalReadonly || !formRender.edit.end_datetime"
-                  ></FormulateInput>
-                  <formulate-input
-                    ref="formulate-input-info"
-                    label="Info"
-                    :key="'event-formulate-input-info-' + formKey"
-                    type="textarea"
-                    v-model="event.info"
-                    validation="max:200,length"
-                    :readonly="modalReadonly || !formRender.edit.info"
-                    validation-name="info"
-                  ></formulate-input>
+                    }" :validation-messages="{
+  later: 'End datetime must be later than start datetime.',
+}" error-behavior="live" :disabled="modalReadonly || !formRender.edit.end_datetime">
+                  </FormulateInput>
+                  <formulate-input ref="formulate-input-info" label="Info" :key="'event-formulate-input-info-' + formKey"
+                    type="textarea" v-model="event.info" validation="max:200,length"
+                    :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
 
                   <h3>Skills</h3>
-                  <multiselect
-                    v-model="event.skills"
-                    :hide-selected="true"
-                    :close-on-select="false"
-                    :multiple="true"
-                    :options="skillTable"
-                    :custom-label="_skills_custom_label"
-                    track-by="id"
-                    placeholder="Select..."
-                    :disabled="modalReadonly || !formRender.edit.skills"
-                  >
+                  <multiselect v-model="event.skills" :hide-selected="true" :close-on-select="false" :multiple="true"
+                    :options="skillTable" :custom-label="_skills_custom_label" track-by="id" placeholder="Select..."
+                    :disabled="modalReadonly || !formRender.edit.skills">
                   </multiselect>
 
                   <h3>Staffs</h3>
-                  <multiselect
-                    v-model="event.staffs"
-                    :hide-selected="true"
-                    :close-on-select="false"
-                    :multiple="true"
-                    :options="staffTable"
-                    :custom-label="_staffs_custom_label"
-                    track-by="id"
-                    placeholder="Select..."
-                    :disabled="modalReadonly || !formRender.edit.staffs"
-                  ></multiselect>
+                  <multiselect v-model="event.staffs" :hide-selected="true" :close-on-select="false" :multiple="true"
+                    :options="staffTable" :custom-label="_staffs_custom_label" track-by="id" placeholder="Select..."
+                    :disabled="modalReadonly || !formRender.edit.staffs"></multiselect>
 
                   <p></p>
-                  <FormulateInput
-                    ref="formulate-input-approved"
-                    v-model="checkboxes"
-                    :options="{ approved: 'approved' }"
-                    type="checkbox"
-                    :disabled="modalReadonly || !formRender.edit.approved"
-                  ></FormulateInput>
-                  <FormulateInput
-                    ref="formulate-input-used_for_calculation"
-                    v-model="checkboxes"
-                    :options="{ used_for_calculation: 'Use for calculation' }"
-                    type="checkbox"
-                    :disabled="
+                  <FormulateInput ref="formulate-input-approved" v-model="checkboxes" :options="{ approved: 'approved' }"
+                    type="checkbox" :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
+                  <FormulateInput ref="formulate-input-used_for_calculation" v-model="checkboxes"
+                    :options="{ used_for_calculation: 'Use for calculation' }" type="checkbox" :disabled="
                       modalReadonly || !formRender.edit.used_for_calculation
-                    "
-                  ></FormulateInput>
-                  <FormulateInput
-                    ref="formulate-input-attachment_link"
-                    type="url"
-                    v-model="event.attachment_link"
-                    label="Attachment link"
-                    placeholder="URL"
-                    validation=""
-                    :disabled="
+                    "></FormulateInput>
+                  <FormulateInput ref="formulate-input-attachment_link" type="url" v-model="event.attachment_link"
+                    label="Attachment link" placeholder="URL" validation="" :disabled="
                       modalReadonly || !formRender.edit.attachment_link
-                    "
-                  >
+                    ">
                   </FormulateInput>
 
-                  <FormulateInput
-                    type="file"
-                    ref="formulate-input-attachment_file"
-                    name="formulate-input-attachment_file"
-                    :key="'event-formulate-input-attachment_file-' + formKey"
-                    v-model="event.attachment_file"
-                    label="Attachment file"
-                    error-behavior="live"
-                    validation-event="input"
-                    validation=""
-                    upload-behavior="delayed"
-                    :disabled="
+                  <FormulateInput type="file" ref="formulate-input-attachment_file" name="formulate-input-attachment_file"
+                    :key="'event-formulate-input-attachment_file-' + formKey" v-model="event.attachment_file"
+                    label="Attachment file" error-behavior="live" validation-event="input" validation=""
+                    upload-behavior="delayed" :disabled="
                       modalReadonly || !formRender.edit.attachment_file
-                    "
-                  >
+                    ">
                   </FormulateInput>
-                  <button
-                    v-if="
-                      copiedEvent.attachment_file != '' &&
-                      !Object.is(copiedEvent.attachment_file, null)
-                    "
-                    type="button"
-                    class="btn btn-primary"
-                    @click="openNewWindow(copiedEvent.attachment_file)"
-                  >
+                  <button v-if="
+                    copiedEvent.attachment_file != '' &&
+                    !Object.is(copiedEvent.attachment_file, null)
+                  " type="button" class="btn btn-primary" @click="openNewWindow(copiedEvent.attachment_file)">
                     File URL
                   </button>
-                  <button
-                    v-if="
-                      copiedEvent.attachment_file != '' &&
-                      !Object.is(copiedEvent.attachment_file, null)
-                    "
-                    type="button"
-                    class="btn btn-outline-danger"
-                    @click="
-                      copiedEvent.attachment_file = '';
-                      event.attachment_file = '';
-                    "
-                    :disabled="modalReadonly"
-                  >
+                  <button v-if="
+                    copiedEvent.attachment_file != '' &&
+                    !Object.is(copiedEvent.attachment_file, null)
+                  " type="button" class="btn btn-outline-danger" @click="
+  copiedEvent.attachment_file = '';
+event.attachment_file = '';
+                      " :disabled="modalReadonly">
                     Remove File
                   </button>
                 </FormulateForm>
@@ -903,29 +762,15 @@ export default {
             </div>
 
             <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                 Close
               </button>
-              <button
-                id="createButton"
-                type="button"
-                @click="createClick()"
-                v-if="addingNewEvent"
-                class="btn btn-primary"
-              >
+              <button id="createButton" type="button" @click="createClick()" v-if="addingNewEvent"
+                class="btn btn-primary">
                 Create
               </button>
-              <button
-                v-if="!addingNewEvent && !modalReadonly"
-                id="updateButton"
-                type="button"
-                @click="updateClick()"
-                class="btn btn-primary"
-              >
+              <button v-if="!addingNewEvent && !modalReadonly" id="updateButton" type="button" @click="updateClick()"
+                class="btn btn-primary">
                 Update
               </button>
             </div>
@@ -937,42 +782,23 @@ export default {
     <AttendanceModal v-model="showEventAttendanceModal" :click-to-close="false">
       <template v-slot:title>Event Attendance</template>
 
-      <template v-slot:modal-close-text
-        ><button
-          type="button"
-          class="btn btn-secondary"
-          @click="showEventAttendanceModal = false"
-          data-bs-toggle="modal"
-          data-bs-target="#edit-info-modal"
-        >
+      <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
+          @click="showEventAttendanceModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
           Close
-        </button></template
-      >
+        </button></template>
       <EventAttendance :event_id="event.id" :user="user"></EventAttendance>
       <!-- <template v-slot:params><EventAttendance :event_id="event.id"></EventAttendance></template> -->
     </AttendanceModal>
 
-    <div
-      v-if="false"
-      class="modal fade"
-      id="event-attendance-modal"
-      tabindex="-1"
-      data-bs-backdrop="static"
-      aria-labelledby="event-attendance-modal-label"
-      aria-hidden="true"
-    >
+    <div v-if="false" class="modal fade" id="event-attendance-modal" tabindex="-1" data-bs-backdrop="static"
+      aria-labelledby="event-attendance-modal-label" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="event-attendance-modal-label">
               Event Attendance
             </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
           <div class="modal-body">
@@ -984,11 +810,7 @@ export default {
             </div>
 
             <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                 Close
               </button>
             </div>
@@ -1005,6 +827,7 @@ export default {
   justify-content: center;
   align-items: center;
 }
+
 ::v-deep .modal-content {
   position: relative;
   display: flex;
@@ -1015,11 +838,13 @@ export default {
   border-radius: 0.25rem;
   background: #fff;
 }
+
 .modal__title {
   margin: 0 2rem 0 0;
   font-size: 1.5rem;
   font-weight: 700;
 }
+
 .modal__close {
   position: absolute;
   top: 0.5rem;
