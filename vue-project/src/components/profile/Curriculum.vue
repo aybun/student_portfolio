@@ -81,7 +81,8 @@
                     <div class="d-flex flex-row bd-highlight mb-3">
 
                         <div class="p-2 w-50 bd-highlight">
-                            <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="openNewWindow('/profile/curriculum-student/' + curriculum.id)">
+                            <button type="button" class="btn btn-primary m-2 fload-end" @click="showCurriculumStudentModal=true;"
+                            data-bs-toggle="modal" data-bs-target="#edit-info-modal">
                                 Show Students
                             </button>
                             
@@ -139,8 +140,6 @@
                                     error-behavior="live" validation-event="input" validation="maxFileSize:2000000" upload-behavior="delayed" :disabled="
                                         modalReadonly || !formRender.edit.attachment_file
                                     "></FormulateInput>
-
-                                    
                                     <div>
                                         <h6>Skillgroups</h6>
                                         <multiselect ref="curriculum-multiselect-skillgroups" name="multiselect-skillgroups"
@@ -180,6 +179,14 @@
             </div >
         </div >
     </div >
+    
+    <EventAttendanceModal v-model="showCurriculumStudentModal" :click-to-close="false">
+        <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
+          @click="showEventAttendanceModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
+          Close
+        </button></template>
+        <CurriculumStudent :curriculum_id="curriculum.id" :user="user"></CurriculumStudent>
+    </EventAttendanceModal>
 
 </div >
 </template>
@@ -205,7 +212,7 @@ export default {
         return {
             curriculum:{},
             curriculums:{},
-
+            showCurriculumStudentModal = false;
             // tempContext : {},
             // tempArgs : [],
             // tempInt : 0,

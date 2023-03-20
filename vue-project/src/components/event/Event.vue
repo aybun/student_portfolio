@@ -13,7 +13,7 @@ import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
 
 // components
 import EventAttendance from "/src/components/event/EventAttendance.vue";
-import AttendanceModal from "/src/components/event/AttendanceModal.vue";
+import EventAttendanceModal from "/src/components/event/EventAttendanceModal.vue";
 
 export default {
   components: {
@@ -23,7 +23,7 @@ export default {
     VueFinalModal,
 
     //Custom components
-    AttendanceModal,
+    EventAttendanceModal,
     EventAttendance,
   },
 
@@ -779,7 +779,7 @@ event.attachment_file = '';
       </div>
     </div>
 
-    <AttendanceModal v-model="showEventAttendanceModal" :click-to-close="false">
+    <EventAttendanceModal v-model="showEventAttendanceModal" :click-to-close="false">
       <template v-slot:title>Event Attendance</template>
 
       <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
@@ -788,7 +788,7 @@ event.attachment_file = '';
         </button></template>
       <EventAttendance :event_id="event.id" :user="user"></EventAttendance>
       <!-- <template v-slot:params><EventAttendance :event_id="event.id"></EventAttendance></template> -->
-    </AttendanceModal>
+    </EventAttendanceModal>
 
     <div v-if="false" class="modal fade" id="event-attendance-modal" tabindex="-1" data-bs-backdrop="static"
       aria-labelledby="event-attendance-modal-label" aria-hidden="true">
