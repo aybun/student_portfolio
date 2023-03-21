@@ -141,9 +141,9 @@ class CurriculumApiAccessPolicy(AccessPolicy):
     @classmethod
     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
 
-        if request.method == "POST":
-            fields = {'th_name': fields['th_name']}
 
+        if request.method == "POST":
+            pass
         elif request.method == "PUT":
             pass
 

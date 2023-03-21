@@ -1,3 +1,4 @@
+import http
 import json
 import os
 from copy import deepcopy
@@ -53,94 +54,98 @@ def awardApi(request, award_id=0):
             object = Model.objects.filter(Q(id=id) & query_object).first()
 
             if object is None:
-                return JsonResponse("The object does not exist.", safe=False)
+                return JsonResponse({}, safe=False)
 
             serializer = Serializer(object, context={'request': request})
             return JsonResponse(serializer.data, safe=False)
+
     elif request.method == "POST":
         data = request.data.dict()
-        object, data = Serializer.custom_clean(data=data, context={'request': request})
+        (_, data) = Serializer.custom_clean(data=data, context={'request': request})
         serializer = Serializer(data=data, context={'request': request})
-        # print(data)
+
+        success = True
         if serializer.is_valid():
-            success = True
             try:
                 with transaction.atomic():
-                    serializer.save()
+                    instance = serializer.save()
             except IntegrityError:
                 success = False
-            if success:
-                return JsonResponse("Added Successfully", safe=False)
-            else:
-                return JsonResponse("Failed to add.", safe=False)
 
         else:
+            success = False
             print(serializer.error_messages)
             print(serializer.errors)
-            return JsonResponse("Failed to Add", safe=False)
 
+        if success:
+            request.method = "GET"
+            response_dict = {
+                "message": "Added Successfully",
+                "data": Serializer(instance=instance, context={'request': request}).data
+            }
+            return JsonResponse(response_dict, safe=False)
+        else:
+            return JsonResponse({"message" : "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
     elif request.method == "PUT":
         id = award_id
         query_object = AccessPolicyClass.scope_query_object(request=request)
         object = Model.objects.filter(Q(id=id) & query_object).first()
-        # print(object.approved_by)
+        old_obj = deepcopy(object)  # old_obj : We want the paths of files to be deleted.
+
+        success = True
         if object is None:
-            return JsonResponse("Failed to update.", safe=False)
-        old_obj = deepcopy(object) # old_obj : We want the paths of files to be deleted.
-
-        data = request.data.dict()
-
-        object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
-        print(data)
-        serializer = Serializer(instance=object, data=data, context={'request': request})
-
-        if serializer.is_valid():
-            success = True
-            try:
-                with transaction.atomic():
-                    serializer.save()
-            except IntegrityError:
-                success = False
-
-            # Delete Files
-            if success:
-                #Check if the file field passed is ''. or the new file is passed -> Remove the old file.
-
-                if old_obj.attachment_file and not bool(object.attachment_file)\
-                        or old_obj.attachment_file != object.attachment_file:
-                    _delete_file(str(old_obj.attachment_file))
-
-            # Sending Messages
-            if success:
-                # We want to get the data.
-                request.method="GET"
-                return JsonResponse(Serializer(instance=object, context={'request' : request}).data, safe=False)
-            else:
-                return JsonResponse("Failed to delete.", safe=False)
-
+            success = False
         else:
-            print(serializer.errors)
-            print(serializer.error_messages)
-            return JsonResponse("Failed to Update")
+            data = request.data.dict()
+            (object, data) = Serializer.custom_clean(instance=object, data=data, context={'request': request})
+            print(data)
+            serializer = Serializer(instance=object, data=data, context={'request': request})
+
+            if serializer.is_valid():
+                try:
+                    with transaction.atomic():
+                        instance = serializer.save()
+                except IntegrityError:
+                    success = False
+            else:
+                success = False
+                print(serializer.errors)
+                print(serializer.error_messages)
+
+        if success:
+            # Check if the file field passed is ''. or the new file is passed -> Remove the old file.
+            if old_obj.attachment_file and not bool(object.attachment_file)\
+                    or old_obj.attachment_file != object.attachment_file:
+                _delete_file(str(old_obj.attachment_file))
+
+            request.method = "GET"
+            response_dict = {
+                "message": "Added Successfully",
+                "data": Serializer(instance=instance, context={'request': request}).data
+            }
+            return JsonResponse(response_dict, safe=False)
+        else:
+            return JsonResponse({"message": "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     elif request.method == "DELETE":
         id = award_id
         query_object = AccessPolicyClass.scope_query_object(request=request)
         object = Model.objects.filter(Q(id=id) & query_object).first()
 
-        if object is None:
-            return JsonResponse("Failed to delete.", safe=False)
-
         success = True
-        try:
-            with transaction.atomic():
-                object.delete()
-        except IntegrityError:
+        if object is None:
             success = False
-        if success:
-            return JsonResponse("Deleted Successfully", safe=False)
         else:
-            return JsonResponse("Failed to delete.", safe=False)
+            try:
+                with transaction.atomic():
+                    object.delete()
+            except IntegrityError:
+                success = False
+
+        if success:
+            return JsonResponse({"message": "Deleted Successfully"}, safe=False)
+        else:
+            return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @parser_classes([JSONParser, MultiPartParser])
 @permission_classes((AwardApiAccessPolicy,))

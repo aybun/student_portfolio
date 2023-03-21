@@ -77,10 +77,11 @@ class StorageView(PrivateStorageView):
 
                 if object is not None:
                     # print(object.created_by == self.request.user.id and (not object.approved))
-
                     if object.created_by.id == self.request.user.id and (not object.approved):
                         accessible = True
-
+        elif app_name == 'curriculum':
+            if 'staff' in groups:
+                accessible = True
         elif app_name == 'testprivate':
             if 'staff' in groups:
                 accessible = True

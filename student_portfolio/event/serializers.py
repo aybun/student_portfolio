@@ -210,7 +210,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 if data['approved'] == 'true':
                     data['approved_by'] = request.user.id
 
-        return data
+        return instance, data
 
 
 class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
@@ -307,6 +307,22 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
         model = Curriculum
         fields = ('id', 'th_name', 'en_name', 'start_date', 'end_date', 'info', 'attachment_file', 'skillgroups')
         access_policy = CurriculumApiAccessPolicy
+    def create(self, validated_data):
+        instance = Curriculum.objects.create(
+            th_name=validated_data.get('th_name', None),
+            en_name=validated_data.get('en_name', None),
+            start_date=validated_data.get('start_date', None),
+            end_date=validated_data.get('end_date', None),
+            info=validated_data.get('info', None),
+            attachment_file=validated_data.get('attachment_file', None)
+        )
+
+        instance.skillgroups.clear()
+        if 'skillgroups' in validated_data:
+            for e in validated_data.get('skillgroups'):
+                instance.skillgroups.add(Skillgroup.objects.get(id=e['id']))
+
+        return instance
 
     def update(self, instance, validated_data):
 
@@ -330,12 +346,12 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         skill_group_ids = Skillgroup.objects.all().values_list('id', flat=True)
 
-        print(data)
+        # print(data)
         list_of_dicts = json.loads(data)
-        print("list_of_dicts : {}".format(list_of_dicts))
+        # print("list_of_dicts : {}".format(list_of_dicts))
 
         if not (isinstance(list_of_dicts, list)) or len(list_of_dicts) == 0:  # Pop from the caller.
-            return ''
+            return None
 
         unique_ids = []
         out_list = []
@@ -356,23 +372,26 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
     def custom_clean(instance=None, data=None, context=None):
         request = context['request']
 
-        if request.method == "POST":
-            pass
-        elif request.method == 'PUT':
+        if 'skillgroups' in data:
+            skillgroup = CurriculumSerializer.custom_clean_skillgroups(data=data.get('skillgroups', None))
+            if skillgroup is None:
+                data.pop('skillgroups', None)
+            else:
+                data['skillgroups'] = skillgroup
 
-            if isinstance(data.get('attachment_file', None), str):
+        if request.method == "POST":
+            attachment_file = data.get('attachment_file', None)
+            if isinstance(attachment_file, str):
                 data.pop('attachment_file', None)
 
-            if 'skillgroups' in data:
+        elif request.method == 'PUT':
+            attachment_file = data.get('attachment_file', None)
+            if isinstance(attachment_file, str):
+                if attachment_file == '':  # We want '' to signal delete.
+                    instance.attachment_file = None
+                data.pop('attachment_file', None)
 
-                skillgroup = CurriculumSerializer.custom_clean_skillgroups(data=data.get('skillgroups'))
-
-                if isinstance(skillgroup, str):
-                    data.pop('skillgroups', None)
-                else:
-                    data['skillgroups'] = skillgroup
-
-        return data
+        return (instance, data)
 
 
 class SkillAssignedToSkillGroup(serializers.ModelSerializer):

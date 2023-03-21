@@ -128,6 +128,19 @@
                                         v-model="curriculum.info" validation="max:200,length"
                                         :readonly="modalReadonly || !formRender.edit.info"
                                         validation-name="info"></formulate-input>
+
+                                <div>
+                                    <h6>Skillgroups</h6>
+                                    <multiselect ref="curriculum-formulate-form-1-skillgroups" name="skillgroups"
+                                        v-model="curriculum.skillgroups" v-validate="'required|min:1'"
+                                        data-vv-validate-on="input" data-vv-as="skillgroups"  data-vv-scope="curriculum-formulate-form-1"
+                                        :hide-selected="true" :close-on-select="false" :multiple="true" :options="skillgroupTable"
+                                        :custom-label="_skillgroups_custom_label" track-by="id" placeholder="Select..."
+                                        :disabled="modalReadonly || !formRender.edit.skillgroups">
+                                    </multiselect>
+                                    <span v-show="veeErrors.has('curriculum-formulate-form-1.skillgroups')" style="color: red">{{  veeErrors.first('curriculum-formulate-form-1.skillgroups') }}</span>
+                                </div>
+                                <p></p>
                                 <FormulateInput type="file"
                                     :key="'curriculum-formulate-input-attachment_file-' + formKey" ref="curriculum-formulate-input-attachment_file"
                                     name="formulate-input-attachment_file" v-model="curriculum.attachment_file" label="Attachment file"
@@ -155,17 +168,8 @@
                                         :disabled="modalReadonly">
                                         Remove File
                                     </button>
-                                    <div>
-                                        <h6>Skillgroups</h6>
-                                        <multiselect ref="curriculum-formulate-form-1-skillgroups" name="skillgroups"
-                                            v-model="curriculum.skillgroups" v-validate="'required|min:1'"
-                                            data-vv-validate-on="input" data-vv-as="skillgroups"  data-vv-scope="curriculum-formulate-form-1"
-                                            :hide-selected="true" :close-on-select="false" :multiple="true" :options="skillgroupTable"
-                                            :custom-label="_skillgroups_custom_label" track-by="id" placeholder="Select..."
-                                            :disabled="modalReadonly || !formRender.edit.skillgroups">
-                                        </multiselect>
-                                        <span v-show="veeErrors.has('curriculum-formulate-form-1.skillgroups')" style="color: red">{{  veeErrors.first('curriculum-formulate-form-1.skillgroups') }}</span>
-                                    </div>        
+                                    
+                                            
                             </FormulateForm>
 
 
@@ -374,13 +378,15 @@ export default {
             });
         },
 
-        addClick(){
+        async addClick(){
             this.modalTitle="Add Curriculum"
             this.addingNewCurriculum = true // Signal that we are adding a new event -> Create Button.
             this.modalReadonly = false;
-
-            this.assignDataToCurriculumForm(this.getEmptyCurriculum());
-            // this.curriculum.skillgroups = null
+            
+            await this.assignDataToCurriculumForm(this.getEmptyCurriculum());
+            await this.$formulate.resetValidation('curriculum-formulate-form-1')
+            this.veeErrors.clear();
+        
         },
         viewClick(curriculum){
             this.modalTitle="Edit Curriculum"
@@ -435,8 +441,16 @@ export default {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-                this.refreshData();
-                alert(response.data);
+                const stringified = JSON.stringify(response.data.data);
+
+                this.curriculums.push(response.data.data);
+                this.curriculum = JSON.parse(stringified);
+                this.copiedCurriculum = JSON.parse(stringified);
+                
+                alert(response.data.message + "\n" + stringified);
+            }).catch((error)=>{
+                
+                alert(error.response.data.message)
             })
 
         },
@@ -473,9 +487,16 @@ export default {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-                this.refreshData();
-                alert(response.data);
 
+                const stringified = JSON.stringify(response.data.data);
+                this.reassignUpdatedElementIntoList(this.curriculums, response.data.data);
+                this.curriculum = JSON.parse(stringified);
+                this.copiedCurriculum = JSON.parse(stringified);
+                
+                alert(response.data.message + "\n" + stringified);
+
+            }).catch((error)=>{
+                alert(error.response.data.message);
             })
         },
 
@@ -495,8 +516,10 @@ export default {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-                this.refreshData();
-                alert(response.data);
+                // this.refreshData();
+                alert(response.data.message);
+            }).catch((error)=>{
+                alert(error.response.data.message);
             })
 
         },
@@ -627,10 +650,14 @@ export default {
             );
         },
 
-        // maxFileSize(context, ...args){
-        //     console.log(context);
-        //     return true;
-        // }
+        reassignUpdatedElementIntoList(list, element) {
+            for (let i = 0; i < list.length; ++i) {
+                if (list[i].id === element.id) {
+                    this.$set(list, i, element);
+                    break;
+                }
+            }
+        },
     },
 
     created: async function(){
