@@ -164,7 +164,7 @@ export default {
                 used_for_calculation: false,
 
                 attachment_link: "",
-                attachment_file: "",
+                attachment_file: null,
 
                 //many-to-many fields
                 skills: [],
@@ -798,7 +798,7 @@ export default {
                                         <h6>Receivers</h6>
                                         <div>
                                             <multiselect ref="award-multiselect-receivers"
-                                                name="award-multiselect-receivers" v-model="award.receivers"
+                                                name="receivers" v-model="award.receivers"
                                                 v-validate="'required|min:1'" data-vv-validate-on="input"
                                                 data-vv-as="receivers" data-vv-scope="award-formulate-form-1"
                                                 :hide-selected="true" :close-on-select="false" :multiple="true"
@@ -806,14 +806,14 @@ export default {
                                                 placeholder="Select..."
                                                 :disabled="modalReadonly || !formRender.edit.receivers">
                                             </multiselect>
-                                            <span v-show="veeErrors.has('award-multiselect-receivers')"
-                                                style="color: red">{{ veeErrors.first("award-multiselect-receivers")
-                                                }}</span>
+                                            <span v-show="veeErrors.has('award-formulate-form-1.receivers')" style="color: red">{{  veeErrors.first('award-formulate-form-1.receivers') }}</span>
+                                                
+                                                
                                         </div>
                                     </div>
 
                                     <div class="staff">
-                                        <h3>Supervisors</h3>
+                                        <h6>Supervisors</h6>
                                         <multiselect v-model="award.supervisors" :hide-selected="true"
                                             :close-on-select="false" :multiple="true" :options="staffTable"
                                             :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..."

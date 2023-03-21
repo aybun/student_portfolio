@@ -104,9 +104,7 @@ class AssignSkillToSkillgroup(models.Model):
 
 
 def curriculum_attachment_file_directory_path(instance, filename):
-    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return 'curriculums/{0}/{1}'.format(instance.id, filename)
-
+    return PRIVATE_STORAGE_ROOT + '\{0}_{1}_{2}'.format('curriculum', instance.id, filename)
 
 class Curriculum(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -115,7 +113,9 @@ class Curriculum(models.Model):
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True)
     info = models.CharField(max_length=200, default='')
-    attachment_file = models.FileField(upload_to=curriculum_attachment_file_directory_path, null=True, blank=True)
+    attachment_file = PrivateFileField(upload_to=curriculum_attachment_file_directory_path,
+                                       max_file_size=1024 * 1024 * 2,
+                                       null=True, blank=True, max_length=500)
 
     skillgroups = models.ManyToManyField(Skillgroup, related_name='curriculum_skillgroup_set', null=True)
 

@@ -157,14 +157,14 @@
                                     </button>
                                     <div>
                                         <h6>Skillgroups</h6>
-                                        <multiselect ref="curriculum-multiselect-skillgroups" name="multiselect-skillgroups"
+                                        <multiselect ref="curriculum-formulate-form-1-skillgroups" name="skillgroups"
                                             v-model="curriculum.skillgroups" v-validate="'required|min:1'"
                                             data-vv-validate-on="input" data-vv-as="skillgroups"  data-vv-scope="curriculum-formulate-form-1"
                                             :hide-selected="true" :close-on-select="false" :multiple="true" :options="skillgroupTable"
                                             :custom-label="_skillgroups_custom_label" track-by="id" placeholder="Select..."
                                             :disabled="modalReadonly || !formRender.edit.skillgroups">
                                         </multiselect>
-                                        <span v-show="veeErrors.has('curriculum-multiselect-skillgroups')" style="color: red">{{  veeErrors.first("curriculum-multiselect-skillgroups") }}</span>
+                                        <span v-show="veeErrors.has('curriculum-formulate-form-1.skillgroups')" style="color: red">{{  veeErrors.first('curriculum-formulate-form-1.skillgroups') }}</span>
                                     </div>        
                             </FormulateForm>
 
@@ -361,7 +361,7 @@ export default {
                 start_date : '',
                 end_date : '',
                 info : '',
-                attachment_file : '',
+                attachment_file : null,
 
                 skillgroups : [],
                 
@@ -380,7 +380,7 @@ export default {
             this.modalReadonly = false;
 
             this.assignDataToCurriculumForm(this.getEmptyCurriculum());
-
+            // this.curriculum.skillgroups = null
         },
         viewClick(curriculum){
             this.modalTitle="Edit Curriculum"
