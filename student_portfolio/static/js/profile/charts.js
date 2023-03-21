@@ -12,14 +12,14 @@ let chartComponent = {
             skillTable:[],
             events:[],
 
-
+            reindexedSkillTable:{},
 
             // JS editing zone
             modalTitle:"Edit goal points",
             n_groups:0,
             max_n_groups:5,
 
-            reindexedSkillTable:{},
+
             skillFreq:[],
             skillLabels:[],
 
@@ -64,12 +64,9 @@ let chartComponent = {
                     // console.log(this.curriculums[i])
                     break;
                 }
-
             }
 
             let skillgroups_for_charts = []
-            // console.log('curriculum')
-            // console.log(curriculum)
 
             for(let i = 0; i < this.skillgroups.length; ++i){
                 for(let j = 0; j < curriculum.skillgroups.length; ++j)
@@ -77,14 +74,6 @@ let chartComponent = {
                         skillgroups_for_charts.push(JSON.parse(JSON.stringify(this.skillgroups[i])))
                     }
             }
-
-            // let skills_for_charts = this.getEmptyArrayOfDicts(skillgroups_for_charts.length)
-            // for(let i = 0; i < skills_for_charts.length; ++i){
-            //
-            //     for(let j = 0; j < skillgroups_for_charts.skills.length; ++j){
-            //         skills_for_charts[i][ skillgroups_for_charts.skills[j].skill_id_fk ] = skillgroups_for_charts.skills[j]
-            //     }
-            // }
 
             this.n_groups = skillgroups_for_charts.length
             // this.chartActive = true
@@ -108,25 +97,6 @@ let chartComponent = {
                     skill_label_data[i].push(this.reindexedSkillTable[ temp_skill_id ].title)
                 }
             }
-
-
-            // for (let i = 0; i < this.skillTable.length; ++i){
-            //     for (let j = 0; j < n_groups; ++j){
-            //         chart_freq_data[j].push(this.skillFreq[i])
-            //         goal_freq_data[j].push(skillgroups_for_charts.skills.skill_id_fk)
-            //     }
-            // }
-            //
-            // for (let i = 0; i < this.skillTable.length; ++i){
-            //     for (let j = 0; j < n_groups; ++j){
-            //         if (this.skillTable[i].type === (j+1)){
-            //             chart_freq_data[j].push(this.skillFreq[i])
-            //             goal_freq_data[j].push(this.skillTable[i].goal_point)
-            //             skill_label_data[j].push(this.skillTable[i].title)
-            //
-            //         }
-            //     }
-            // }
 
             let chart_ids = []
             for (let i = 0; i < this.n_groups; ++i){
@@ -221,26 +191,8 @@ let chartComponent = {
 
             this.skillFreq = skillFreq
 
-
-            //Initialize skillLabels
-            // let skillLabels = []
-            // this.skillTable.forEach(function(e) {
-            //         skillLabels.push(e.title)
-            //     }
-            // )
-            // this.skillLabels = skillLabels
-
         },
 
-        prepareData(){
-            // console.log(this.user)
-            // this.user['is_staff'] = Object.values(this.user.groups).includes('staff')
-            // this.user['is_student'] = Object.values(this.user.groups).includes('student')
-
-            this.prepareChartData()
-
-
-        },
     },
 
     created: async function(){
@@ -287,7 +239,7 @@ let chartComponent = {
                 console.log(this.events)
             });
 
-        this.prepareData()
+        this.prepareChartData()
         this.reloadCharts()
     }
 }

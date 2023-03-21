@@ -24,6 +24,7 @@ import HelloWorld from "./components/HelloWorld.vue";
           <router-link to="/award">Award</router-link>
           <router-link to="/skillgroup">Skillgroup</router-link>
           <router-link to="/curriculum">Curriculum</router-link>
+          <router-link to="/skillchart">Skill Chart</router-link>
         </nav>
       </div>
     </header>

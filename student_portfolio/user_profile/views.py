@@ -214,3 +214,17 @@ def eventAttendance(request):
 
     }
     return render(request, 'profile/event_attendance.html', stuff_for_frontend)
+
+
+# def skillChartDataApi(request):
+#
+#     user_id_fk = request.user.id
+#
+#
+#     student_profile = UserProfile.objects.filter(user_id_fk=user_id_fk).first()
+#
+#     if student_profile is None:
+#         return ''
+#
+#
+
