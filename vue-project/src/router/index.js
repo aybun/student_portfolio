@@ -4,6 +4,7 @@ import HomeView from "../views/HomeView.vue";
 import Award from "../components/award/Award.vue";
 import Login from "../components/registration/Login.vue";
 import Event from "../components/event/Event.vue";
+import EventAttendedStudent from '/src/components/event/EventAttendedStudent.vue'
 import Project from "/src/components/project/Project.vue";
 import Skillgroup from "/src/components/profile/Skillgroup.vue";
 import Curriculum from "/src/components/profile/Curriculum.vue"
@@ -41,6 +42,11 @@ const router = new VueRouter({
       path: "/event",
       name: "event",
       component: Event,
+    },
+    {
+      path: "/event/event-attended-student",
+      name: "event-attended-student",
+      component: EventAttendedStudent,
     },
     {
       path: "/project",

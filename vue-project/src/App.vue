@@ -70,11 +70,12 @@ import HelloWorld from "./components/HelloWorld.vue";
           </button>
           <div class="collapse" id="dashboard-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li>
-                <router-link to="/event" class="link-dark rounded"
-                  >Event</router-link
-                >
-              </li>
+              <li><router-link to="/event" class="link-dark rounded" >Event</router-link></li>
+              <li><router-link to="/event/event-attended-student" class="link-dark rounded" >Event Attended Student</router-link></li>
+
+                
+                
+              
               <li><a href="#" class="link-dark rounded">Overview</a></li>
             </ul>
           </div>

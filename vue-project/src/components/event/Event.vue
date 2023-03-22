@@ -26,6 +26,12 @@ export default {
     EventAttendanceModal,
     EventAttendance,
   },
+  props:{
+    OnlyAttendedByUser:{
+      type:Boolean,
+      default:false,
+    },
+  },
 
   data() {
     return {
@@ -74,6 +80,7 @@ export default {
           // tooltip: "A simple tooltip",
           thClass: "text-center",
           tdClass: "text-center",
+          hidden:true,
           filterOptions: {
             styleClass: "class1", // class to be added to the parent th element
             enabled: true, // enable filter for this column
@@ -88,7 +95,8 @@ export default {
           label: "Title",
           field: "title",
           thClass: "text-center",
-
+          tdClass: "text-center",
+          tooltip : "ชื่อกิจกรรม",
           filterOptions: {
             styleClass: "class1", // class to be added to the parent th element
             enabled: true, // enable filter for this column
@@ -108,6 +116,7 @@ export default {
           dateOutputFormat: "dd-MM-yyyy HH:mm",
           thClass: "text-center",
           tdClass: "text-center",
+          tooltip : "วันที่และเวลาที่เริ่มกิจกรรม",
           filterOptions: {
             enabled: false,
             placeholder: "Filter Start",
@@ -123,6 +132,7 @@ export default {
           dateOutputFormat: "dd-MM-yyyy HH:mm",
           thClass: "text-center",
           tdClass: "text-center",
+          tooltip : "วันที่และเวลาที่สิ้นสุดการจัดกิจกรรม",
           filterOptions: {
             enabled: false,
             placeholder: "Filter Start",
@@ -134,6 +144,24 @@ export default {
           field: "approved",
           thClass: "text-center",
           tdClass: "text-center",
+          tooltip : "ผ่านการอนุมัติ",
+          filterOptions: {
+            styleClass: "class1", // class to be added to the parent th element
+            enabled: true, // enable filter for this column
+            placeholder: "All", // placeholder for filter input
+            filterValue: "", // initial populated value for this filter
+            filterDropdownItems: [true, false], // dropdown (with selected values) instead of text input
+            // filterFn: this.columnApprovedFilterFn, //custom filter function that
+            trigger: "enter", //only trigger on enter not on keyup
+          },
+        },
+        {
+          label: "Arranged Inside",
+          field: "arranged_inside",
+          thClass: "text-center",
+          tdClass: "text-center",
+          tooltip : "จัดโดยวิทยาลัยการคอมพิวเตอร์",
+          hidden:true,
           filterOptions: {
             styleClass: "class1", // class to be added to the parent th element
             enabled: true, // enable filter for this column
@@ -561,10 +589,22 @@ export default {
     });
     this._generate_formRender();
 
-    axios.get(this.$API_URL + "event").then((response) => {
-      this.events = response.data;
-      // console.log(this.events)
-    });
+    if (this.OnlyAttendedByUser){
+      // const eventAttendedParams = new URLSearchParams([['event_used_for_calculation', true], ['event_attendance_used_for_calculation', true]]);
+      const eventAttendedParams = new URLSearchParams([]);  
+      axios.get(this.$API_URL+"event-attended/list", { params : eventAttendedParams} )
+            .then((response)=>{
+                this.events=response.data;
+                console.log(this.events)
+            });
+    }
+    else{
+      axios.get(this.$API_URL + "event").then((response) => {
+        this.events = response.data;
+        // console.log(this.events)
+      });
+    }
+    
 
     axios.get(this.$API_URL + "staff").then((response) => {
       this.staffTable = this.assignFieldAsIdField(response.data, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
@@ -608,7 +648,8 @@ export default {
 
 <template>
   <div>
-    <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
+    
+    <button v-if="!OnlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
       @click="addClick()">
       Add Event
     </button>
@@ -687,11 +728,11 @@ export default {
           <div class="modal-body">
             <div class="d-flex flex-row bd-highlight mb-3">
               <div class="p-2 w-50 bd-highlight">
-                <button v-if="!addingNewEvent && user.is_staff" type="button" class="btn btn-primary m-2 fload-end"
+                <button v-if="!addingNewEvent" type="button" class="btn btn-primary m-2 fload-end"
                   @click="showEventAttendanceModal = true" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
                   Show Attendances
                 </button>
-
+                
                 <FormulateForm name="event-formulate-form-1" ref="event-formulate-form-1" #default="{ hasErrors }">
                   <formulate-input ref="formulate-input-title" type="text" v-model="event.title" label="Title"
                     validation="required|max:100" :readonly="modalReadonly || !formRender.edit.title"></formulate-input>

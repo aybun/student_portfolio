@@ -127,6 +127,23 @@ export default {
                     field: "synced",
                     thClass: "text-center",
                     tdClass: "text-center",
+                    tooltip : "รหัสนักศึกษาอยู่ในฐานข้อมูล",
+                    filterOptions: {
+                        styleClass: "class1", // class to be added to the parent th element
+                        enabled: true, // enable filter for this column
+                        placeholder: "All", // placeholder for filter input
+                        filterValue: "", // initial populated value for this filter
+                        filterDropdownItems: [true, false], // dropdown (with selected values) instead of text input
+                        // filterFn: this.columnApprovedFilterFn, //custom filter function that
+                        trigger: "enter", //only trigger on enter not on keyup
+                    },
+                },
+                {
+                    label: "Passed",
+                    field: "used_for_calculation",
+                    thClass: "text-center",
+                    tdClass: "text-center",
+                    tooltip : "ผ่านการทดสอบ (used_for_calculation)",
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
@@ -470,23 +487,23 @@ export default {
 
 <template>
     <div>
-        <button type="button" class="btn btn-primary m-2 fload-end" @click="
+        <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" @click="
             addClick();
         showAddEventAttendanceModal = true;
                   ">
             Add Student to The Event
         </button>
 
-        <button type="button" class="btn btn-primary m-2 fload-end" @click="syncByUniversityIdClick()">
+        <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" @click="syncByUniversityIdClick()">
             Sync by university id
         </button>
 
-        <button type="button" class="btn btn-primary m-2 fload-end" @click="showAddByFileModal = true">
+        <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" @click="showAddByFileModal = true">
             Add attendees by file
         </button>
 
         <vue-good-table ref="event-attendance-vgt" :columns="vgtColumns" :rows="eventAttendances"
-            :select-options="{ enabled: true, selectOnCheckboxOnly: true }" :search-options="{ enabled: true }"
+            :select-options="{ enabled: user.is_staff, selectOnCheckboxOnly: true }" :search-options="{ enabled: true }"
             :pagination-options="{
                 enabled: true,
                 mode: 'records',

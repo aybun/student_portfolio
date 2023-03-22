@@ -72,6 +72,11 @@ class EventAttendanceApiAccessPolicy(AccessPolicy):
             "effect": "allow"
         },
         {
+            "action": ["<method:get>"],
+            "principal": ["group:student"],
+            "effect": "allow",
+        },
+        {
             "action": ["eventAttendanceOfStudents"],
             "principal" : ["group:staff"],
             "effect": "allow",
@@ -81,6 +86,7 @@ class EventAttendanceApiAccessPolicy(AccessPolicy):
             "principal": ["group:student"],
             "effect": "deny",
         }
+
     ]
 
     @classmethod
@@ -98,6 +104,9 @@ class EventAttendanceApiAccessPolicy(AccessPolicy):
     @classmethod
     def scope_query_object(cls, request):
         groups = request.user.groups.values_list('name', flat=True)
+        if request.method == "GET":
+            if 'staff' not in groups: #Assume that any group that has lower authority than staff.
+                return Q(user_id_fk=request.user.id)
 
         if 'staff' in groups:
             return Q()
@@ -242,12 +251,12 @@ class EventAttendedListApiAccessPolicy(AccessPolicy):
             else:
                 attendances = EventAttendance.objects.filter(synced=True, user_id_fk=request.user.id)
 
+            event_ids = attendances.values_list('event_id_fk', flat=True)
+
             event_used_for_calculation = request.GET.get('event_used_for_calculation', None)
             if event_attendance_used_for_calculation is not None:
                 event_used_for_calculation = bool(event_used_for_calculation)
                 query_object &= Q(used_for_calculation=event_used_for_calculation)
-
-            event_ids = attendances.values_list('event_id_fk', flat=True)
 
             if 'staff' in groups:
                 query_object &= Q(approved=True) & Q(id__in=event_ids)
