@@ -6,6 +6,7 @@ import Login from "../components/registration/Login.vue";
 import Event from "../components/event/Event.vue";
 import EventAttendedStudent from '/src/components/event/EventAttendedStudent.vue'
 import Project from "/src/components/project/Project.vue";
+import Skill from "/src/components/profile/Skill.vue";
 import Skillgroup from "/src/components/profile/Skillgroup.vue";
 import Curriculum from "/src/components/profile/Curriculum.vue"
 import SkillChartView from "/src/components/profile/skillchart/SkillChartView.vue"
@@ -52,6 +53,11 @@ const router = new VueRouter({
       path: "/project",
       name: "project",
       component: Project,
+    },
+    {
+      path: "/skill",
+      name: "skill",
+      component: Skill,
     },
     {
       path: "/skillgroup",

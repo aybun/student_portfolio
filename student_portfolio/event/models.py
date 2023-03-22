@@ -16,7 +16,7 @@ def event_attachment_file_directory_path(instance, filename):
 class Skill(models.Model):
     id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=50)
-
+    info = models.CharField(max_length=200, blank=True, default='')
     # goal_point = models.BigIntegerField(default=0)
     # info = models.CharField(max_length=200, default='')
     # detail = models.CharField(max_length=100)

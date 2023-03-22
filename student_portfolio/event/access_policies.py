@@ -217,11 +217,39 @@ class SkillTableApiAccessPolicy(AccessPolicy):
             "effect": "allow"
         },
         {
-            "action": ["<method:put>"],
+            "action": ["<method:put>", "<method:post>"],
             "principal": ["staff"],
             "effect": "allow"
         },
     ]
+    @classmethod
+    def scope_fields(cls, request, fields: dict, instance=None) -> dict:
+
+        if request.method == "POST":
+            fields.pop("id", None)
+
+        elif request.method == "PUT":
+            pass
+
+        return fields
+
+    @classmethod
+    def scope_query_object(cls, request):
+        groups = request.user.groups.values_list('name', flat=True)
+
+        if request.method == "GET":
+            if 'staff' in groups:
+                return Q()
+            elif 'student' in groups:
+                return Q()
+
+        elif request.method == "PUT":
+            return Q()
+
+        elif request.method == "DELETE":
+            #CurrentlyDisabled
+            pass
+
 
 
 class EventAttendedListApiAccessPolicy(AccessPolicy):

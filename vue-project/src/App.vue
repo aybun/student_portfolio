@@ -84,6 +84,24 @@ import HelloWorld from "./components/HelloWorld.vue";
           <button
             class="btn btn-toggle align-items-center rounded collapsed"
             data-bs-toggle="collapse"
+            data-bs-target="#Profile-collapse"
+            aria-expanded="false"
+          >
+            Profile
+          </button>
+          <div class="collapse" id="Profile-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><router-link to="/skillchart" class="link-dark rounded" >Skill Chart</router-link></li>
+              <li><router-link to="/skill" class="link-dark rounded" >Skill Editing Page</router-link></li>
+
+              <!-- <li><a href="#" class="link-dark rounded">Overview</a></li> -->
+            </ul>
+          </div>
+        </li>
+        <li class="mb-1">
+          <button
+            class="btn btn-toggle align-items-center rounded collapsed"
+            data-bs-toggle="collapse"
             data-bs-target="#orders-collapse"
             aria-expanded="false"
           >

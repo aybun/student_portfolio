@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 from rest_access_policy import FieldAccessMixin, AccessPolicy
 from .access_policies import EventApiAccessPolicy, EventAttendanceApiAccessPolicy, CurriculumApiAccessPolicy, \
-    SkillGroupApiAccessPolicy, EventAttendanceBulkAddApiAccessPolicy
+    SkillGroupApiAccessPolicy, EventAttendanceBulkAddApiAccessPolicy, SkillTableApiAccessPolicy
 
 from datetime import datetime
 import json
@@ -16,7 +16,7 @@ import csv
 
 
 
-class SkillSerializer(serializers.ModelSerializer):
+class SkillSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
     title = serializers.CharField(max_length=50, required=True)
 
@@ -25,9 +25,17 @@ class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = ('id', 'title')
+        access_policy = SkillTableApiAccessPolicy
 
+    @staticmethod
+    def custom_clean(instance=None, data=None, context=None):
+        # request = context['request']
+        # method = request.method
+        # groups = request.user.groups.values_list('name', flat=True)
 
-class EventSkillSerializer(serializers.ModelSerializer):
+        return instance, data
+
+class EventSkillSerializer( serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
 
     class Meta:

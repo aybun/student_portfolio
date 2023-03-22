@@ -245,6 +245,7 @@ export default {
             addingNewCurriculum:false,
             modalTitle:"",
             modalReadonly:false,
+            
             variables: {
                 API_URL: "",
             },

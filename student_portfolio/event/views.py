@@ -61,19 +61,20 @@ def eventApi(request, event_id=0):
             if not objects.exists():
                 return JsonResponse([], safe=False)
 
-            event_serializer = Serializer(objects, many=True, context={'request': request})
-            print(event_serializer.data)
-            return JsonResponse(event_serializer.data, safe=False)
+            serializer = Serializer(objects, many=True, context={'request': request})
+            print(serializer.data)
+            return JsonResponse(serializer.data, safe=False)
         else:
+            id = event_id
             query_object = AccessPolicyClass.scope_query_object(request=request)
-            object = Model.objects.filter(Q(id=event_id) & query_object).first()
+            object = Model.objects.filter(Q(id=id) & query_object).first()
 
             if object is None:
                 return JsonResponse({}, safe=False)
 
-            event_serializer = Serializer(object, context={'request' : request})
+            serializer = Serializer(object, context={'request' : request})
 
-            return JsonResponse(event_serializer.data, safe=False)
+            return JsonResponse(serializer.data, safe=False)
 
     elif request.method=='POST':
 
@@ -120,7 +121,7 @@ def eventApi(request, event_id=0):
             # print(event_data)
             # print(event_serializer.is_valid())
             if serializer.is_valid():
-                success = True
+
                 try:
                     with transaction.atomic():
                         instance = serializer.save()
@@ -140,7 +141,7 @@ def eventApi(request, event_id=0):
 
             request.method = "GET"
             response_dict = {
-                "message": "Added Successfully",
+                "message": "Updated Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
@@ -416,35 +417,97 @@ def syncAttendanceByUniversityId(request, event_id=0):
 @api_view(['GET', 'PUT'])
 @permission_classes((SkillTableApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
-def skillTableApi(request):
+def skillTableApi(request, skill_id=0):
+
+    Serializer = SkillSerializer
+    AccessPolicyClass = SkillTableApiAccessPolicy
+    Model = Skill
 
     if request.method == 'GET':
-        skill_table = Skill.objects.all().order_by('id')
-        serializer = SkillSerializer(skill_table, many=True)
-        return JsonResponse(serializer.data, safe=False)
-    if request.method == 'PUT':
+        if skill_id==0:
+            query_object = AccessPolicyClass.scope_query_object(request=request)
+            objects = Model.objects.filter(query_object).order_by('id')
 
-        skillTable_data = JSONParser().parse(request)
-        skillTable_data = sorted(skillTable_data, key=lambda x: x['id'])
+            if not objects.exists():
+                return JsonResponse([], safe=False)
 
-        skills = Skill.objects.all().order_by('id')
-        # print(skills)
-        # print(skillTable_data)
-        # print("Bye")
+            serializer = Serializer(objects, many=True, context={'request' : request})
+            return JsonResponse(serializer.data, safe=False)
+        else:
+            id = skill_id
+            query_object = AccessPolicyClass.scope_query_object(request=request)
+            object = Model.objects.filter(Q(id=id) & query_object).first()
 
-        with transaction.atomic():
-            for i in range(0, len(skills)):
-                serializer = SkillSerializer(skills[i], data=skillTable_data[i])
+            if object is None:
+                return JsonResponse({}, safe=False)
+            serializer = Serializer(object, context={'request': request})
+            return JsonResponse(serializer.data, safe=False)
 
-                if serializer.is_valid():
-                    serializer.save()
-                else:
-                    print(serializer.error_messages)
-                    print(serializer.errors)
-                    return JsonResponse("Failed to Update", safe=False)
+    elif request.method == 'POST':
+        data = request.data.dict()
+        _, data = Serializer.custom_clean(data=data, context={'request': request})
+        serializer = Serializer(data=data, context={'request': request})
 
-        return JsonResponse("Updated Successfully", safe=False)
+        success = True
+        if serializer.is_valid():
+            try:
+                with transaction.atomic():
+                    instance = serializer.save()
+            except IntegrityError:
+                success = False
+        else:
+            success = False
+            print(serializer.error_messages)
+            print(serializer.errors)
 
+        if success:
+            request.method = "GET"
+            response_dict = {
+                "message": "Added Successfully",
+                "data": Serializer(instance=instance, context={'request': request}).data
+            }
+            return JsonResponse(response_dict, safe=False)
+        else:
+            return JsonResponse({"message": "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+    elif request.method=='PUT':
+        id = skill_id
+        query_object = AccessPolicyClass.scope_query_object(request=request)
+        object = Model.objects.filter(Q(id=id) & query_object).first()
+        old_obj = deepcopy(object) # old_obj : We want the paths of files to be deleted.
+
+        success = True
+        if object is None:
+            success = False
+        else:
+            data = request.data.dict()
+            # print(data)
+            object, data = Serializer.custom_clean(instance=object, data=data, context={'request' : request})
+            serializer = Serializer(object, data=data, context={'request': request})
+            # print(event_data)
+            # print(event_serializer.is_valid())
+            if serializer.is_valid():
+
+                try:
+                    with transaction.atomic():
+                        instance = serializer.save()
+                except IntegrityError:
+                    success = False
+            else:
+                success = False
+                print(serializer.errors)
+                print(serializer.error_messages)
+
+        if success:
+            #Check if the file field passed is ''. or the new file is passed -> Remove the old file. Note: We have set the instance (we call them object here.) to None in custome_clean.
+
+            request.method = "GET"
+            response_dict = {
+                "message": "Updated Successfully",
+                "data": Serializer(instance=instance, context={'request': request}).data
+            }
+            return JsonResponse(response_dict, safe=False)
+        else:
+            return JsonResponse({"message": "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 def curriculum(request):
     return render(request, 'profile/curriculum.html', {})

@@ -31,9 +31,8 @@ urlpatterns=[
     path('api/event-attended/list/<int:user_id>', views.eventAttendedListApi),
 
 
-
     path('api/skillTable', views.skillTableApi),
-
+    path('api/skillTable/<int:skill_id>', views.skillTableApi)
 
 
     #Test Access policy
