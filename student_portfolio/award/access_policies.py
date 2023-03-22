@@ -19,11 +19,7 @@ class AwardApiAccessPolicy(AccessPolicy):
 
         # Cleaning data
         if method == "POST":
-            # We force the user to create a project first.
-            fields = {
-                'title': fields['title'],
-                'created_by': fields['created_by']
-            }
+            fields.pop('id', None)
 
         elif method == "PUT":
             # if instance.approved_by:

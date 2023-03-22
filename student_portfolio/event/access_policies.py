@@ -26,35 +26,17 @@ class EventApiAccessPolicy(AccessPolicy):
 
         # Cleaning data
         if method == "POST":
-            # We force the user to create an event first.
-
-            fields = {
-                'title' : fields['title'],
-                'created_by' : fields['created_by']
-            }
+            fields.pop('id', None)
 
         elif method == "PUT":
             fields.pop('created_by')
 
-            if 'staff' not in groups: #The user is a student or lower level users.
+            if 'staff' not in groups: #The user is a student or lower level user.
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
                 fields.pop('approved_by', None)
 
         return fields
-
-    def is_created_by(self, request, view, action) -> bool:
-        pass
-
-    # @classmethod
-    # def scope_queryset(cls, request, qs):
-    #     groups = request.user.groups.values_list('name', flat=True)
-    #
-    #     if 'staff' in groups:
-    #         return qs
-    #
-    #     elif 'student' in groups:
-    #         return qs.filter(Q(approved=True) | Q(created_by=request.user.id))
 
     @classmethod
     def scope_query_object(cls, request):
@@ -141,9 +123,8 @@ class CurriculumApiAccessPolicy(AccessPolicy):
     @classmethod
     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
 
-
         if request.method == "POST":
-            pass
+            fields.pop('id', None)
         elif request.method == "PUT":
             pass
 
@@ -185,7 +166,8 @@ class SkillGroupApiAccessPolicy(AccessPolicy):
     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
 
         if request.method == "POST":
-            fields = {'name': fields.get('name', None)}
+            fields.pop("id", None)
+            # fields = {'name': fields.get('name', None)}
 
         elif request.method == "PUT":
             pass

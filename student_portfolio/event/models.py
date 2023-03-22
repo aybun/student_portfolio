@@ -103,6 +103,7 @@ class AssignSkillToSkillgroup(models.Model):
         return "{} {}".format(self.id, self.goal_point)
 
 
+
 def curriculum_attachment_file_directory_path(instance, filename):
     return PRIVATE_STORAGE_ROOT + '\{0}_{1}_{2}'.format('curriculum', instance.id, filename)
 
@@ -121,3 +122,9 @@ class Curriculum(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.id, self.th_name)
+
+@receiver(models.signals.post_delete, sender=Curriculum)
+def delete_file_curriculum(sender, instance, *args, **kwargs):
+    """ Deletes image files on `post_delete` """
+    if instance.attachment_file:
+        _delete_file(instance.attachment_file.path)

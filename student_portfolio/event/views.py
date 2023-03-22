@@ -49,7 +49,6 @@ def _delete_file(path):
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventApi(request, event_id=0):
 
-    groups = list(request.user.groups.values_list('name', flat=True))
     Serializer = EventSerializer
     AccessPolicyClass = EventApiAccessPolicy
     Model = Event
@@ -148,8 +147,6 @@ def eventApi(request, event_id=0):
         else:
             return JsonResponse({"message": "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
-
-
     elif request.method=='DELETE':
 
         query_object = AccessPolicyClass.scope_query_object(request=request)
@@ -166,6 +163,7 @@ def eventApi(request, event_id=0):
                 success=False
 
         if success:
+            # print(instance)
             return JsonResponse({"message": "Deleted Successfully"}, safe=False)
         else:
             return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -514,6 +512,7 @@ def curriculumApi(request, curriculum_id=0):
     elif request.method == "PUT":
         query_object = AccessPolicyClass.scope_query_object(request=request)
         object = Model.objects.filter(Q(id=curriculum_id) & query_object).first()
+        old_obj = deepcopy(object)
 
         success = True
         if object is None:
@@ -521,7 +520,7 @@ def curriculumApi(request, curriculum_id=0):
         else:
             data = request.data.dict()
             print(data)
-            data = CurriculumSerializer.custom_clean(instance=object, data=data, context={'request': request})
+            object, data = CurriculumSerializer.custom_clean(instance=object, data=data, context={'request': request})
             serializer = CurriculumSerializer(object, data=data, context={'request': request})
 
             if serializer.is_valid():
@@ -536,6 +535,11 @@ def curriculumApi(request, curriculum_id=0):
                 print(serializer.error_messages)
 
         if success:
+
+            if old_obj.attachment_file and not bool(object.attachment_file)\
+                    or old_obj.attachment_file != object.attachment_file:
+                _delete_file(str(old_obj.attachment_file))
+
             request.method = "GET"
             response_dict = {
                 "message": "Added Successfully",

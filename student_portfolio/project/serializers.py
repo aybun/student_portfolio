@@ -50,7 +50,29 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
         fields = '__all__'
 
         access_policy = ProjectApiAccessPolicy
+    def create(selfs, validated_data):
 
+        skills = validated_data.pop('skills', None)
+        staffs = validated_data.pop('staffs', None)
+        attachment_file = validated_data.pop('attachment_file', None)
+
+        instance = Project.objects.create(**validated_data)
+
+        if attachment_file is not None:
+            instance.attachment_file = attachment_file
+
+        instance.skills.clear()
+        if skills is not None:
+            for e in skills:
+                instance.skills.add(Skill.objects.get(id=e['id']))
+
+        instance.staffs.clear()
+        if staffs is not None:
+            for e in staffs:
+                instance.staffs.add(User.objects.get(id=e['id']))
+
+        instance.save()
+        return instance
     def update(self, instance, validated_data):
 
         instance.title = validated_data.get('title', instance.title)
@@ -98,25 +120,28 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
             if isinstance(data.get('staffs', None), str):
                 data.pop('staffs', None)
 
-        attachment_file = data.get('attachment_file', None)
-        if isinstance(attachment_file, str):
-            if attachment_file == '':  # We want '' to signal delete.
-                instance.attachment_file = None
-            data.pop('attachment_file', None)
 
         if method == 'POST':
 
             data['created_by'] = request.user.id
 
-            if 'staff' not in groups:
-                data.pop('approved_by', None)
-            elif 'staff' in groups:
+            attachment_file = data.get('attachment_file', None)
+            if isinstance(attachment_file, str):
+                data.pop('attachment_file', None)
+
+            if 'staff' in groups:
                 if data['approved'] == 'true':
                     data['approved_by'] = request.user.id
                 else:
-                    data.pop('approved_by', None)
+                    data['approved_by'] = None
 
         elif method == 'PUT':
+
+            attachment_file = data.get('attachment_file', None)
+            if isinstance(attachment_file, str):
+                if attachment_file == '':  # We want '' to signal delete.
+                    instance.attachment_file = None
+                data.pop('attachment_file', None)
 
             if 'staff' in groups:
                 if instance.approved: #If the project has already been approved. We won't reassign this user to approved_by.
@@ -127,4 +152,4 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     else:
                         data.pop('approved_by', None)
 
-        return data
+        return instance, data

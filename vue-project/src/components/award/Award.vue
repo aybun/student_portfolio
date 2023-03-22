@@ -20,8 +20,6 @@ export default {
             formKey: 1,
             showApproved: true,
 
-            attachment_file_max_file_size: 2000000,
-
             staffTable: [],
             studentTable: [], //Define user Api.
 
@@ -30,18 +28,6 @@ export default {
             award: {},
             copiedAward: {},
             awards: [],
-
-            formConstraints: {
-                attachment_file: {
-                    max_file_size: {
-                        size: 2000000,
-                        validation_message:
-                            this.attachment_file_max_file_size_validation_message_function,
-                        validation_rule:
-                            this.attachment_file_max_file_size_validation_function,
-                    },
-                },
-            },
 
             checkboxes: [],
             checkboxFields: ["approved", "used_for_calculation"],
@@ -236,8 +222,14 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
+                const data = response.data.data
+                const message = response.data.message
+                this.awards.push(data);
+                this.editClick(data) //Change viewing mode.
+                alert(message + '\n' + JSON.stringify(data));
+                
+            }).catch((error) => {
+                alert(error.response.data.message);
             });
         },
         viewClick(award) {
@@ -264,8 +256,17 @@ export default {
                 this.award,
                 this.checkboxFields
             );
-        },
 
+            // this.awardFormRenameProcess();
+        },
+        // renameProcess(){
+        //     this.award.receivers = this.renameKeyOfDictsInList(this.award.receivers, 'user_id_fk', 'id')
+        //     this.copiedAward.receivers = this.renameKeyOfDictsInList(this.copiedAward.receivers, 'user_id_fk', 'id')
+
+        //     this.award.supervisors = this.renameKeyOfDictsInList(this.award.supervisors, 'user_id_fk', 'id')
+        //     this.copiedAward.supervisors = this.renameKeyOfDictsInList(this.copiedAward.supervisors, 'user_id_fk', 'id')
+
+        // },
         getListOfTrueCheckboxFields(formdata, checkboxFields) {
             const checkboxes = [];
             for (let i = 0; i < checkboxFields.length; ++i) {
@@ -331,13 +332,14 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                const stringified = JSON.stringify(response.data);
-                this.reassignUpdatedElementIntoList(this.awards, response.data); //With reactivity.
-                this.award = JSON.parse(stringified);
-                this.copiedAward = JSON.parse(stringified);
-
-                console.log(response.data);
-                alert(stringified);
+                const data = response.data.data
+                const message = response.data.message
+                this.reassignUpdatedElementIntoList(this.awards, data); //With reactivity.
+                this.editClick(data)
+                
+                alert(message + '\n' + JSON.stringify(data) );
+            }).catch((error) => {
+                alert(error.response.data.message);
             });
         },
 
@@ -357,12 +359,21 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
-            });
+                this.removeElementFromArrayById(this.awards, award_id);
+                alert(response.data.message)
+            }).catch((error)=>{
+                alert(error.response.data.message);
+            })
         },
-
-        cleanManyToManyFields(list) {
+        removeElementFromArrayById(arr, id){
+            for(let i = 0; i < arr.length; ++i){
+                if (arr[i].id === id){
+                    arr.splice(i, 1);
+                    break;
+                }
+            }
+        },
+        cleanManyToManyFields(list, ) {
             //Remove empty or redundant inputs.
             // console.log(list)
             const nonEmpty = [];
@@ -401,9 +412,9 @@ export default {
 
             return `${id} ${title}`;
         },
-
+        
         receiverCustomLabel({ id, university_id, firstname, lastname }) {
-            if (id === "" || Object.is(id, null)) {
+            if (id === "" || id === null || typeof id === 'undefined') {
                 return "Select";
             } else if (university_id == null) {
                 for (let i = 0; i < this.studentTable.length; ++i) {
@@ -521,27 +532,6 @@ export default {
             else return field.files[0].file;
         },
 
-        attachment_file_max_file_size_validation_function() {
-            //Idea : If the file exists, the size must be valid.
-
-            const maxFileSize =
-                this.formConstraints.attachment_file.max_file_size.size;
-            const field = this.award.attachment_file;
-            const file = this.getFileOrNull(field);
-
-            if (file instanceof File) {
-                return file.size < maxFileSize;
-            } else return true;
-        },
-
-        attachment_file_max_file_size_validation_message_function() {
-            return (
-                "The file size must not exceed " +
-                this.formConstraints.attachment_file.max_file_size.size +
-                " bytes."
-            );
-        },
-
         async validateForm() {
             //Perform validation on the form.
             await this.$formulate.submit("award-formulate-form-1");
@@ -589,35 +579,57 @@ export default {
             } else {
                 throw "The mode must be in { exlude, include }.";
             }
-
+            
             this.formRender = formRender;
+        },
+
+        renameKeyOfDictsInList(listOfDicts, newName, OldName){
+            for(let i = 0; i < listOfDicts.length; ++i){
+                let dict = listOfDicts[i]
+                Object.defineProperty(dict, newName,  Object.getOwnPropertyDescriptor(dict, OldName))
+                delete dict[OldName];
+            }
+            return listOfDicts
+        },
+        assignFieldAsIdField(list, newIdFieldName, oldIdFieldName){
+            // For examplenew = 'user_id_fk' , old = 'id'
+            // id : 3 and user_id_fk : 99 -> id : 99, user_id_fk : 99.  
+            for (let i = 0; i < list.length; ++i){
+                list[i][oldIdFieldName] =  list[i][newIdFieldName]
+            }
+
+            return list
+        },
+        
+        
+        _data_processing_for_test(){
+            //Assume that the fields related to api calls are ready to be processed.
+            this._generate_formRender();
+            this.prepareData();
+            // Rename for view multiselect. And backend receive list of dict of the field name id.
+            this.studentTable = this.assignFieldAsIdField(this.studentTable, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
+            this.staffTable = this.assignFieldAsIdField(this.staffTable, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
         },
 
     },
 
     created: async function () {
-        this.prepareData(); // Assign an empty award.
-
+        
         if (typeof this.testMode !== "undefined") {
-            this._generate_formRender();
+            this._data_processing_for_test();
             return;
         }
 
+        this.prepareData(); // Assign an empty award.
         // console.log(documuent.cookies)
-        console.log("Hello from Award.Vue");
+        // console.log("Hello from Award.Vue");
         axios.defaults.xsrfCookieName = "csrftoken";
         axios.defaults.xsrfHeaderName = "X-CSRFToken";
         axios.defaults.withCredentials = true;
 
-        await axios
-            .get(this.$API_URL + "user")
-            .then((response) => {
+        await axios.get(this.$API_URL + "user").then((response) => {
                 this.user = response.data;
-                // console.log(this.user)
             })
-            .catch((error) => {
-                console.log(error);
-            });
 
         this._generate_formRender();
 
@@ -627,11 +639,14 @@ export default {
         });
 
         axios.get(this.$API_URL + "student").then((response) => {
-            this.studentTable = response.data;
+            // this.studentTable = response.data;
+            this.studentTable = this.assignFieldAsIdField(response.data, 'user_id_fk', 'id')
         });
 
         axios.get(this.$API_URL + "staff").then((response) => {
-            this.staffTable = response.data;
+            // this.staffTable = response.data;
+            this.staffTable = this.assignFieldAsIdField(response.data, 'user_id_fk', 'id')
+
         });
 
         axios.get(this.$API_URL + "skillTable").then((response) => {
@@ -802,7 +817,7 @@ export default {
                                                 v-validate="'required|min:1'" data-vv-validate-on="input"
                                                 data-vv-as="receivers" data-vv-scope="award-formulate-form-1"
                                                 :hide-selected="true" :close-on-select="false" :multiple="true"
-                                                :options="studentTable" :custom-label="receiverCustomLabel" track-by="id"
+                                                :options="studentTable" :custom-label="receiverCustomLabel" track-by="user_id_fk"
                                                 placeholder="Select..."
                                                 :disabled="modalReadonly || !formRender.edit.receivers">
                                             </multiselect>

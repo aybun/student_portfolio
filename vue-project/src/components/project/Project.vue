@@ -337,7 +337,7 @@ export default {
                 used_for_calculation: false,
 
                 attachment_link: "",
-                attachment_file: "",
+                attachment_file: null,
 
                 skills: [],
                 staffs: [],
@@ -443,16 +443,15 @@ export default {
                 },
             })
                 .then((response) => {
-                    const stringified = JSON.stringify(response.data.data);
-                    this.projects.push(response.data.data);
-                    this.project = JSON.parse(stringified);
-                    this.copiedProject = JSON.parse(stringified);
+                    const data = response.data.data
+                    const message = response.data.message
+                    this.projects.push(data);
+                    this.editClick(data)
 
-                    alert(response.data.message + "\n" + stringified);
-                })
-                .catch((errors) => {
-                    console.log(errors);
-                });
+                    alert(message + '\n' + JSON.stringify(data));
+                }).catch((error) => {
+                    alert(error.response.data.message);
+            });
         },
         async updateClick() {
             let formIsValid = false;
@@ -501,14 +500,14 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                const data = response.data.data;
-                const stringified = JSON.stringify(data);
+                const data = response.data.data
+                const message = response.data.message
                 this.reassignUpdatedElementIntoList(this.projects, data); //With reactivity.
-                this.project = JSON.parse(stringified);
-                this.copiedProject = JSON.parse(stringified);
+                this.editClick(data)
 
-                // console.log(response.data);
-                alert(response.data.message + "\n" + stringified);
+                alert(message + '\n' + JSON.stringify(data) );
+            }).catch((error) => {
+                alert(error.response.data.message);
             });
         },
         deleteClick(project_id) {
@@ -527,9 +526,19 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
-            });
+                this.removeElementFromArrayById(this.projects, project_id);
+                alert(response.data.message)
+            }).catch((error)=>{
+                alert(error.response.data.message);
+            })
+        },
+        removeElementFromArrayById(arr, id){
+            for(let i = 0; i < arr.length; ++i){
+                if (arr[i].id === id){
+                    arr.splice(i, 1);
+                    break;
+                }
+            }
         },
         cleanManyToManyFields(list) {
             //Remove empty or redundant inputs.
@@ -699,26 +708,45 @@ export default {
         openNewWindow(url) {
             window.open(url);
         },
+        assignFieldAsIdField(list, newIdFieldName, oldIdFieldName){
+            // For example new = 'user_id_fk' , old = 'id'
+            // id : 3 and user_id_fk : 99 -> id : 99, user_id_fk : 99.  
+            for (let i = 0; i < list.length; ++i){
+                list[i][oldIdFieldName] =  list[i][newIdFieldName]
+            }
+
+            return list
+        },
+        _data_processing_for_test(){
+            //Assume that the fields related to api calls are ready to be processed.
+            this._generate_formRender();
+            this.prepareData();
+            // Rename for view multiselect. And backend receive list of dict of the field name id.
+            // this.studentTable = this.assignFieldAsIdField(this.studentTable, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
+            this.staffTable = this.assignFieldAsIdField(this.staffTable, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
+        },
     },
 
     created: async function () {
-        this.prepareData();
-
+        
         if (typeof this.testMode !== "undefined") {
-            this._generate_formRender();
+            this._data_processing_for_test()
             return;
         }
 
+        this.prepareData();
         await axios.get(this.$API_URL + "user").then((response) => {
             this.user = response.data;
         });
+
         this._generate_formRender();
+
         axios.get(this.$API_URL + "project").then((response) => {
             this.projects = response.data;
         });
 
         axios.get(this.$API_URL + "staff").then((response) => {
-            this.staffTable = response.data;
+            this.staffTable = this.assignFieldAsIdField(response.data, 'user_id_fk', 'id')
         });
 
         axios.get(this.$API_URL + "skillTable").then((response) => {

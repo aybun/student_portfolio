@@ -62,6 +62,34 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
         fields = '__all__'
 
         access_policy = AwardApiAccessPolicy
+    def create(self, validated_data):
+        skills = validated_data.pop('skills', None)
+        supervisors = validated_data.pop('supervisors', None)
+        receivers = validated_data.pop('receivers', None)
+        attachment_file = validated_data.pop('attachment_file', None)
+
+        instance = Award.objects.create(**validated_data)
+
+        if attachment_file is not None:
+            instance.attachment_file = attachment_file
+
+        if skills is not None:
+            instance.skills.clear()
+            for e in skills:
+                instance.skills.add(Skill.objects.get(id=e['id']))
+
+        if receivers is not None:
+            instance.receivers.clear()
+            for e in receivers:
+                instance.receivers.add(User.objects.get(id=e['id']))
+
+        if supervisors is not None:
+            instance.supervisors.clear()
+            for e in supervisors:
+                instance.supervisors.add(User.objects.get(id=e['id']))
+
+        instance.save()
+        return instance
 
     def update(self, instance, validated_data):
 
@@ -74,6 +102,7 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.approved_by = validated_data.get('approved_by', instance.approved_by)
         instance.used_for_calculation = validated_data.get('used_for_calculation', instance.used_for_calculation)
         instance.attachment_link = validated_data.get('attachment_link', instance.attachment_link)
+
         instance.attachment_file = validated_data.get('attachment_file', instance.attachment_file)
 
         # Update many-to-many relationships
@@ -100,6 +129,7 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
         # Check if the ids are present in the User table and Make them unique.
         # Assume that data is a stringnified object.
         user_ids = User.objects.all().values_list('id', flat=True)
+        field_name = 'id'
 
         list_of_dicts = json.loads(data)
 
@@ -131,33 +161,48 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
         groups = request.user.groups.values_list('name', flat=True)
 
         #Clean data
-        attachment_file = data.get('attachment_file', None)
-        if isinstance(attachment_file, str):
-            if attachment_file == '':  # We want '' to signal delete.
-                instance.attachment_file = None
-            data.pop('attachment_file', None)
+
+
+        if 'skills' in data:
+            data['skills'] = EventSerializer.custom_clean_skills(
+                data=data['skills'])  # If it contains errors, the function will return a string, might be ''.
+            if isinstance(data.get('skills', None), str):
+                data.pop('skills', None)
+
+        if 'receivers' in data:
+            data['receivers'] = AwardSerializer.custom_clean_receivers(
+                data=data['receivers'])  # If it contains errors, the function will return a string, might be ''.
+            if isinstance(data.get('receivers', None), str):
+                data.pop('receivers', None)
+
+        if 'supervisors' in data:
+            data['supervisors'] = AwardSerializer.custom_clean_receivers(
+                data=data['supervisors'])  # If it contains errors, the function will return a string, might be ''.
+            if isinstance(data.get('supervisors', None), str):
+                data.pop('supervisors', None)
 
         if method == 'POST':
             data['created_by'] = request.user.id
 
+            attachment_file = data.get('attachment_file', None)
+            if isinstance(attachment_file, str):
+                data.pop('attachment_file', None)
+
+            if 'staff' in groups:
+                if data['approved'] == 'true':
+                    data['approved_by'] = request.user.id
+                else:
+                    data['approved_by'] = None
+
         elif method == 'PUT':
+            attachment_file = data.get('attachment_file', None)
+            if isinstance(attachment_file, str):
+                if attachment_file == '':  # We want '' to signal delete.
+                    instance.attachment_file = None
+                data.pop('attachment_file', None)
 
-            if 'skills' in data:
-                data['skills'] = EventSerializer.custom_clean_skills(data=data['skills']) #If it contains errors, the function will return a string, might be ''.
-                if isinstance(data.get('skills', None), str):
-                    data.pop('skills', None)
 
-            if 'receivers' in data:
-                data['receivers'] = AwardSerializer.custom_clean_receivers(data=data['receivers']) #If it contains errors, the function will return a string, might be ''.
-                if isinstance(data.get('receivers', None), str):
-                    data.pop('receivers', None)
-
-            if 'supervisors' in data:
-                data['supervisors'] = AwardSerializer.custom_clean_receivers(data=data['supervisors']) #If it contains errors, the function will return a string, might be ''.
-                if isinstance(data.get('supervisors', None), str):
-                    data.pop('supervisors', None)
-
-            # data['approved_by'] = None
+            # data['approved_by']
             if 'staff' in groups:
                 if data['approved'] == 'true':
                     if not instance.approved:

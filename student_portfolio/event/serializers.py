@@ -74,6 +74,29 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                   'attachment_file', 'skills', 'staffs')
 
         access_policy = EventApiAccessPolicy
+    def create(self, validated_data):
+        skills = validated_data.pop('skills', None)
+        staffs = validated_data.pop('staffs', None)
+        attachment_file = validated_data.pop('attachment_file', None)
+
+        instance = Event.objects.create(**validated_data)
+
+        if attachment_file is not None:
+            instance.attachment_file = attachment_file
+
+
+        if skills is not None:
+            instance.skills.clear()
+            for e in skills:
+                instance.skills.add(Skill.objects.get(id=e['id']))
+
+        if staffs is not None:
+            instance.staffs.clear()
+            for e in staffs:
+                instance.staffs.add(User.objects.get(id=e['id']))
+
+        instance.save()
+        return instance
 
     def update(self, instance, validated_data):
 
@@ -87,6 +110,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         instance.used_for_calculation = validated_data.get('used_for_calculation', instance.used_for_calculation)
         instance.arranged_inside = validated_data.get('arranged_inside', instance.arranged_inside)
         instance.attachment_link = validated_data.get('attachment_link', instance.attachment_link)
+
         instance.attachment_file = validated_data.get('attachment_file', instance.attachment_file)
 
         # Update many-to-many relationships
@@ -183,8 +207,30 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         method = request.method
         groups = request.user.groups.values_list('name', flat=True)
 
+        if 'skills' in data:
+            data['skills'] = EventSerializer.custom_clean_skills(
+                data=data['skills'])  # If it contains errors, the function will return a string, might be ''.
+            if isinstance(data.get('skills', None), str):
+                data.pop('skills', None)
+
+        if 'staffs' in data:
+            data['staffs'] = EventSerializer.custom_clean_staffs(data=data['staffs'])
+            if isinstance(data.get('staffs', None), str):
+                data.pop('staffs', None)
+
+
         if method == 'POST':
             data['created_by'] = request.user.id
+
+            if 'staff' in groups:
+                if data['approved'] == 'true':
+                    data['approved_by'] = request.user.id
+                else:
+                    data['approved_by'] = None
+
+            attachment_file = data.get('attachment_file', None)
+            if isinstance(attachment_file, str):
+                data.pop('attachment_file', None)
 
         elif method == 'PUT':
 
@@ -194,21 +240,14 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     instance.attachment_file = None
                 data.pop('attachment_file', None)
 
-            if 'skills' in data:
-                data['skills'] = EventSerializer.custom_clean_skills(
-                    data=data['skills'])  # If it contains errors, the function will return a string, might be ''.
-                if isinstance(data.get('skills', None), str):
-                    data.pop('skills', None)
-
-            if 'staffs' in data:
-                data['staffs'] = EventSerializer.custom_clean_staffs(data=data['staffs'])
-                if isinstance(data.get('staffs', None), str):
-                    data.pop('staffs', None)
-
-            data['approved_by'] = None
             if 'staff' in groups:
                 if data['approved'] == 'true':
-                    data['approved_by'] = request.user.id
+                    if not instance.approved:
+                        data['approved_by'] = request.user.id
+                    else:
+                        data.pop('approved_by', None)
+                else:
+                    data['approved_by'] = None
 
         return instance, data
 
@@ -308,20 +347,22 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
         fields = ('id', 'th_name', 'en_name', 'start_date', 'end_date', 'info', 'attachment_file', 'skillgroups')
         access_policy = CurriculumApiAccessPolicy
     def create(self, validated_data):
-        instance = Curriculum.objects.create(
-            th_name=validated_data.get('th_name', None),
-            en_name=validated_data.get('en_name', None),
-            start_date=validated_data.get('start_date', None),
-            end_date=validated_data.get('end_date', None),
-            info=validated_data.get('info', None),
-            attachment_file=validated_data.get('attachment_file', None)
-        )
+
+        skillgroups = validated_data.pop('skillgroups', None)
+        attachment_file = validated_data.pop('attachment_file', None)
+
+
+        instance = Curriculum.objects.create(**validated_data)
+
+        if attachment_file is not None:
+            instance.attachment_file = attachment_file
 
         instance.skillgroups.clear()
-        if 'skillgroups' in validated_data:
-            for e in validated_data.get('skillgroups'):
+        if skillgroups is not None:
+            for e in skillgroups:
                 instance.skillgroups.add(Skillgroup.objects.get(id=e['id']))
 
+        instance.save()
         return instance
 
     def update(self, instance, validated_data):

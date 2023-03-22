@@ -46,21 +46,9 @@ export default {
       staffTable: [],
       checkboxes: [],
       checkboxFields: ["approved", "used_for_calculation", "arranged_inside"],
-
+      
       formKey: 1,
-      testMode: false,
-
-      formConstraints: {
-        attachment_file: {
-          max_file_size: {
-            size: 2000000,
-            validation_message:
-              this.attachment_file_max_file_size_validation_message_function,
-            validation_rule:
-              this.attachment_file_max_file_size_validation_function,
-          },
-        },
-      },
+      // testMode: false,
 
       formRenderSpec: {
         staff: {
@@ -170,8 +158,8 @@ export default {
       return {
         id: 0,
         title: "",
-        start_datetime: new Date().toLocaleString(),
-        end_datetime: new Date().toLocaleString(),
+        start_datetime: new Date(),
+        end_datetime: new Date(),
         info: "",
 
         created_by: "",
@@ -180,7 +168,7 @@ export default {
         used_for_calculation: false,
         arranged_inside: false,
         attachment_link: "",
-        attachment_file: "",
+        attachment_file: null,
 
         //Additional data.
         skills: [],
@@ -290,16 +278,19 @@ export default {
         },
       })
         .then((response) => {
-          this.refreshData();
-          alert(response.data);
+          const data = response.data.data
+          const message = response.data.message
+          this.events.push(data);
+          this.editClick(data) //Change viewing mode.
+          alert(message + '\n' + JSON.stringify(data));
         })
-        .catch((errors) => {
-          console.log(errors);
+        .catch((error) => {
+          alert(error.response.data.message);
         });
     },
 
     async updateClick() {
-      //Form validation
+      
       let formIsValid = false;
       await this.validateForm().then((result) => {
         formIsValid = result;
@@ -344,14 +335,14 @@ export default {
         },
       })
         .then((response) => {
-          const stringified = JSON.stringify(response.data);
-          this.reassignUpdatedElementIntoList(this.events, response.data);
-          this.event = JSON.parse(stringified);
-          this.copiedEvent = JSON.parse(stringified);
-          alert(stringified);
+          const data = response.data.data
+          const message = response.data.message
+          this.reassignUpdatedElementIntoList(this.events, data);
+          this.editClick(data)
+          alert(message + '\n' + JSON.stringify(data) );
         })
-        .catch((errors) => {
-          console.log(errors);
+        .catch((error) => {
+          alert(error.response.data.message);
         });
     },
 
@@ -365,16 +356,28 @@ export default {
       axios({
         method: "delete",
         url: this.$API_URL + "event/" + event_id,
-        xstfCookieName: "csrftoken",
+        xsrfCookieName: "csrftoken",
         xsrfHeaderName: "X-CSRFToken",
         headers: {
           "X-CSRFToken": "csrftoken",
         },
       }).then((response) => {
-        this.refreshData();
-        alert(response.data);
-      });
+        this.removeElementFromArrayById(this.events, event_id);
+        alert(response.data.message);
+      }).catch((error)=>{
+        alert(error.response.data.message);
+      })
     },
+    removeElementFromArrayById(arr, id){
+      
+      for(let i = 0; i < arr.length; ++i){
+        if (arr[i].id === id){
+          arr.splice(i, 1);
+          break;
+        }
+      }
+    },
+
     cleanManyToManyFields(list) {
       //Remove empty or redundant inputs.
       // console.log(list)
@@ -463,26 +466,6 @@ export default {
       else if (field.files.length === 0) return null;
       else return field.files[0].file;
     },
-    attachment_file_max_file_size_validation_function() {
-      //Idea : If the file exists, the size must be valid.
-
-      const maxFileSize =
-        this.formConstraints.attachment_file.max_file_size.size;
-      const field = this.award.attachment_file;
-      const file = this.getFileOrNull(field);
-
-      if (file instanceof File) {
-        return file.size < maxFileSize;
-      } else return true;
-    },
-
-    attachment_file_max_file_size_validation_message_function() {
-      return (
-        "The file size must not exceed " +
-        this.formConstraints.attachment_file.max_file_size.size +
-        " bytes."
-      );
-    },
 
     toggleColumn(index, event) {
       // Set hidden to inverse of what it currently is
@@ -544,13 +527,34 @@ export default {
 
       return vue_formulate_valid;
     },
+    assignFieldAsIdField(list, newIdFieldName, oldIdFieldName){
+            // For examplenew = 'user_id_fk' , old = 'id'
+            // id : 3 and user_id_fk : 99 -> id : 99, user_id_fk : 99.  
+            for (let i = 0; i < list.length; ++i){
+                list[i][oldIdFieldName] =  list[i][newIdFieldName]
+            }
+
+            return list
+    },
+    _data_processing_for_test(){
+            //Assume that the fields related to api calls are ready to be processed.
+            this._generate_formRender();
+            this.prepareData();
+            // Rename for view multiselect. And backend receive list of dict of the field name id.
+            // this.studentTable = this.assignFieldAsIdField(this.studentTable, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
+            this.staffTable = this.assignFieldAsIdField(this.staffTable, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
+    },
   },
 
   created: async function () {
+    
+
+    if (typeof this.testMode !== 'undefined'){
+      this._data_processing_for_test()
+      return;
+    } 
+
     this.event = this.getEmptyEvent();
-
-    if (this.testMode) return;
-
     await axios.get(this.$API_URL + "user").then((response) => {
       this.user = response.data;
       // console.log(this.user)
@@ -563,8 +567,7 @@ export default {
     });
 
     axios.get(this.$API_URL + "staff").then((response) => {
-      this.staffTable = response.data;
-      // console.log(this.staffTable)
+      this.staffTable = this.assignFieldAsIdField(response.data, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
     });
 
     axios.get(this.$API_URL + "skillTable").then((response) => {
@@ -711,18 +714,20 @@ export default {
                     type="textarea" v-model="event.info" validation="max:200,length"
                     :readonly="modalReadonly || !formRender.edit.info" validation-name="info"></formulate-input>
 
-                  <h3>Skills</h3>
+                  <h6>Skills</h6>
                   <multiselect v-model="event.skills" :hide-selected="true" :close-on-select="false" :multiple="true"
                     :options="skillTable" :custom-label="_skills_custom_label" track-by="id" placeholder="Select..."
                     :disabled="modalReadonly || !formRender.edit.skills">
                   </multiselect>
-
-                  <h3>Staffs</h3>
+                  <p></p>
+                  <h6>Staffs</h6>
                   <multiselect v-model="event.staffs" :hide-selected="true" :close-on-select="false" :multiple="true"
                     :options="staffTable" :custom-label="_staffs_custom_label" track-by="id" placeholder="Select..."
                     :disabled="modalReadonly || !formRender.edit.staffs"></multiselect>
 
                   <p></p>
+                  <FormulateInput ref="formulate-input-arranged_inside" v-model="checkboxes" :options="{ arranged_inside: 'Arranged inside' }"
+                    type="checkbox" :disabled="modalReadonly || !formRender.edit.arranged_inside"></FormulateInput>
                   <FormulateInput ref="formulate-input-approved" v-model="checkboxes" :options="{ approved: 'approved' }"
                     type="checkbox" :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
                   <FormulateInput ref="formulate-input-used_for_calculation" v-model="checkboxes"
