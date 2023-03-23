@@ -362,11 +362,7 @@ def eventAttendanceBulkAddApi(request):
             temp_dict[col_label] = col
             # print(temp_dict)
 
-        attendance = EventAttendance.objects.filter(event_id_fk=event_id, university_id=temp_dict['university_id'])
-
-
-
-        if not UserProfile.objects.filter(university_id=data['university_id']).exists():
+        if not UserProfile.objects.filter(university_id=temp_dict['university_id']).exists():
             invalid_rows.append((index, row, 'university id does not exist.'))
             continue
 
@@ -381,13 +377,14 @@ def eventAttendanceBulkAddApi(request):
 
         else: #Note : Send out the invalid row.
             invalid_rows.append((index, row, 'invalid'))
-    
+
     if data['all_must_valid'] == 'true':
         if len(invalid_rows) != 0:
             response_dict = {
                 'message': 'All rows must be valid but the file contains some invalid rows.',
                 'invalid_rows': invalid_rows,
             }
+            # print(invalid_rows)
             return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
         else:
             success = True
@@ -424,6 +421,7 @@ def eventAttendanceBulkAddApi(request):
                 'message': 'Added Successfully. The file contains some invalid rows.',
                 'invalid_rows' : invalid_rows,
             }
+            # print(invalid_rows)
             return JsonResponse(data=response_dict, safe=False)
         else:
             response_dict = {

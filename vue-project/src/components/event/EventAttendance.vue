@@ -7,7 +7,7 @@ import axios from "axios";
 // import 'flatpickr/dist/flatpickr.min.css'
 import * as bootstrap from "bootstrap";
 
-import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
+// import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
 
 // import AttendanceModal from "/src/components/event/AttendanceModal.vue"
 import AddAttendanceModal from "/src/components/event/AddAttendanceModal.vue";
@@ -16,12 +16,22 @@ export default {
     components: {
         VueGoodTable,
         Multiselect,
-        VueFinalModal,
+        // VueFinalModal,
 
         AddAttendanceModal,
     },
 
-    props: ["event_id", "user"],
+    props: {
+        event_id : {
+            type: Number,
+            default : 0,
+        },
+        user :{
+            type: Object,
+            required : true,
+            default : null,
+        }
+    },
 
     data() {
         return {
@@ -37,27 +47,42 @@ export default {
 
             formKey: 1,
             eventAttendance: {},
-            // event_id: 0,
-
+            eventAttendances: [],
+            modalReadonly: false,
+            
             studentTable: [],
-
+            
             showAddEventAttendanceModal: false,
             showAddByFileModal: false,
 
             addByFileForm: {
                 csvFile: "",
                 all_must_valid: true,
-                checkBoxes: ["all_must_valid"],
+                checkboxes: ["all_must_valid"],
 
                 //Do not need reset
                 checkboxFields: ["all_must_valid"],
                 formKey: 1,
             },
-
-            eventAttendances: [],
-
+            
             checkboxes: [],
             checkboxFields: ["used_for_calculation"],
+            formRender :{},
+            formRenderSpec: {
+                staff: {
+                    edit: {
+                        mode: "exclude",
+                        fields: [],
+                    },
+                },
+
+                student: {
+                    edit: {
+                        mode: "include",
+                        fields: [],
+                    },
+                },
+            },
 
             vgtColumns: [
                 {
@@ -169,7 +194,7 @@ export default {
             return {
                 id: 0,
                 event_id_fk: "",
-                university_id: "",
+                university_id: null,
 
                 firstname: "",
                 middlename: "",
@@ -193,35 +218,61 @@ export default {
         addClick() {
             this.modalTitle = "Add Student";
             this.addingNewAttendance = true; // Signal that we are adding a new student -> Create Button.
+            this.modalReadonly = false;
 
-            this.eventAttendance = this.getEmptyEventAttendance();
-            // this.multiselect.student = {'university_id':''}
-            this.multiselect.student = null;
+            this.assignDataToEventAttendanceForm(this.getEmptyEventAttendance())
         },
-        editClick(attendance) {
-            this.modalTitle = "Edit Student";
+        viewClick(attendance) {
+            this.modalTitle = "View Mode";
             this.addingNewAttendance = false;
+            this.modalReadonly = true;
+            
+            this.assignDataToEventAttendanceForm(attendance)
+        },    
+        editClick(attendance) {
+            this.modalTitle = "Edit Event Attedance";
+            this.addingNewAttendance = false;
+            this.modalReadonly = false;
+
+            this.assignDataToEventAttendanceForm(attendance)
+        },
+        assignDataToEventAttendanceForm(attendance) {
 
             this.multiselect.student = { university_id: attendance.university_id };
-            
-            this.eventAttendance = attendance;
-            this.checkboxes = [];
-            
-            for (let i = 0; i < this.checkboxFields.length; ++i) {
-                if (this.eventAttendance[this.checkboxFields[i]])
-                    this.checkboxes.push(this.checkboxFields[i]);
+            const stringified = JSON.stringify(attendance);
+            this.eventAttendance = JSON.parse(stringified);
+
+            this.checkboxes = this.getListOfTrueCheckboxFields(this.eventAttendance, this.checkboxFields);
+        },
+        getListOfTrueCheckboxFields(formdata, checkboxFields) {
+            const checkboxes = [];
+            for (let i = 0; i < checkboxFields.length; ++i) {
+                if (formdata[checkboxFields[i]] === true)
+                    checkboxes.push(checkboxFields[i]);
+            }
+            return checkboxes;
+        },
+        assignBooleanValueToCheckboxFields(formdata, checkboxes, checkboxFields) {
+            for (let i = 0; i < checkboxFields.length; ++i) {
+                const field_name = checkboxFields[i];
+                formdata[field_name] = checkboxes.includes(field_name);
             }
         },
+        async createClick() {
+            let formIsValid = false;
+            await this.validateForm().then((result) => {
+                formIsValid = result;
+            });
 
-        createClick() {
-            for (let i = 0; i < this.checkboxFields.length; ++i)
-                this.eventAttendance[this.checkboxFields[i]] = this.checkboxes.includes(
-                    this.checkboxFields[i]
-                );
+            if (typeof testMode !== "undefined")
+                this.eventAttendanceFormHasbeenSubmitted = formIsValid;
 
-            this.eventAttendance.university_id =
-                this.multiselect.student.university_id;
+            if (!formIsValid) return;
             
+            this.assignBooleanValueToCheckboxFields(this.eventAttendance, this.checkboxes, this.checkboxFields)
+
+            this.eventAttendance.university_id = this.multiselect.student.university_id;
+                
             const outDict = new FormData();
             for (const [key, value] of Object.entries(this.eventAttendance)) {
                 outDict.append(key.toString(), value);
@@ -241,19 +292,32 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
+                const data = response.data.data
+                const message = response.data.message
+                this.eventAttendances.push(data);
+                this.editClick(data) //Change viewing mode.
+                alert(message + '\n' + JSON.stringify(data));
+            }).catch((error) => {
+                alert(error.response.data.message);
             });
         },
-        updateClick() {
-            for (let i = 0; i < this.checkboxFields.length; ++i)
-                this.eventAttendance[this.checkboxFields[i]] = this.checkboxes.includes(
-                    this.checkboxFields[i]
-                );
+        async updateClick() {
 
-            this.eventAttendance.university_id =
-                this.multiselect.student.university_id;
-            console.log(this.eventAttendance);
+            let formIsValid = false;
+            await this.validateForm().then((result) => {
+                formIsValid = result;
+            });
+
+            if (typeof testMode !== "undefined")
+                this.eventAttendanceFormHasbeenSubmitted = formIsValid;
+
+            if (!formIsValid) return;
+
+            this.assignBooleanValueToCheckboxFields(this.eventAttendance, this.checkboxes, this.checkboxFields)
+
+            this.eventAttendance.university_id = this.multiselect.student.university_id;
+                
+            // console.log(this.eventAttendance);
             const outDict = new FormData();
             for (const [key, value] of Object.entries(this.eventAttendance)) {
                 outDict.append(key.toString(), value);
@@ -277,8 +341,14 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
+                const data = response.data.data
+                const message = response.data.message
+                this.reassignUpdatedElementIntoList(this.eventAttendances, data); //With reactivity.
+                this.editClick(data)
+
+                alert(message + '\n' + JSON.stringify(data) );
+            }).catch((error) => {
+                alert(error.response.data.message);
             });
         },
 
@@ -303,11 +373,44 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
+                this.removeElementFromArrayById(this.eventAttendances, attendance_id);
+                alert(response.data.message)
+                
+            }).catch((error)=>{
+                alert(error.response.data.message);
             });
         },
+        removeElementFromArrayById(arr, id){
+            for(let i = 0; i < arr.length; ++i){
+                if (arr[i].id === id){
+                    arr.splice(i, 1);
+                    break;
+                }
+            }
+        },
+        reassignUpdatedElementIntoList(list, element) {
+            for (let i = 0; i < list.length; ++i) {
+                if (list[i].id === element.id) {
+                    this.$set(list, i, element);
+                    break;
+                }
+            }
+        },
+        async validateForm() {
+            //Perform validation on the form.
+            const formulate_form_formname = "event-attendance-formulate-form-1"
+            await this.$formulate.submit(formulate_form_formname);
 
+            const vue_formulate_valid = this.$refs[formulate_form_formname].isValid;
+
+            //vee-validate scope : formulate_form_formname
+            let vee_validate_valid = false;
+            await this.$validator.validateAll(formulate_form_formname).then((result) => {
+                vee_validate_valid = result;
+            });
+            
+            return vue_formulate_valid && vee_validate_valid;
+        },
         syncByUniversityIdClick() {
             const outDict = {
                 event_id: this.event_id,
@@ -354,7 +457,7 @@ export default {
                 csv_file: this.cleanAttachmentFile(form.csvFile),
                 all_must_valid: form.all_must_valid,
             };
-            console.log(outDict);
+            // console.log(outDict);
             const outForm = new FormData();
             for (const [key, value] of Object.entries(outDict)) {
                 outForm.append(key.toString(), value);
@@ -375,20 +478,17 @@ export default {
             })
                 .then((response) => {
                     this.refreshData();
-                    alert(response.data.message + "\n" + response.data.invalid_rows);
+                    alert(response.data.message);
+
+                    if (typeof response.data.invalid_rows !== 'undefined')
+                        alert(response.data.invalid_rows );
                 })
                 .catch((error) => {
-                    this.refreshData();
-                    console.log(error.response.data.message);
-                    console.log(error.response.data.invalid_rows);
-                    alert(
-                        error.response.data.message +
-                        "\n" +
-                        error.response.data.invalid_rows
-                    );
-                    // alert(response.message)
-                    // alert(response.invalid_rows)
-                    // alert(response.message)
+                    alert(error.response.data.message );
+                    if (typeof error.response.data.invalid_rows !== 'undefined')
+                        alert(error.response.data.invalid_rows );
+                    
+
                 });
         },
         _university_id_custome_label({ university_id, firstname, lastname }) {
@@ -463,19 +563,63 @@ export default {
                 !this.vgtColumns[index].hidden
             );
         },
+        _generate_formRender() {
+            //Generate edit
+            const user = this.user;
+            let getEmptyObjectFunction = this.getEmptyEventAttendance
+
+            let edit_info = {};
+            if (user.is_staff) {
+                edit_info = this.formRenderSpec["staff"]["edit"];
+            } else if (user.is_student) {
+                edit_info = this.formRenderSpec["student"]["edit"];
+            }
+
+            const formRender = {};
+            formRender["edit"] = {};
+
+            if (edit_info["mode"] === "exclude") {
+                Object.entries(getEmptyObjectFunction()).forEach(([key, _]) => {
+                    formRender.edit[key.toString()] = !edit_info.fields.includes(key);
+                });
+            } else if (edit_info["mode"] === "include") {
+                Object.entries(getEmptyObjectFunction()).forEach(([key, _]) => {
+                    formRender.edit[key.toString()] = edit_info.fields.includes(key);
+                });
+            } else {
+                throw "The mode must be in { exlude, include }.";
+            }
+            
+            this.formRender = formRender;
+        },
     },
 
     watch: {
         event_id: function (new_event_id, old_event_id) {
-            this.refreshData();
+
+            if (new_event_id !== 0){
+                this.refreshData();
+            }
+                
         },
+        user: function(new_user, old_user){
+            if (new_user !== null){
+                this._generate_formRender();
+            }
+        }
     },
 
     created: function () {
-        // console.log(this.user)
+        
+        if (typeof testMode !== 'undefined'){
+            this._generate_formRender();
+            return;
+        }
         axios.get(this.$API_URL + "student").then((response) => {
             this.studentTable = response.data;
         });
+        // console.log(this.user) user is passed via props.
+        
     },
     mounted: function () {
         // this.event_id = JSON.parse(document.getElementById('event_id-data').textContent);
@@ -531,11 +675,11 @@ export default {
 
             <template slot="table-row" slot-scope="props">
                 <span v-if="props.column.field == 'action'">
-                    <!-- <button v-if="user.is_staff || user.is_student" type="button" class="btn btn-light mr-1"
+                    <button v-if="user.is_staff || user.is_student" type="button" class="btn btn-light mr-1"
                             @click="viewClick(props.row); showAddEventAttendanceModal = true">
                             <i class="bi bi-eye"></i>
-                        </button> -->
-
+                    </button>
+                    
                     <button v-if="user.is_staff" type="button" :id="'edit-button-' + props.row.id"
                         class="btn btn-light mr-1" @click="
                             editClick(props.row);
@@ -563,37 +707,37 @@ export default {
                     Close
                 </button></template>
             <FormulateForm name="event-attendance-formulate-form-1" ref="event-attendance-formulate-form-1"
-                #default="{ hasErrors }">
+                >
                 <h6>University Id</h6>
                 <div class="multiselect-university_id">
                     <!-- v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="receivers" -->
-                    <multiselect ref="event-attendance-multiselect-university_id"
-                        name="event-attendance-multiselect-university_id" v-model="multiselect.student"
-                        v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="university id"
+                    <multiselect ref="event-attendance-formulate-form-1-university_id"
+                        name="university_id" v-model="multiselect.student"
+                        v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="university id" data-vv-scope="event-attendance-formulate-form-1"
                         :hide-selected="true" :close-on-select="false" :multiple="false" :options="studentTable"
                         :custom-label="_university_id_custome_label" track-by="university_id" placeholder="Select..."
-                        :disabled="false">
+                        :disabled="modalReadonly || !formRender.edit.university_id">
                     </multiselect>
-                    <span v-show="veeErrors.has('event-attendance-multiselect-university_id')"
+                    <span v-show="veeErrors.has('event-attendance-formulate-form-1.university_id')"
                         class="formulate-input-errors" style="color: red">{{
-                            veeErrors.first("event-attendance-multiselect-university_id")
+                            veeErrors.first("event-attendance-formulate-form-1.university_id")
                         }}</span>
                 </div>
 
-                <formulate-input label="Firstname" ref="event-attendance-formulate-input-firstname" type="text"
-                    v-model="eventAttendance.firstname" validation="max:40" :readonly="false"></formulate-input>
-                <formulate-input label="Middlename" ref="event-attendance-formulate-input-middlename" type="text"
-                    v-model="eventAttendance.middlename" validation="max:40" :readonly="false"></formulate-input>
-                <formulate-input label="Lastname" ref="event-attendance-formulate-input-lastname" type="text"
-                    v-model="eventAttendance.lastname" validation="max:40" :readonly="false"></formulate-input>
-                <formulate-input ref="event-attendance-formulate-input-used_for_calculation" type="checkbox"
+                <formulate-input label="Firstname" ref="event-attendance-formulate-form-1-firstname" type="text"
+                    v-model="eventAttendance.firstname" validation="max:40" :readonly="modalReadonly || !formRender.edit.firstname"></formulate-input>
+                <formulate-input label="Middlename" ref="event-attendance-formulate-form-1-middlename" type="text"
+                    v-model="eventAttendance.middlename" validation="max:40" :readonly="modalReadonly || !formRender.edit.middlename"></formulate-input>
+                <formulate-input label="Lastname" ref="event-attendance-formulate-form-1-lastname" type="text"
+                    v-model="eventAttendance.lastname" validation="max:40" :readonly="modalReadonly || !formRender.edit.lastname"></formulate-input>
+                <formulate-input ref="event-attendance-formulate-form-1-used_for_calculation" type="checkbox"
                     v-model="checkboxes" :options="{ used_for_calculation: 'Use for calculation' }" validation=""
-                    :readonly="false"></formulate-input>
+                    :disabled="modalReadonly || !formRender.edit.used_for_calculation"></formulate-input>
             </FormulateForm>
-            <button type="button" @click="createClick()" v-if="addingNewAttendance" class="btn btn-primary">
+            <button type="button" @click="createClick()" v-if="addingNewAttendance && user.is_staff" class="btn btn-primary">
                 Create
             </button>
-            <button type="button" @click="updateClick()" v-else class="btn btn-primary">
+            <button type="button" @click="updateClick()" v-if="!addingNewAttendance && !modalReadonly && user.is_staff" class="btn btn-primary">
                 Update
             </button>
         </AddAttendanceModal>
@@ -608,7 +752,7 @@ export default {
                     'event-attendance-formulate-form-2-attachment_file-' +
                     addByFileForm.formKey
                 " ref="event-attendance-formulate-form-2-attachment_file"
-                    name="event-attendance-formulate-form-2-attachment_file" v-model="addByFileForm.csvFile"
+                    v-model="addByFileForm.csvFile"
                     label="Attachment file" help="" 
                     :validation-rules="{ 
                         maxFileSize :  (context, ... args) => {
@@ -621,7 +765,7 @@ export default {
                         maxFileSize: (context) => {
                             return 'The file size must not exceed ' + context.args[0] + ' bytes.';
                         },
-                    }" error-behavior="live" validation-event="input" validation="required|maxFileSize" upload-behavior="delayed"
+                    }" error-behavior="live" validation-event="input" validation="required|maxFileSize:2000000" upload-behavior="delayed"
                     :disabled="false">
                 </FormulateInput>
                 <FormulateInput ref="event-attendance-formulate-form-2-all-valid-checkbox"

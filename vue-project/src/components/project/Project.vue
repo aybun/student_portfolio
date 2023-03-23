@@ -386,7 +386,7 @@ export default {
             const checkboxes = [];
             for (let i = 0; i < checkboxFields.length; ++i) {
                 if (formdata[checkboxFields[i]] === true)
-                    checkboxes.push(this.checkboxFields[i]);
+                    checkboxes.push(checkboxFields[i]);
             }
             return checkboxes;
         },

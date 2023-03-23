@@ -256,26 +256,15 @@ export default {
                 this.award,
                 this.checkboxFields
             );
-
-            // this.awardFormRenameProcess();
         },
-        // renameProcess(){
-        //     this.award.receivers = this.renameKeyOfDictsInList(this.award.receivers, 'user_id_fk', 'id')
-        //     this.copiedAward.receivers = this.renameKeyOfDictsInList(this.copiedAward.receivers, 'user_id_fk', 'id')
-
-        //     this.award.supervisors = this.renameKeyOfDictsInList(this.award.supervisors, 'user_id_fk', 'id')
-        //     this.copiedAward.supervisors = this.renameKeyOfDictsInList(this.copiedAward.supervisors, 'user_id_fk', 'id')
-
-        // },
         getListOfTrueCheckboxFields(formdata, checkboxFields) {
             const checkboxes = [];
             for (let i = 0; i < checkboxFields.length; ++i) {
                 if (formdata[checkboxFields[i]] === true)
-                    checkboxes.push(this.checkboxFields[i]);
+                    checkboxes.push(checkboxFields[i]);
             }
             return checkboxes;
         },
-
         assignBooleanValueToCheckboxFields(formdata, checkboxes, checkboxFields) {
             for (let i = 0; i < checkboxFields.length; ++i) {
                 const field_name = checkboxFields[i];
