@@ -47,7 +47,7 @@ class EventApiAccessPolicy(AccessPolicy):
                 return Q()
 
             elif 'student' in groups:
-                return Q(approved=True) | Q(created_by=request.user.id)
+                return (Q(approved=True) & Q(arranged_inside=True)) | Q(created_by=request.user.id)
 
         elif request.method == "PUT":
             if 'staff' in groups:
