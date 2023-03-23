@@ -442,15 +442,14 @@ export default {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-                const stringified = JSON.stringify(response.data.data);
+                const data = response.data.data
+                const message = response.data.message
 
-                this.curriculums.push(response.data.data);
-                this.curriculum = JSON.parse(stringified);
-                this.copiedCurriculum = JSON.parse(stringified);
+                this.curriculums.push(data);
+                this.editClick(data)
                 
-                alert(response.data.message + "\n" + stringified);
+                alert(message + '\n' + JSON.stringify(data));
             }).catch((error)=>{
-                
                 alert(error.response.data.message)
             })
 
@@ -488,13 +487,12 @@ export default {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-
-                const stringified = JSON.stringify(response.data.data);
+                const data = response.data.data
+                const message = response.data.message
                 this.reassignUpdatedElementIntoList(this.curriculums, response.data.data);
-                this.curriculum = JSON.parse(stringified);
-                this.copiedCurriculum = JSON.parse(stringified);
+                this.editClick(data)
                 
-                alert(response.data.message + "\n" + stringified);
+                alert(message + '\n' + JSON.stringify(data) );
 
             }).catch((error)=>{
                 alert(error.response.data.message);
@@ -517,14 +515,21 @@ export default {
                     'X-CSRFToken': 'csrftoken',
                 }
             }).then((response)=>{
-                // this.refreshData();
-                alert(response.data.message);
+                this.removeElementFromArrayById(this.curriculums, curriculum_id);
+                alert(response.data.message)
             }).catch((error)=>{
                 alert(error.response.data.message);
-            })
+            });
 
         },
-
+        removeElementFromArrayById(arr, id){
+            for(let i = 0; i < arr.length; ++i){
+                if (arr[i].id === id){
+                    arr.splice(i, 1);
+                    break;
+                }
+            }
+        },
         async validateForm(){
             //Perform validation on the form.
             await this.$formulate.submit("curriculum-formulate-form-1");
@@ -662,13 +667,15 @@ export default {
     },
 
     created: async function(){
-        this.curriculum = this.getEmptyCurriculum()
-
+        
         if (typeof testMode !== 'undefined'){
+            this.curriculum = this.getEmptyCurriculum()
             this._generate_formRender()
             return;
         }
 
+
+        this.curriculum = this.getEmptyCurriculum()
         this.variables.API_URL = this.$API_URL
         await axios.get(this.$API_URL + "user")
             .then((response) => {
@@ -677,11 +684,12 @@ export default {
             })
 
         this._generate_formRender()
+
         axios.get(this.variables.API_URL+"curriculum")
             .then((response)=>{
                 this.curriculums=response.data;
             });
-
+        
         axios.get(this.variables.API_URL+"skillgroup")
             .then((response)=>{
                 this.skillgroupTable=response.data;

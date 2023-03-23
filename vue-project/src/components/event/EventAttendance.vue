@@ -203,10 +203,10 @@ export default {
             this.addingNewAttendance = false;
 
             this.multiselect.student = { university_id: attendance.university_id };
-
+            
             this.eventAttendance = attendance;
             this.checkboxes = [];
-
+            
             for (let i = 0; i < this.checkboxFields.length; ++i) {
                 if (this.eventAttendance[this.checkboxFields[i]])
                     this.checkboxes.push(this.checkboxFields[i]);
@@ -221,7 +221,7 @@ export default {
 
             this.eventAttendance.university_id =
                 this.multiselect.student.university_id;
-
+            
             const outDict = new FormData();
             for (const [key, value] of Object.entries(this.eventAttendance)) {
                 outDict.append(key.toString(), value);
@@ -497,7 +497,7 @@ export default {
         <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" @click="syncByUniversityIdClick()">
             Sync by university id
         </button>
-
+        
         <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" @click="showAddByFileModal = true">
             Add attendees by file
         </button>
@@ -507,7 +507,7 @@ export default {
             :pagination-options="{
                 enabled: true,
                 mode: 'records',
-                perPage: 10,
+                perPage: 20,
                 setCurrentPage: 1,
             }">
             <div slot="table-actions">

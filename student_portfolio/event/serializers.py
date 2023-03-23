@@ -19,12 +19,12 @@ import csv
 class SkillSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
     title = serializers.CharField(max_length=50, required=True)
-
+    info = serializers.CharField(max_length=200, required=False)
     # goal_point = serializers.IntegerField(min_value=0, max_value=10,  required=False)
 
     class Meta:
         model = Skill
-        fields = ('id', 'title')
+        fields = ('id', 'title', 'info')
         access_policy = SkillTableApiAccessPolicy
 
     @staticmethod
@@ -289,6 +289,8 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
         request = context['request']
         groups = request.user.groups.values_list('name', flat=True)
 
+        if request.method == "POST":
+            pass
         if request.method == "PUT":
             data['synced'] = 'false' #We won't let this in if the university is not present.
 
@@ -297,7 +299,7 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 if student_id_fk == '' or student_id_fk == 'null':
                     data.pop('user_id_fk', None)
 
-        return data
+        return instance, data
 
 
 
@@ -359,7 +361,6 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
         skillgroups = validated_data.pop('skillgroups', None)
         attachment_file = validated_data.pop('attachment_file', None)
 
-
         instance = Curriculum.objects.create(**validated_data)
 
         if attachment_file is not None:
@@ -409,7 +410,7 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
             id = e['id']
             if id not in skill_group_ids:
                 raise serializers.ValidationError(
-                    "The skillId is not present in the Skill table : " + str(e['id']))
+                    "The id is not present in the table : " + str(e['id']))
 
             if id not in unique_ids:
                 unique_ids.append(id)
@@ -428,6 +429,7 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
             else:
                 data['skillgroups'] = skillgroup
 
+        # Handling Methods.
         if request.method == "POST":
             attachment_file = data.get('attachment_file', None)
             if isinstance(attachment_file, str):

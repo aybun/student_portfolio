@@ -287,8 +287,14 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
+                const data = response.data.data
+                const message = response.data.message
+                this.skillgroups.push(data);
+                this.editClick(data)//Change viewing mode.
+                
+                alert(message + '\n' + JSON.stringify(data));
+            }).catch((error) => {
+                alert(error.response.data.message);
             });
         },
 
@@ -327,8 +333,14 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
+                const data = response.data.data
+                const message = response.data.message
+                this.reassignUpdatedElementIntoList(this.skillgroups, data); //With reactivity.
+                this.editClick(data)
+
+                alert(message + '\n' + JSON.stringify(data) );
+            }).catch((error) => {
+                alert(error.response.data.message);
             });
         },
 
@@ -348,9 +360,27 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                alert(response.data);
+                this.removeElementFromArrayById(this.skillgroups, skillgroup_id);
+                alert(response.data.message)
+            }).catch((error)=>{
+                alert(error.response.data.message);
             });
+        },
+        removeElementFromArrayById(arr, id){
+            for(let i = 0; i < arr.length; ++i){
+                if (arr[i].id === id){
+                    arr.splice(i, 1);
+                    break;
+                }
+            }
+        },
+        reassignUpdatedElementIntoList(list, element) {
+            for (let i = 0; i < list.length; ++i) {
+                if (list[i].id === element.id) {
+                    this.$set(list, i, element);
+                    break;
+                }
+            }
         },
         cleanManyToManyFieldsWithFieldSelection(list, distintFieldName="id", selectedFields=[]) {
             //Remove empty or redundant inputs.

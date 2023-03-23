@@ -105,6 +105,7 @@ class EventAttendanceApiAccessPolicy(AccessPolicy):
     def scope_query_object(cls, request):
         groups = request.user.groups.values_list('name', flat=True)
         if request.method == "GET":
+
             if 'staff' not in groups: #Assume that any group that has lower authority than staff.
                 return Q(user_id_fk=request.user.id)
 

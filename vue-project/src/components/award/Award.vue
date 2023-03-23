@@ -363,7 +363,7 @@ export default {
                 alert(response.data.message)
             }).catch((error)=>{
                 alert(error.response.data.message);
-            })
+            });
         },
         removeElementFromArrayById(arr, id){
             for(let i = 0; i < arr.length; ++i){
@@ -373,7 +373,7 @@ export default {
                 }
             }
         },
-        cleanManyToManyFields(list, ) {
+        cleanManyToManyFields(list) {
             //Remove empty or redundant inputs.
             // console.log(list)
             const nonEmpty = [];
