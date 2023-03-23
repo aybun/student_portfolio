@@ -492,7 +492,7 @@ def syncAttendanceByUniversityId(request, event_id=0):
 
 
 @parser_classes([JSONParser, MultiPartParser])
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'PUT', 'POST'])
 @permission_classes((SkillTableApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def skillTableApi(request, skill_id=0):
@@ -751,9 +751,10 @@ def skillGroupApi(request, skillgroup_id=0):
         data = request.data.dict()
         _, data = Serializer.custom_clean(data=data, context={'request': request})
         serializer = Serializer(data=data, context={'request': request})
-
+        # print(serializer.data)
         success = True
         if serializer.is_valid():
+            print(serializer.validated_data)
             try:
                 with transaction.atomic():
                     instance = serializer.save()
@@ -784,9 +785,17 @@ def skillGroupApi(request, skillgroup_id=0):
             success = False
         else:
             data = request.data.dict()
-            data = Serializer.custom_clean(data=data, context={'request': request})
-            serializer = Serializer(object, data=data, context={'request': request})
+            object, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
+            serializer = Serializer(instance=object, data=data, context={'request': request})
+            print(object)
             if serializer.is_valid():
+                print('here valid')
+                print(serializer.validated_data)
+                print('assignskilltoskillgroup_skillgroup_set' in serializer.validated_data)
+                for e in serializer.validated_data.get('assignskilltoskillgroup_skillgroup_set'):
+                    print(e['skill_id_fk'])
+                    print(type(e['skill_id_fk']))
+
                 try:
                     with transaction.atomic():
                         instance = serializer.save()

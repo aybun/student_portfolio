@@ -89,8 +89,8 @@
                                             add-label="+ Add Skill"
                                             validation="required"
                                         >                        
-                                            <FormulateInput type="vue-select" name="skill_id_fk" label="Skill" :options="skillTableVueSelect" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput>
-                                            <FormulateInput type="number" name='goal_point' label="Point" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput> 
+                                            <FormulateInput type="vue-select" name="skill_id_fk" validation-name="Skill" label="Skill" :options="skillTableVueSelect" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput>
+                                            <FormulateInput type="number" name='goal_point' validation-name="Point" label="Point" validation="required|min:0|max:10" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput> 
                                             
                                         </FormulateInput>
                                 </FormulateForm>
@@ -257,8 +257,14 @@ export default {
             const stringified = JSON.stringify(formData);
             this.skillgroup = JSON.parse(stringified);
             this.copiedSkillgroup = JSON.parse(stringified);
+
+            this.skillgroup.skills = this.convertFieldToString(this.skillgroup.skills, 'skill_id_fk')
+            this.copiedSkillgroup.skills = this.convertFieldToString(this.copiedSkillgroup.skills, 'skill_id_fk')
+
         },
         async createClick() {
+            this.skillgroup.skills = this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']);
+
             let formIsValid = false;
             await this.validateForm().then((result) => {
                 formIsValid = result;
@@ -273,7 +279,8 @@ export default {
             for (const [key, value] of Object.entries(this.skillgroup)) {
                 outForm.append(key.toString(), value);
             }
-
+            outForm.set("skills", JSON.stringify(this.skillgroup.skills));
+            
             axios.defaults.xsrfCookieName = "csrftoken";
             axios.defaults.xsrfHeaderName = "X-CSRFToken";
             axios({
@@ -299,26 +306,25 @@ export default {
         },
 
         async updateClick() {
+
+            this.skillgroup.skills = this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']);
+
             let formIsValid = false;
             await this.validateForm().then((result) => {
                 formIsValid = result;
             });
-
+            
             if (typeof testMode !== "undefined")
                 this.skillgroupFormHasbeenSubmitted = formIsValid;
 
             if (!formIsValid) return;
 
-            this.skillgroup.skills = this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']);
             const outForm = new FormData();
             for (const [key, value] of Object.entries(this.skillgroup)) {
                 outForm.append(key.toString(), value);
             }
-            outForm.set(
-                "skills",
-                JSON.stringify(this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']))
-            );
-
+            outForm.set("skills", JSON.stringify(this.skillgroup.skills));
+               
             //Make a request.
             axios.defaults.xsrfCookieName = "csrftoken";
             axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -333,7 +339,8 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                const data = response.data.data
+                let data = response.data.data
+                data.skills = this.convertFieldToString(data.skills, 'skill_id_fk')
                 const message = response.data.message
                 this.reassignUpdatedElementIntoList(this.skillgroups, data); //With reactivity.
                 this.editClick(data)
@@ -381,6 +388,12 @@ export default {
                     break;
                 }
             }
+        },
+        convertFieldToString(list, fieldName){
+            for(let i=0; i < list.length; ++i){
+                list[i][fieldName] = String(list[i][fieldName])
+            }
+            return list
         },
         cleanManyToManyFieldsWithFieldSelection(list, distintFieldName="id", selectedFields=[]) {
             //Remove empty or redundant inputs.
@@ -473,7 +486,7 @@ export default {
             this.skillTable.forEach((element)=>{
                 arr.push({'value' : `${element.id}`, 'label' : `${element.id} ${element.title}`})
             })
-            console.log(arr)
+            // console.log(arr)
             this.skillTableVueSelect = arr
         },
         
@@ -483,17 +496,20 @@ export default {
             const endDate = Date.parse(dateRange[1]);
             return Date.parse(data) >= startDate && Date.parse(data) <= endDate;
         },
+        _data_processing_for_test(){
+            this.skillgroup = this.getEmptySkillgroup()
+            this._generate_formRender();
+            this._generate_skillTableVueSelect(); //vue-formulte select needs to work with ids as strings.
 
+        },
     },
     created: async function () {
-        this.skillgroup = this.getEmptySkillgroup();
-
         if (typeof this.testMode !== "undefined") {
-            this._generate_formRender();
-            this.__generate_skillTableVueSelect();
+           this._data_processing_for_test()
             return;
         }
 
+        this.skillgroup = this.getEmptySkillgroup();
         this.variables.API_URL = this.$API_URL
         await axios.get(this.variables.API_URL + "user").then((response) => {
             this.user = response.data;
@@ -501,13 +517,7 @@ export default {
         });
 
         axios.get(this.variables.API_URL + "skillgroup").then((response) => {
-            this.skillgroups = response.data;
-            this.skillgroups.forEach((skillgroup) => {
-                for(let i = 0; i < skillgroup.skills.length; ++i){
-                    skillgroup.skills[i].skill_id_fk = String(skillgroup.skills[i].skill_id_fk)
-                }
-            })
-            
+            this.skillgroups = response.data;       
         });
 
         axios.get(this.variables.API_URL + "skillTable").then((response) => {
@@ -515,32 +525,20 @@ export default {
             this._generate_skillTableVueSelect();
             // console.log(this.)
         });
-    },
 
-    mounted: function () {
-        window.onload = () => {
-            const inputs = [
-                // 'input[placeholder="Filter Received"]',
-                // 'input[placeholder="Filter Start Date"]',
-                // 'input[placeholder="Filter Need By Date"]'
-            ];
-            
-            inputs.forEach(function (input) {
-                flatpickr(input, {
-                    dateFormat: "Y-m-d",
-                    mode: "range",
-                    allowInput: true,
-                    // enableTime:true,
-                });
-            });
-
+        this.$nextTick(() => {
             document
                 .getElementById("edit-info-modal")
                 .addEventListener("hidden.bs.modal", (event) => {
                     this.veeErrors.clear();
                     this.formKey += 1;
                 });
-        };
+
+            })
+    },
+
+    mounted: function () {
+
     },
 };
 </script>

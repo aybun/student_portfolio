@@ -460,7 +460,7 @@ class AssignSkillToSkillgroupSerializer(serializers.ModelSerializer):
     skill_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
                                                      queryset=Skill.objects.all())
 
-    goal_point = serializers.IntegerField(min_value=0, max_value=10, required=False)
+    goal_point = serializers.FloatField(min_value=0, max_value=10, required=False)
 
     class Meta:
         model = AssignSkillToSkillgroup
@@ -481,25 +481,38 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
         fields = ('id', 'name', 'info', 'skills')
 
         access_policy = SkillGroupApiAccessPolicy
+    def create(self, validated_data):
+
+        skills = validated_data.pop('assignskilltoskillgroup_skillgroup_set', None)
+
+        instance = Skillgroup.objects.create(**validated_data)
+        instance.skills.clear()
+
+        if skills is not None:
+            for e in skills:
+                instance.skills.add(e['skill_id_fk'], through_defaults={'goal_point': e['goal_point']})
+
+        instance.save()
+        return instance
 
     def update(self, instance, validated_data):
-
+        print(validated_data)
         instance.name = validated_data.get('name', instance.name)
         instance.info = validated_data.get('info', instance.info)
 
         instance.skills.clear()
-        print(validated_data)
+
         # Now we work with the related name : assignskilltoskillgroup_skillgroup_set
         # Note : validated_data contains THE OBJECTS, not primary keys.
         if 'assignskilltoskillgroup_skillgroup_set' in validated_data:
             for e in validated_data.get('assignskilltoskillgroup_skillgroup_set'):
                 # The comment below shows an equivalent way of creating a relationship.
-                # AssignSkillToSkillgroup.objects.create(skillgroup_id_fk=instance,
-                #                                        skill_id_fk=e['skill_id_fk'],
-                #                                        goal_point=e['goal_point'])
-                instance.skills.add(e['skill_id_fk'],
-                                    through_defaults={'goal_point': e['goal_point']}
-                                    )
+                AssignSkillToSkillgroup.objects.create(skillgroup_id_fk=instance,
+                                                       skill_id_fk=e['skill_id_fk'],
+                                                       goal_point=e['goal_point'])
+                # instance.skills.add(e['skill_id_fk'],
+                #                     through_defaults={'goal_point': e['goal_point']}
+                #                     )
 
         instance.save()
         return instance
@@ -539,18 +552,19 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
     def custom_clean(instance=None, data=None, context=None):
         request = context['request']
 
+        if 'skills' in data:
+            data['skills'] = SkillGroupSerializer.custom_clean_skills(data=data['skills'])
+            if isinstance(data.get('skills', None), str):
+                data.pop('skills', None)
+
         if request.method == "POST":
             pass
 
         elif request.method == "PUT":
+            pass
 
-            # print(data['skills'])
-            if 'skills' in data:
-                data['skills'] = SkillGroupSerializer.custom_clean_skills(data=data['skills'])
-                if isinstance(data.get('skills', None), str):
-                    data.pop('skills', None)
         print('in custom clean')
-        print(data)
-        return data
+        print(instance, data)
+        return instance, data
 
 

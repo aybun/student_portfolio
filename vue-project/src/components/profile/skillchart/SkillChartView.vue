@@ -200,7 +200,7 @@ export default {
                             // maintainAspectRatio: false,
                     scales:{
                         r:{
-                            max:5,
+                            max:10,
                             min:0,
                         },
                     },

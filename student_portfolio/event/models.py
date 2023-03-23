@@ -97,7 +97,7 @@ class AssignSkillToSkillgroup(models.Model):
     skillgroup_id_fk = models.ForeignKey(Skillgroup, on_delete=models.CASCADE, related_name='assignskilltoskillgroup_skillgroup_set')
     skill_id_fk = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name='assignskilltoskillgroup_skill_set')
 
-    goal_point = models.BigIntegerField(default=0)
+    goal_point = models.FloatField(default=0)
 
     def __str__(self):
         return "{} {}".format(self.id, self.goal_point)
