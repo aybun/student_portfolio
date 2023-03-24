@@ -500,14 +500,15 @@ export default {
       return `${firstname} ${lastname}`;
     },
     getFileOrNull(field) {
-      //We want to support both file and array of files as a field.
+            //We want to support both file and array of files as a field.
 
-      if (field instanceof File) return field;
-      else if (typeof field === "undefined" || field === null) return null;
-      else if (typeof field === "string") return null;
-      else if (field.files.length === 0) return null;
-      else return field.files[0].file;
-    },
+            if (field instanceof File) return field;
+            else if (typeof field === "undefined" || field === null) return null;
+            else if (typeof field === "string") return null;
+            else if (typeof field.files === "undefined" || field.files === null) return null;
+            else if (field.files.length === 0) return null;
+            else return field.files[0].file;
+        },
 
     toggleColumn(index, event) {
       // Set hidden to inverse of what it currently is

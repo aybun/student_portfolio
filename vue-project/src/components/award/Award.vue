@@ -178,8 +178,11 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
+            if (typeof testMode !== "undefined"){
                 this.awardFormHasbeenSubmitted = formIsValid;
+                return;
+            }
+                
 
             if (!formIsValid) return;
 
@@ -277,8 +280,11 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
+            if (typeof testMode !== "undefined"){
                 this.awardFormHasbeenSubmitted = formIsValid;
+                return;
+            }
+                
 
             if (!formIsValid) return;
 
@@ -517,6 +523,7 @@ export default {
             if (field instanceof File) return field;
             else if (typeof field === "undefined" || field === null) return null;
             else if (typeof field === "string") return null;
+            else if (typeof field.files === "undefined" || field.files === null) return null;
             else if (field.files.length === 0) return null;
             else return field.files[0].file;
         },
@@ -601,7 +608,7 @@ export default {
         },
 
     },
-
+    
     created: async function () {
         
         if (typeof this.testMode !== "undefined") {

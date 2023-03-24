@@ -578,6 +578,7 @@ export default {
             if (field instanceof File) return field;
             else if (typeof field === "undefined" || field === null) return null;
             else if (typeof field === "string") return null;
+            else if (typeof field.files === "undefined" || field.files === null) return null;
             else if (field.files.length === 0) return null;
             else return field.files[0].file;
         },
