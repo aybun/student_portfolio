@@ -304,7 +304,7 @@ export default {
                 alert(error.response.data.message);
             });
         },
-
+        
         async updateClick() {
 
             this.skillgroup.skills = this.cleanManyToManyFieldsWithFieldSelection(this.skillgroup.skills, 'skill_id_fk', ['goal_point']);

@@ -27,12 +27,14 @@ export default {
     EventAttendance,
   },
   props:{
-    OnlyAttendedByUser:{
+    onlyAttendedByUser:{
       type:Boolean,
       default:false,
     },
   },
+  watch:{
 
+  },
   data() {
     return {
       events: [],
@@ -205,9 +207,21 @@ export default {
     },
 
     refreshData() {
-      axios.get(this.$API_URL + "event").then((response) => {
-        this.events = response.data;
-      });
+
+      if (this.onlyAttendedByUser){
+        const eventAttendedParams = new URLSearchParams([]);  
+        axios.get(this.$API_URL+"event-attended/list", { params : eventAttendedParams} )
+            .then((response)=>{
+                this.events=response.data;
+                console.log(this.events)
+            });
+      }
+      else{
+        axios.get(this.$API_URL + "event").then((response) => {
+          this.events = response.data;
+        });
+      }
+      
     },
     addClick() {
       this.modalTitle = "Add Event";
@@ -589,22 +603,7 @@ export default {
     });
     this._generate_formRender();
 
-    if (this.OnlyAttendedByUser){
-      // const eventAttendedParams = new URLSearchParams([['event_used_for_calculation', true], ['event_attendance_used_for_calculation', true]]);
-      const eventAttendedParams = new URLSearchParams([]);  
-      axios.get(this.$API_URL+"event-attended/list", { params : eventAttendedParams} )
-            .then((response)=>{
-                this.events=response.data;
-                console.log(this.events)
-            });
-    }
-    else{
-      axios.get(this.$API_URL + "event").then((response) => {
-        this.events = response.data;
-        // console.log(this.events)
-      });
-    }
-    
+    this.refreshData(); // get events
 
     axios.get(this.$API_URL + "staff").then((response) => {
       this.staffTable = this.assignFieldAsIdField(response.data, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
@@ -649,7 +648,7 @@ export default {
 <template>
   <div>
     
-    <button v-if="!OnlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
+    <button v-if="!onlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
       @click="addClick()">
       Add Event
     </button>

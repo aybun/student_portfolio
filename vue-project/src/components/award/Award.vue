@@ -771,27 +771,27 @@ export default {
                             <div class="p-1 w-50 bd-highlight">
                                 <FormulateForm name="award-formulate-form-1" ref="award-formulate-form-1"
                                     #default="{ hasErrors }">
-                                    <formulate-input ref="formulate-input-title" type="text" v-model="award.title"
+                                    <formulate-input ref="award-formulate-form-1-title" type="text" v-model="award.title"
                                         label="Title" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
 
-                                    <formulate-input ref="formulate-input-rank" type="number" v-model="award.rank"
+                                    <formulate-input ref="award-formulate-form-1-rank" type="number" v-model="award.rank"
                                         label="Rank" validation="required|number|min:0"
                                         :readonly="modalReadonly || !formRender.edit.rank">
                                     </formulate-input>
 
-                                    <formulate-input ref="formulate-input-received_date" type="date"
+                                    <formulate-input ref="award-formulate-form-1-received_date" type="date"
                                         v-model="award.received_date" label="Received Date" validation="required"
                                         :readonly="modalReadonly || !formRender.edit.received_date"></formulate-input>
 
-                                    <formulate-input ref="formulate-input-info" label="Info"
+                                    <formulate-input ref="award-formulate-form-1-info" label="Info"
                                         :key="'award-formulate-input-info-' + formKey" type="textarea" v-model="award.info"
                                         validation="max:200,length" :readonly="modalReadonly || !formRender.edit.info"
                                         validation-name="info"></formulate-input>
 
                                     <div class="skill">
                                         <h6>Skills</h6>
-                                        <multiselect v-model="award.skills" :hide-selected="true" :close-on-select="false"
+                                        <multiselect ref="award-formulate-form-1-skills" v-model="award.skills" :hide-selected="true" :close-on-select="false"
                                             :multiple="true" :options="skillTable" :custom-label="skillCustomLabel"
                                             track-by="id" placeholder="Select..."
                                             :disabled="modalReadonly || !formRender.edit.skills">
@@ -801,7 +801,7 @@ export default {
                                     <div class="receiver">
                                         <h6>Receivers</h6>
                                         <div>
-                                            <multiselect ref="award-multiselect-receivers"
+                                            <multiselect ref="award-formulate-form-1-receivers"
                                                 name="receivers" v-model="award.receivers"
                                                 v-validate="'required|min:1'" data-vv-validate-on="input"
                                                 data-vv-as="receivers" data-vv-scope="award-formulate-form-1"
@@ -818,7 +818,7 @@ export default {
 
                                     <div class="staff">
                                         <h6>Supervisors</h6>
-                                        <multiselect v-model="award.supervisors" :hide-selected="true"
+                                        <multiselect ref="award-formulate-form-1-supervisors" v-model="award.supervisors" :hide-selected="true"
                                             :close-on-select="false" :multiple="true" :options="staffTable"
                                             :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..."
                                             :disabled="modalReadonly || !formRender.edit.supervisors"></multiselect>
@@ -827,10 +827,10 @@ export default {
                                     <p></p>
 
                                     <div class="mb-3">
-                                        <FormulateInput ref="formulate-input-approved" v-model="checkboxes"
+                                        <FormulateInput ref="award-formulate-form-1-approved" v-model="checkboxes"
                                             :options="{ approved: 'approved' }" type="checkbox"
                                             :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
-                                        <FormulateInput ref="formulate-input-used_for_calculation" v-model="checkboxes"
+                                        <FormulateInput ref="award-formulate-form-1-used_for_calculation" v-model="checkboxes"
                                             :options="{ used_for_calculation: 'Use for calculation' }" type="checkbox"
                                             :disabled="
                                                 modalReadonly || !formRender.edit.used_for_calculation
@@ -838,9 +838,9 @@ export default {
                                     </div>
 
                                     <div class="mb-3">
-                                        <FormulateInput ref="formulate-input-attachment_link" type="url"
+                                        <FormulateInput ref="award-formulate-form-1-attachment_link" type="url"
                                             v-model="award.attachment_link" label="Attachment link"
-                                            placeholder="Copy and paste url here" help="copy and paste url" validation=""
+                                            placeholder="Copy and paste url here" help="copy and paste url" validation="url"
                                             :disabled="
                                                 modalReadonly || !formRender.edit.attachment_link
                                             "></FormulateInput>
@@ -850,8 +850,8 @@ export default {
 
                                     <div class="mb-3">
                                         <FormulateInput type="file"
-                                            :key="'award-formulate-input-attachment_file-' + formKey"
-                                            ref="formulate-input-attachment_file" name="formulate-input-attachment_file"
+                                            :key="'award-formulate-form-1-attachment_file-' + formKey"
+                                            ref="award-formulate-form-1-attachment_file"
                                             v-model="award.attachment_file" label="Attachment file"
                                             help="The file size must not exceed 2MB." 
                                             :validation-rules="{ 
@@ -863,9 +863,9 @@ export default {
                                             }"
                                                                 
                                             :validation-messages="{ maxFileSize : (context) => {
-                                                return 'The file size must not exceed ' + context.args[0] + ' bytes.';},                                     
+                                                return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';},                                     
                                             }"
- error-behavior="live" validation-event="input" validation="maxFileSize" upload-behavior="delayed" :disabled="
+ error-behavior="live" validation-event="input" validation="maxFileSize:2000000" upload-behavior="delayed" :disabled="
     modalReadonly || !formRender.edit.attachment_file
 "></FormulateInput>
                                         <!--                            File Button-->
@@ -880,10 +880,6 @@ export default {
                                         </button>
                                     </div>
 
-                                    <!--                        <End of inputs>-->
-                                    <FormulateInput v-if="false" type="submit" :disabled="hasErrors" @click="updateClick()">
-                                        Update
-                                    </FormulateInput>
                                 </FormulateForm>
                             </div>
                         </div>

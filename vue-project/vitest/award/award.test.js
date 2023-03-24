@@ -120,7 +120,20 @@ const skillTable = [
   { id: 6, title: "\u0e17\u0e31\u0e01\u0e29\u0e30\u0e17\u0e35\u0e48 6" },
 ];
 
-describe("Test award.", () => {
+let award_formname = "award-formulate-form-1"
+let ref_title = award_formname + "-" + "title"
+let ref_rank = award_formname + "-" + "rank"
+let ref_received_date = award_formname + "-" + "received_date"
+let ref_info = award_formname + "-" + "info"
+let ref_skills = award_formname + "-" + "skills"
+let ref_receivers = award_formname + "-" + "receivers"
+let ref_supervisors = award_formname + "-" + "supervisors"
+let ref_approved = award_formname + "-" + "approved" 
+let ref_used_for_calculation = award_formname + "-" + "used_for_calculation"
+let ref_attachment_link = award_formname + "-" + "attachment_link"
+let ref_attachment_file = award_formname + "-" + "attachment_file"
+
+describe("Test award.", () => { 
   //Concurrentcy
   //Set beforEach()???
   //Makesure that they donot mutate the data.??
@@ -146,10 +159,10 @@ describe("Test award.", () => {
       // created : function(){}
     });
 
-    const formulate_form = wrapper.vm.$refs["formulate-form-1"];
+    // const formulate_form = wrapper.vm.$refs[award_formname];
 
     //Test : title
-    const title = wrapper.vm.$refs["formulate-input-title"];
+    const title = wrapper.vm.$refs[ref_title];
 
     // title : required
     await wrapper.setData({ award: { title: "" } });
@@ -172,7 +185,7 @@ describe("Test award.", () => {
     //End Test : title
 
     //Test : rank
-    const rank = wrapper.vm.$refs["formulate-input-rank"];
+    const rank = wrapper.vm.$refs[ref_rank];
 
     // rank : required
     await wrapper.setData({ award: { rank: "" } });
@@ -194,7 +207,7 @@ describe("Test award.", () => {
     //End Test : rank
 
     //Test : received_date
-    const received_date = wrapper.vm.$refs["formulate-input-received_date"];
+    const received_date = wrapper.vm.$refs[ref_received_date];
 
     //received_date : required
     await wrapper.setData({ award: { received_date: "" } });
@@ -205,7 +218,7 @@ describe("Test award.", () => {
     );
 
     //Test : info
-    const info = wrapper.vm.$refs["formulate-input-info"];
+    const info = wrapper.vm.$refs[ref_info];
 
     //received_date : required || 204 chars
     await wrapper.setData({
@@ -222,24 +235,24 @@ describe("Test award.", () => {
     //Test : receivers
 
     //receivers : required|min:1
-    const receivers = wrapper.vm.$refs["award-multiselect-receivers"];
+    const receivers = wrapper.vm.$refs[ref_receivers];
     await wrapper.setData({ award: { receivers: [] } });
-    wrapper.vm.$validator.validate(); //vee-validate's validator.
+    wrapper.vm.$validator.validateAll(award_formname); //vee-validate's validator.
     await flushPromises();
-    expect(wrapper.vm.veeErrors.first("award-multiselect-receivers")).toContain(
+    expect(wrapper.vm.veeErrors.collect(award_formname + '.'+ 'receivers')).toContain(
       "The receivers field is required"
     );
 
     //Test : attachment_link : NO VALIDATION RULES !!!!
-    const attachment_link = wrapper.vm.$refs["formulate-input-attachment_link"];
+    const attachment_link = wrapper.vm.$refs[ref_attachment_link];
     await wrapper.setData({ award: { attachment_link: "notalink" } });
     attachment_link.performValidation();
     await flushPromises();
     // console.log(attachment_link.validationErrors)
-    // expect(attachment_link.validationErrors).toContain('');
+    expect(attachment_link.validationErrors).toContain('Please include a valid url.');
 
     //Test : attachment_file
-    const attachment_file = wrapper.vm.$refs["formulate-input-attachment_file"];
+    const attachment_file = wrapper.vm.$refs[ref_attachment_file];
 
     //attachment_file : maxFileSize
     await wrapper.setData({
@@ -247,9 +260,8 @@ describe("Test award.", () => {
     });
     attachment_file.performValidation();
     await flushPromises();
-    // console.log(attachment_file.validationErrors)
     expect(attachment_file.validationErrors).toContain(
-      "The file size must not exceed 2000000 bytes."
+      "The file size must not exceed 2 mb."
     );
   });
 
@@ -317,6 +329,18 @@ describe("Test award.", () => {
         ],
       };
 
+      let invalids = {
+        'title' : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        'rank' : 'a',
+        'received_date': '',
+        'info' : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        'receivers' : [],
+        'attachment_link' : 'notalink',
+        'attachment_file' : { attachment_file: { files: [{ file: { size: 2500000 } }] } },
+      }
+
+
+
       // Test : valid data.
       await wrapper.setData({
         award: JSON.parse(JSON.stringify(valid_award_data)),
@@ -325,12 +349,28 @@ describe("Test award.", () => {
       await flushPromises();
       expect(wrapper.awardFormHasBeenSubmitted).toBe(true);
 
-      // Test : invalid data : title
-      const copied_award = JSON.parse(JSON.stringify(valid_award_data));
-      copied_award.title = "";
-      await wrapper.setData({ award: copied_award });
-      wrapper.updateClick();
+      wrapper.createClick();
       await flushPromises();
-      expect(wrapper.awardFormHasBeenSubmitted).toBe(false);
+      expect(wrapper.awardFormHasBeenSubmitted).toBe(true);
+
+      for (const [key, value] of Object.entries(invalids)) {
+
+
+        const copied_award = JSON.parse(JSON.stringify(valid_award_data));
+        copied_award[key.toString()] = value;
+        
+        await wrapper.setData({ award: copied_award });
+        wrapper.updateClick();
+        await flushPromises();
+        expect(wrapper.awardFormHasBeenSubmitted).toBe(false);
+
+        wrapper.createClick();
+        await flushPromises();
+        expect(wrapper.awardFormHasBeenSubmitted).toBe(false);
+      }
+      // Test : invalid data : title
+      
+
+
     };
 });

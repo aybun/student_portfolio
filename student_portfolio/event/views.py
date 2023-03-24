@@ -248,15 +248,13 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
     elif request.method=='PUT':
 
         data = request.data.dict()
-
-        instance, data = Serializer.custom_clean(data=data, context={'request' : request})
-
         object = EventAttendance.objects.filter(id=data['id']).first()
 
         success = True
         if object is None:
             success = False
         else:
+            instance, data = Serializer.custom_clean(instance=object, data=data, context={'request': request})
             serializer=EventAttendanceSerializer(instance=object, data=data, context={'request' : request})
 
             if serializer.is_valid():
@@ -754,7 +752,7 @@ def skillGroupApi(request, skillgroup_id=0):
         # print(serializer.data)
         success = True
         if serializer.is_valid():
-            print(serializer.validated_data)
+            # print(serializer.validated_data)
             try:
                 with transaction.atomic():
                     instance = serializer.save()
@@ -789,13 +787,6 @@ def skillGroupApi(request, skillgroup_id=0):
             serializer = Serializer(instance=object, data=data, context={'request': request})
             print(object)
             if serializer.is_valid():
-                print('here valid')
-                print(serializer.validated_data)
-                print('assignskilltoskillgroup_skillgroup_set' in serializer.validated_data)
-                for e in serializer.validated_data.get('assignskilltoskillgroup_skillgroup_set'):
-                    print(e['skill_id_fk'])
-                    print(type(e['skill_id_fk']))
-
                 try:
                     with transaction.atomic():
                         instance = serializer.save()

@@ -1,5 +1,5 @@
 <template>
-    <Event :OnlyAttendedByUser="true"></Event>
+    <Event :onlyAttendedByUser="true"></Event>
 </template>
 
 <script>
