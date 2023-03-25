@@ -19,7 +19,7 @@ import csv
 class SkillSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
     title = serializers.CharField(max_length=50, required=True)
-    info = serializers.CharField(max_length=200, required=False)
+    info = serializers.CharField(max_length=200, required=False, allow_blank=True)
     # goal_point = serializers.IntegerField(min_value=0, max_value=10,  required=False)
 
     class Meta:
