@@ -1,5 +1,6 @@
 import csv
 import io
+from http import HTTPStatus
 
 from django.db import transaction, IntegrityError
 from django.db.models import Q
@@ -165,13 +166,16 @@ def curriculumStudentBulkAddApi(request):
     #Note : We have to ensure that every row is valid.
 
     data = request.data.dict()
-    print(data)
+    # print(data)
     serializer = CurriculumStudentBulkAddSerializer(data=data, context={'request': request})
 
     if not serializer.is_valid():
         print(serializer.error_messages)
         print(serializer.errors)
-        return JsonResponse("Failed to add.", safe=False)
+        response_dict = {
+            'message': 'The serializer reject the input.',
+        }
+        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     curriculum_id = serializer.validated_data['curriculum_id']
     csv_file = serializer.validated_data['csv_file']
@@ -182,31 +186,46 @@ def curriculumStudentBulkAddApi(request):
 
     header = next(csvreader)
     university_id_index = header.index('university_id')
-    university_ids = []
-    for row in csvreader:
-        university_ids.append(row[university_id_index])
+    # university_ids = []
+    invalid_rows = []
+    valid_rows = []
+    for (index, row) in enumerate(csvreader):
 
-    students = UserProfile.objects.filter(university_id__in=university_ids, faculty_role=2)
+        temp_student = UserProfile.objects.filter(university_id=row[university_id_index], faculty_role=2).first()
 
+        if temp_student is None:
+            invalid_rows.append((index, row, 'university id does not exist.'))
+        else:
+            valid_rows.append(temp_student)
 
-    if (len(university_ids) != len(students)):
-        return JsonResponse("Failed to add.", safe=False)
+    if len(invalid_rows) != 0:
+        response_dict = {
+            'message': 'All rows must be valid but the file contains some invalid rows.',
+            'invalid_rows': invalid_rows,
+        }
+        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     #Save to the database.
     success = True
     curriculum = Curriculum.objects.get(id=curriculum_id)
     try:
         with transaction.atomic():
-            for e in students:
+            for e in valid_rows:
                 e.enroll = curriculum
                 e.save()
     except IntegrityError:
         success = False
 
     if success:
-        return JsonResponse("Added Successfully.", safe=False)
+        response_dict = {
+            'message': 'Added Successfully. All rows are valid.',
+        }
+        return JsonResponse(data=response_dict, safe=False)
     else:
-        return JsonResponse("Failed to add.", safe=False)
+        response_dict = {
+            'message': 'Failed to add.',
+        }
+        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def eventAttendance(request):

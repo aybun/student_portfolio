@@ -74,8 +74,8 @@
                                     <formulate-input ref="skillgroup-formulate-input-name" type="text"
                                         v-model="skillgroup.name" label="Name" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.name"></formulate-input>
-                                    <formulate-input ref="skillgroup-formulate-input-info" label="Info"
-                                        :key="'skillgroup-formulate-input-info-' + formKey" type="textarea"
+                                    <formulate-input ref="skillgroup-formulate-form-1-info" label="Info"
+                                        :key="'skillgroup-formulate-form-1-info' + formKey" type="textarea"
                                         v-model="skillgroup.info" validation="max:200,length"
                                         :readonly="modalReadonly || !formRender.edit.info"
                                         validation-name="info"></formulate-input>
@@ -83,7 +83,7 @@
                                             v-model="skillgroup.skills"
                                             type="group"
                                             name="skills"
-                                            :key="'skillgroup-group-' + formKey"
+                                            :key="'skillgroup-formulate-form-1' + '-group-' + formKey"
                                             :repeatable="!modalReadonly"
                                             label="Skills"
                                             add-label="+ Add Skill"

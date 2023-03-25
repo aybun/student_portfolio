@@ -69,6 +69,7 @@
                     ref="curriculum-student-formulate-form-add-by-file-csvFile"
                     v-model="addByFileForm.csvFile"
                     label="Attachment file"
+                    help="All rows must be valid."
                     :validation-rules="{ 
                         maxFileSize :  (context, ... args) => {
                             if (getFileOrNull(context.value) !== null)
@@ -77,15 +78,15 @@
                         },           
                     }"
                     :validation-messages="{ maxFileSize : (context) => {
-                        return 'The file size must not exceed ' + context.args[0] + ' bytes.';},                                     
+                                                return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';},                                     
                     }"
                     error-behavior="live" 
                     validation-event="input" validation="required|maxFileSize:2000000" upload-behavior="delayed"
                     :disabled="false">
                 </FormulateInput>
-                <FormulateInput ref="event-attendance-formulate-input-all-valid-checkbox" v-model="addByFileForm.checkboxes"
+                <!-- <FormulateInput ref="event-attendance-formulate-input-all-valid-checkbox" v-model="addByFileForm.checkboxes"
                     :options="{ all_must_valid: 'All rows must be valid' }" type="checkbox" :disabled="false">
-                </FormulateInput>
+                </FormulateInput> -->
 
                 <button type="button" @click="bulkAddClick()" class="btn btn-primary">
                     Process
@@ -244,6 +245,8 @@ export default {
                 this.refreshData();
                 alert(response.data);
 
+            }).catch((error)=>{
+                alert(error.response.data.message);
             })
         },
         async validateAddByFileForm() {
@@ -284,6 +287,7 @@ export default {
             if (field instanceof File) return field;
             else if (typeof field === "undefined" || field === null) return null;
             else if (typeof field === "string") return null;
+            else if (typeof field.files === "undefined" || field.files === null) return null;
             else if (field.files.length === 0) return null;
             else return field.files[0].file;
         },

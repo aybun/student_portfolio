@@ -81,61 +81,66 @@
                             <div class="p-1 w-50 bd-highlight">
                                 <FormulateForm name="project-formulate-form-1" ref="project-formulate-form-1"
                                     #default="{ hasErrors }">
-                                    <formulate-input ref="project-formulate-input-title" type="text" v-model="project.title"
+                                    <formulate-input ref="project-formulate-form-1-title" type="text" v-model="project.title"
                                         label="Title" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
-                                    <formulate-input ref="project-formulate-input-start_date" type="date"
+                                    <formulate-input ref="project-formulate-form-1-start_date" type="date"
                                         v-model="project.start_date" label="Start Date" validation="required"
                                         :readonly="modalReadonly || !formRender.edit.start_date"></formulate-input>
-                                    <formulate-input ref="project-formulate-input-end_date" type="date"
+                                    <formulate-input ref="project-formulate-form-1-end_date" type="date"
                                         v-model="project.end_date" label="End Date" validation="required"
                                         :readonly="modalReadonly || !formRender.edit.end_date"></formulate-input>
-                                    <formulate-input ref="project-formulate-input-info" label="Info"
-                                        :key="'project-formulate-input-info-' + formKey" type="textarea"
+                                    <formulate-input ref="project-formulate-form-1-info" label="Info"
+                                        :key="'project-formulate-form-1-input-info-' + formKey" type="textarea"
                                         v-model="project.info" validation="max:200,length"
                                         :readonly="modalReadonly || !formRender.edit.info"
                                         validation-name="info"></formulate-input>
                                     <div class="skill">
                                         <h6>Skills</h6>
-                                        <multiselect v-model="project.skills" :hide-selected="true" :close-on-select="false"
+                                        <multiselect ref="project-formulate-form-1-skills"
+                                            v-model="project.skills" :hide-selected="true" :close-on-select="false"
                                             :multiple="true" :options="skillTable" :custom-label="_skills_custom_label"
                                             track-by="id" placeholder="Select..."
                                             :disabled="modalReadonly || !formRender.edit.skills"></multiselect>
                                     </div>
                                     <div class="staff">
                                         <h6>Staffs</h6>
-                                        <multiselect v-model="project.staffs" :hide-selected="true" :close-on-select="false"
+                                        <multiselect ref="project-formulate-form-1-staffs" v-model="project.staffs" :hide-selected="true" :close-on-select="false"
                                             :multiple="true" :options="staffTable" :custom-label="_staffs_custom_label"
                                             track-by="id" placeholder="Select..."
                                             :disabled="modalReadonly || !formRender.edit.staffs"></multiselect>
                                     </div>
                                     <p></p>
                                     <div class="mb-3">
-                                        <FormulateInput ref="project-formulate-input-approved" v-model="checkboxes"
+                                        <FormulateInput ref="project-formulate-form-1-approved" v-model="checkboxes"
                                             :options="{ approved: 'approved' }" type="checkbox"
                                             :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
-                                        <FormulateInput ref="project-formulate-input-used_for_calculation"
+                                        <FormulateInput ref="project-formulate-form-1-used_for_calculation"
                                             v-model="checkboxes" :options="{ used_for_calculation: 'Use for calculation' }"
                                             type="checkbox" :disabled="
                                                 modalReadonly || !formRender.edit.used_for_calculation
                                             ">
                                         </FormulateInput>
                                     </div>
-                                    <FormulateInput ref="project-formulate-input-attachment_link" type="url"
+                                    <FormulateInput ref="project-formulate-form-1-attachment_link" type="url" validation="url"
                                         v-model="project.attachment_link" label="Attachment link" :disabled="
                                             modalReadonly || !formRender.edit.attachment_link
                                         "></FormulateInput>
-                                    <FormulateInput type="file" :key="'project-formulate-input-attachment_file-' + formKey"
-                                        ref="project-formulate-input-attachment_file"
-                                        name="project-formulate-input-attachment_file" v-model="project.attachment_file"
-                                        label="Attachment file" help="The file size must not exceed 2MB." :validation-rules="{
-                                            maxFileSize: () => {
-                                                return formConstraints.attachment_file.max_file_size.validation_rule();
-                                            },
-                                        }" :validation-messages="{
-    maxFileSize:
-        formConstraints.attachment_file.max_file_size.validation_message(),
-}" error-behavior="live" validation-event="input" validation="maxFileSize" upload-behavior="delayed" :disabled="
+                                    <FormulateInput type="file" :key="'project-formulate-form-1-attachment_file-' + formKey"
+                                        ref="project-formulate-form-1-attachment_file"
+                                        v-model="project.attachment_file"
+                                        label="Attachment file" help="" 
+                                        :validation-rules="{ 
+                                                maxFileSize :  (context, ... args) => {
+                                                    if (getFileOrNull(context.value) !== null)
+                                                        return context.value.files[0].file.size < parseInt(args[0]);
+                                                    return true;
+                                                },           
+                                            }"
+                                                                
+                                            :validation-messages="{ maxFileSize : (context) => {
+                                                return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';},                                     
+                                            }" error-behavior="live" validation-event="input" validation="maxFileSize:2000000" upload-behavior="delayed" :disabled="
     modalReadonly || !formRender.edit.attachment_file
 "></FormulateInput>
                                     <button v-if="(copiedProject.attachment_file !== null)" type="button"
@@ -198,20 +203,9 @@ export default {
             project: {},
             copiedProject: {},
             projects: [],
-
+            
             staffTable: [],
             user: {},
-            formConstraints: {
-                attachment_file: {
-                    max_file_size: {
-                        size: 2000000,
-                        validation_message:
-                            this.attachment_file_max_file_size_validation_message_function,
-                        validation_rule:
-                            this.attachment_file_max_file_size_validation_function,
-                    },
-                },
-            },
 
             checkboxes: [],
             checkboxFields: ["approved", "used_for_calculation"],
@@ -655,26 +649,6 @@ export default {
             }
 
             this.formRender = formRender;
-        },
-        attachment_file_max_file_size_validation_function() {
-            //Idea : If the file exists, the size must be valid.
-
-            const maxFileSize =
-                this.formConstraints.attachment_file.max_file_size.size;
-            const field = this.project.attachment_file;
-            const file = this.getFileOrNull(field);
-
-            if (file instanceof File) {
-                return file.size < maxFileSize;
-            } else return true;
-        },
-
-        attachment_file_max_file_size_validation_message_function() {
-            return (
-                "The file size must not exceed " +
-                this.formConstraints.attachment_file.max_file_size.size +
-                " bytes."
-            );
         },
         _skills_custom_label({ id, title }) {
             if (id === "" || Object.is(id, null)) {

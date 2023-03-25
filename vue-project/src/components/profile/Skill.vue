@@ -71,7 +71,7 @@
                         <div class="d-flex flex-row bd-highlight mb-3">
                             <div class="p-1 w-50 bd-highlight">
                                 <FormulateForm name="skill-formulate-form-1" ref="skill-formulate-form-1">
-                                    <formulate-input ref="formulate-input-title" type="text" v-model="skill.title"
+                                    <formulate-input ref="skill-formulate-form-1-title" type="text" v-model="skill.title"
                                         label="Title" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
                                  <formulate-input ref="skill-formulate-form-1-info" label="Info"
@@ -198,7 +198,7 @@ export default {
         }
 
     },
-
+    
     methods: {
         getEmptySkill() {
             return {
