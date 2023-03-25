@@ -619,8 +619,12 @@ export default {
                     "X-CSRFToken": "csrftoken",
                 },
             }).then((response) => {
-                this.refreshData();
-                
+                // this.refreshData();
+                let bool_val = (this.rowActionChexboxes === 'passed');
+                for (let i = 0; i < selectedRows.length; ++i) {
+                    // selectedRows[i].used_for_calculation
+                    this.$set(selectedRows[i], 'used_for_calculation', bool_val)
+                }
                 alert(response.data.message)
                 this.showRowActionEditUsedForCalculationModal = false;          
             }).catch((error) => {
