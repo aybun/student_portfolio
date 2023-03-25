@@ -166,7 +166,7 @@ def curriculumStudentBulkAddApi(request):
     #Note : We have to ensure that every row is valid.
 
     data = request.data.dict()
-    # print(data)
+    print(data)
     serializer = CurriculumStudentBulkAddSerializer(data=data, context={'request': request})
 
     if not serializer.is_valid():
@@ -189,8 +189,10 @@ def curriculumStudentBulkAddApi(request):
     # university_ids = []
     invalid_rows = []
     valid_rows = []
+    # print("{} {}".format('header', header))
+    # print("{} {}".format('university_id_index', university_id_index))
     for (index, row) in enumerate(csvreader):
-
+        # print("{} {}".format(index, row))
         temp_student = UserProfile.objects.filter(university_id=row[university_id_index], faculty_role=2).first()
 
         if temp_student is None:
@@ -198,6 +200,8 @@ def curriculumStudentBulkAddApi(request):
         else:
             valid_rows.append(temp_student)
 
+    # print(valid_rows)
+    # print(invalid_rows)
     if len(invalid_rows) != 0:
         response_dict = {
             'message': 'All rows must be valid but the file contains some invalid rows.',

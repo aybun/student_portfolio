@@ -183,7 +183,6 @@ export default {
                 return;
             }
                 
-
             if (!formIsValid) return;
 
             this.assignBooleanValueToCheckboxFields(
@@ -847,7 +846,7 @@ export default {
                                     <div class="mb-3">
                                         <FormulateInput ref="award-formulate-form-1-attachment_link" type="url"
                                             v-model="award.attachment_link" label="Attachment link"
-                                            placeholder="Copy and paste url here" help="copy and paste url" validation="url"
+                                            placeholder="URL" help="optional" validation="optional|url"
                                             :disabled="
                                                 modalReadonly || !formRender.edit.attachment_link
                                             "></FormulateInput>
@@ -860,7 +859,7 @@ export default {
                                             :key="'award-formulate-form-1-attachment_file-' + formKey"
                                             ref="award-formulate-form-1-attachment_file"
                                             v-model="award.attachment_file" label="Attachment file"
-                                            help="The file size must not exceed 2MB." 
+                                            help="" 
                                             :validation-rules="{ 
                                                 maxFileSize :  (context, ... args) => {
                                                     if (getFileOrNull(context.value) !== null)

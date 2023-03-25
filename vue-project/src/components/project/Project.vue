@@ -122,8 +122,8 @@
                                             ">
                                         </FormulateInput>
                                     </div>
-                                    <FormulateInput ref="project-formulate-form-1-attachment_link" type="url" validation="url"
-                                        v-model="project.attachment_link" label="Attachment link" :disabled="
+                                    <FormulateInput ref="project-formulate-form-1-attachment_link" type="url" validation="optional|url"
+                                        v-model="project.attachment_link" label="Attachment link" help="optional" :disabled="
                                             modalReadonly || !formRender.edit.attachment_link
                                         "></FormulateInput>
                                     <FormulateInput type="file" :key="'project-formulate-form-1-attachment_file-' + formKey"

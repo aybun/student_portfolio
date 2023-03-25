@@ -19,6 +19,9 @@ Vue.use(VeeValidate, {
 
 Vue.use(VueFormulate, {
   plugins: [FormulateVueDatetimePlugin, FormulateVSelectPlugin ],
+  mimes:{
+    csv: 'text',
+  },
 });
 
 //URLs

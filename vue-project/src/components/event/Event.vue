@@ -792,7 +792,7 @@ export default {
                                         "></FormulateInput>
                                     <FormulateInput ref="event-formulate-form-1-attachment_link" type="url"
                                         v-model="event.attachment_link" label="Attachment link" placeholder="URL"
-                                        validation="url" :disabled="
+                                        validation="optional|url" help="optional" :disabled="
                                             modalReadonly || !formRender.edit.attachment_link
                                         ">
                                     </FormulateInput>

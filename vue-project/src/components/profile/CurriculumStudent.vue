@@ -81,7 +81,7 @@
                                                 return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';},                                     
                     }"
                     error-behavior="live" 
-                    validation-event="input" validation="required|maxFileSize:2000000" upload-behavior="delayed"
+                    validation-event="input" validation="required|maxFileSize:2000000|mime:text/csv" upload-behavior="delayed"
                     :disabled="false">
                 </FormulateInput>
                 <!-- <FormulateInput ref="event-attendance-formulate-input-all-valid-checkbox" v-model="addByFileForm.checkboxes"
@@ -212,15 +212,9 @@ export default {
 
             if (!formIsValid) return;
 
-            const form = this.addByFileForm;
-            for (let i = 0; i < form.checkboxFields.length; ++i) {
-                const fieldName = form.checkboxFields[i];
-                form[fieldName] = form.checkboxes.includes(fieldName);
-            }
-
             const outDict = {
                 'curriculum_id': this.curriculum_id,
-                'csv_file': this.cleanAttachmentFile(form.csvFile),
+                'csv_file': this.cleanAttachmentFile(this.addByFileForm.csvFile),
             }
             
             const outForm = new FormData();
@@ -243,11 +237,14 @@ export default {
                 }
             }).then((response) => {
                 this.refreshData();
-                alert(response.data);
+                alert(response.data.message);
 
-            }).catch((error)=>{
+            }).catch((error) => {
                 alert(error.response.data.message);
-            })
+
+                if (typeof error.response.data.invalid_rows != 'undefined')
+                    alert(error.response.data.invalid_rows);
+            });
         },
         async validateAddByFileForm() {
             await this.$formulate.submit("curriculum-student-formulate-form-add-by-file");

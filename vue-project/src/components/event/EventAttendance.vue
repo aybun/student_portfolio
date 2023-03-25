@@ -762,11 +762,11 @@ export default {
                             return true;
                         },           
                     }"
-                    :validation-messages="{
-                        maxFileSize: (context) => {
-                            return 'The file size must not exceed ' + context.args[0] + ' bytes.';
-                        },
-                    }" error-behavior="live" validation-event="input" validation="required|maxFileSize:2000000" upload-behavior="delayed"
+                                        
+                    :validation-messages="{ maxFileSize : (context) => {
+                        return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';},                                     
+                    }" 
+                    error-behavior="live" validation-event="input" validation="required|maxFileSize:2000000|mime:text/csv" upload-behavior="delayed"
                     :disabled="false">
                 </FormulateInput>
                 <FormulateInput ref="event-attendance-formulate-form-2-all-valid-checkbox"
