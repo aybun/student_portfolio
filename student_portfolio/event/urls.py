@@ -25,6 +25,7 @@ urlpatterns=[
     path('api/event-attendance/<int:event_id>', views.eventAttendanceApi),
     path('api/event-attendance/<int:event_id>/<int:attendance_id>', views.eventAttendanceApi),
     path('api/event-attendance-bulk-add', views.eventAttendanceBulkAddApi),
+    path('api/event-attendance/multi-edit-used_for_calculation', views.eventAttendanceMultiEditUsedForCalculationApi),
 #SYNC
     path('api/sync-attendance-by-university-id/<int:event_id>', views.syncAttendanceByUniversityId),
     path('api/event-attended/list', views.eventAttendedListApi),

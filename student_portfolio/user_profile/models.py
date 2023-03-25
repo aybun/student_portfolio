@@ -22,6 +22,8 @@ class UserProfile(models.Model):
     middlename  = models.CharField(max_length=50, blank=True, default='')
     lastname    = models.CharField(max_length=50, blank=True, default='')
 
+    email = models.EmailField(max_length=254, blank=True, default='')
+
     faculty_role = models.ForeignKey(FacultyRole, null=True, on_delete=models.SET_NULL)
 
     enroll = models.ForeignKey(Curriculum, null=True, on_delete=models.SET_NULL,

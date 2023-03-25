@@ -446,8 +446,8 @@ export default {
         },
 
         rowActionDelete() {
-            const selectedRows = this.$refs["vgt"].selectedRows;
-            console.log(selectedRows);
+            const selectedRows = this.$refs["award-vgt"].selectedRows;
+            // console.log(selectedRows);
 
             const ids = [];
             for (let i = 0; i < selectedRows.length; ++i) {

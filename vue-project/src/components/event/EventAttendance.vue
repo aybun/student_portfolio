@@ -38,7 +38,9 @@ export default {
             // user:{},
             modalTitle: "",
             addingNewAttendance: false,
-            addByFileModalActive: true, //To reset the behavior of the modal.
+            
+            rowActionChexboxes: [],
+            showRowActionEditUsedForCalculationModal:false,
 
             multiselect: {
                 // student : {university_id:''}, //multiselect will treat this as a dict.
@@ -593,6 +595,40 @@ export default {
             
             this.formRender = formRender;
         },
+
+        rowActionEditUsedForCalculation(){
+            const selectedRows = this.$refs['event-attendance-vgt'].selectedRows;
+            
+            const ids = [];
+            for (let i = 0; i < selectedRows.length; ++i) {
+                ids.push(selectedRows[i].id);
+            }
+            const outForm = new FormData();
+            outForm.append("ids", JSON.stringify(ids));
+            outForm.append("used_for_calculation", (this.rowActionChexboxes === 'passed'))
+
+            axios.defaults.xsrfCookieName = "csrftoken";
+            axios.defaults.xsrfHeaderName = "X-CSRFToken";
+            axios({
+                method: "put",
+                url: this.$API_URL + "event-attendance/multi-edit-used_for_calculation",
+                xsrfCookieName: "csrftoken",
+                xsrfHeaderName: "X-CSRFToken",
+                data: outForm,
+                headers: {
+                    "X-CSRFToken": "csrftoken",
+                },
+            }).then((response) => {
+                this.refreshData();
+                
+                alert(response.data.message)
+                this.showRowActionEditUsedForCalculationModal = false;          
+            }).catch((error) => {
+                alert(error.response.data.message);
+                this.showRowActionEditUsedForCalculationModal = false;
+            })
+
+        }
     },
 
     watch: {
@@ -655,6 +691,9 @@ export default {
                 perPage: 20,
                 setCurrentPage: 1,
             }">
+            <div slot="selected-row-actions">
+                <button @click="showRowActionEditUsedForCalculationModal=true; rowActionChexboxes = 'passed';">Set Used for Calculation</button>
+            </div>
             <div slot="table-actions">
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
@@ -776,6 +815,24 @@ export default {
 
                 <button type="button" @click="bulkAddClick()" class="btn btn-primary">
                     Process
+                </button>
+            </FormulateForm>
+        </AddAttendanceModal>
+
+        <AddAttendanceModal v-model="showRowActionEditUsedForCalculationModal" :click-to-close="false" @closed="rowActionChexboxes = '';">
+            <template v-slot:modal-close-text><button type="button" class="btn btn-secondary"
+                    @click="showRowActionEditUsedForCalculationModal = false">
+                    Close
+                </button></template>
+            <FormulateForm>
+                
+                <FormulateInput
+                    v-model="rowActionChexboxes" :options="{ passed : 'Passed', failed : 'Failed' }"
+                    type="radio" :disabled="false">
+                </FormulateInput>
+
+                <button type="button" @click="rowActionEditUsedForCalculation();" class="btn btn-primary">
+                    Update
                 </button>
             </FormulateForm>
         </AddAttendanceModal>

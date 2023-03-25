@@ -427,8 +427,49 @@ def eventAttendanceBulkAddApi(request):
             }
             return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+@parser_classes((JSONParser, MultiPartParser))
+@permission_classes((EventAttendanceApiAccessPolicy,))
+@api_view(['PUT'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def eventAttendanceMultiEditUsedForCalculationApi(request):
+
+    if request.method == 'PUT':
+        data = request.data.dict()
+        # print(data)
+        try:
+            ids = json.loads(data['ids'])
 
 
+            used_for_calculation = data['used_for_calculation']
+            if (used_for_calculation == 'true'):
+                used_for_calculation = True
+            elif (used_for_calculation == 'false'):
+                used_for_calculation = False
+            else:
+                return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+        except IntegrityError:
+            return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+        # print((ids, used_for_calculation))
+        query_object = EventAttendanceApiAccessPolicy.scope_query_object(request=request)
+        objects = EventAttendance.objects.filter(Q(id__in=ids) & query_object)
+        # print(objects)
+        success = True
+        if not objects.exists():
+            success = False
+        try:
+            with transaction.atomic():
+                for e in objects:
+                    e.used_for_calculation = used_for_calculation
+                    e.save()
+        except IntegrityError:
+            success = False
+
+        if success:
+            return JsonResponse(data={"message": "Updated successfully."}, safe=False)
+        else:
+            return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @parser_classes((JSONParser, MultiPartParser))
 @permission_classes((EventAttendanceApiAccessPolicy,))

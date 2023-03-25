@@ -166,7 +166,7 @@ def curriculumStudentBulkAddApi(request):
     #Note : We have to ensure that every row is valid.
 
     data = request.data.dict()
-    print(data)
+    # print(data)
     serializer = CurriculumStudentBulkAddSerializer(data=data, context={'request': request})
 
     if not serializer.is_valid():
