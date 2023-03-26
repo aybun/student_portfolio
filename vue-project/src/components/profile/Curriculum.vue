@@ -91,7 +91,7 @@
                                         label="Thai Name" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.th_name"></formulate-input>
                                 <formulate-input ref="curriculum-formulate-input-en_name" type="text" v-model="curriculum.en_name"
-                                    label="English Name" validation="required|max:100"
+                                    label="English Name" validation="required|max:100|alpha:latin"
                                     :readonly="modalReadonly || !formRender.edit.en_name"></formulate-input>
                                 <FormulateInput
                                     ref="curriculum-formulate-input-start_date"

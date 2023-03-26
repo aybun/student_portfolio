@@ -240,9 +240,9 @@ export default {
         },
         assignDataToEventAttendanceForm(attendance) {
 
-            this.multiselect.student = { university_id: attendance.university_id };
             const stringified = JSON.stringify(attendance);
             this.eventAttendance = JSON.parse(stringified);
+            this.eventAttendance.university_id = { university_id: attendance.university_id };
 
             this.checkboxes = this.getListOfTrueCheckboxFields(this.eventAttendance, this.checkboxFields);
         },
@@ -266,20 +266,23 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
+            if (typeof this.testMode !== "undefined"){
                 this.eventAttendanceFormHasbeenSubmitted = formIsValid;
-
+                return;
+            }
+                
             if (!formIsValid) return;
             
             this.assignBooleanValueToCheckboxFields(this.eventAttendance, this.checkboxes, this.checkboxFields)
 
-            this.eventAttendance.university_id = this.multiselect.student.university_id;
+            // this.eventAttendance.university_id = this.multiselect.student.university_id;
                 
             const outDict = new FormData();
             for (const [key, value] of Object.entries(this.eventAttendance)) {
                 outDict.append(key.toString(), value);
             }
             outDict.set("event_id_fk", this.event_id);
+            outDict.set('university_id', this.eventAttendance.university_id.university_id)
 
             axios.defaults.xsrfCookieName = "csrftoken";
             axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -310,21 +313,24 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
+            if (typeof this.testMode !== "undefined"){
                 this.eventAttendanceFormHasbeenSubmitted = formIsValid;
-
+                return ;
+            }
+                
             if (!formIsValid) return;
 
             this.assignBooleanValueToCheckboxFields(this.eventAttendance, this.checkboxes, this.checkboxFields)
 
-            this.eventAttendance.university_id = this.multiselect.student.university_id;
+            // this.eventAttendance.university_id = this.multiselect.student.university_id;
                 
             // console.log(this.eventAttendance);
             const outDict = new FormData();
             for (const [key, value] of Object.entries(this.eventAttendance)) {
                 outDict.append(key.toString(), value);
             }
-
+            outDict.set('university_id', this.eventAttendance.university_id.university_id)
+            
             axios.defaults.xsrfCookieName = "csrftoken";
             axios.defaults.xsrfHeaderName = "X-CSRFToken";
             axios({
@@ -568,6 +574,8 @@ export default {
         },
         _generate_formRender() {
             //Generate edit
+            // console.log('In generate form render')
+            // console.log(this.user)
             const user = this.user;
             let getEmptyObjectFunction = this.getEmptyEventAttendance
 
@@ -652,10 +660,13 @@ export default {
 
     created: function () {
         
-        if (typeof testMode !== 'undefined'){
-            this._generate_formRender();
+        if (typeof this.testMode !== 'undefined'){
+            if (this.user !== null){
+                this._generate_formRender();
+            }
             return;
         }
+
         axios.get(this.$API_URL + "student").then((response) => {
             this.studentTable = response.data;
         });
@@ -760,7 +771,7 @@ export default {
                 <div class="multiselect-university_id">
                     <!-- v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="receivers" -->
                     <multiselect ref="event-attendance-formulate-form-1-university_id"
-                        name="university_id" v-model="multiselect.student"
+                        name="university_id" v-model="eventAttendance.university_id"
                         v-validate="'required|min:1'" data-vv-validate-on="input" data-vv-as="university id" data-vv-scope="event-attendance-formulate-form-1"
                         :hide-selected="true" :close-on-select="false" :multiple="false" :options="studentTable"
                         :custom-label="_university_id_custome_label" track-by="university_id" placeholder="Select..."
@@ -771,13 +782,13 @@ export default {
                             veeErrors.first("event-attendance-formulate-form-1.university_id")
                         }}</span>
                 </div>
-
+                
                 <formulate-input label="Firstname" ref="event-attendance-formulate-form-1-firstname" type="text"
-                    v-model="eventAttendance.firstname" validation="max:40" :readonly="modalReadonly || !formRender.edit.firstname"></formulate-input>
+                    v-model="eventAttendance.firstname" validation="max:50" :readonly="modalReadonly || !formRender.edit.firstname"></formulate-input>
                 <formulate-input label="Middlename" ref="event-attendance-formulate-form-1-middlename" type="text"
-                    v-model="eventAttendance.middlename" validation="max:40" :readonly="modalReadonly || !formRender.edit.middlename"></formulate-input>
+                    v-model="eventAttendance.middlename" validation="max:50" :readonly="modalReadonly || !formRender.edit.middlename"></formulate-input>
                 <formulate-input label="Lastname" ref="event-attendance-formulate-form-1-lastname" type="text"
-                    v-model="eventAttendance.lastname" validation="max:40" :readonly="modalReadonly || !formRender.edit.lastname"></formulate-input>
+                    v-model="eventAttendance.lastname" validation="max:50" :readonly="modalReadonly || !formRender.edit.lastname"></formulate-input>
                 <formulate-input ref="event-attendance-formulate-form-1-used_for_calculation" type="checkbox"
                     v-model="checkboxes" :options="{ used_for_calculation: 'Use for calculation' }" validation=""
                     :disabled="modalReadonly || !formRender.edit.used_for_calculation"></formulate-input>

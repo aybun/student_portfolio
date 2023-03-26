@@ -38,7 +38,7 @@ export default {
     data() {
         return {
             events: [],
-            user: {},
+            user: null,
 
             modalTitle: "",
             addingNewEvent: false,
