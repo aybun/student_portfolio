@@ -88,7 +88,17 @@
                                         v-model="project.start_date" label="Start Date" validation="required"
                                         :readonly="modalReadonly || !formRender.edit.start_date"></formulate-input>
                                     <formulate-input ref="project-formulate-form-1-end_date" type="date"
-                                        v-model="project.end_date" label="End Date" validation="required"
+                                        v-model="project.end_date" label="End Date" 
+                                        validation="required|later" :validation-rules="{
+                                            later: () => {
+                                                return (
+                                                    Date.parse(project.start_date) <
+                                                    Date.parse(project.end_date)
+                                                );
+                                            },
+                                        }" 
+                                        :validation-messages="{
+                                            later: 'End date must be later than start date.'}"
                                         :readonly="modalReadonly || !formRender.edit.end_date"></formulate-input>
                                     <formulate-input ref="project-formulate-form-1-info" label="Info"
                                         :key="'project-formulate-form-1-input-info-' + formKey" type="textarea"

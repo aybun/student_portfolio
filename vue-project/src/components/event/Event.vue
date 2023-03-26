@@ -756,8 +756,9 @@ export default {
                                                 );
                                             },
                                         }" :validation-messages="{
-    later: 'End datetime must be later than start datetime.',
-}" error-behavior="live" :disabled="modalReadonly || !formRender.edit.end_datetime">
+                                        later: 'End datetime must be later than start datetime.',
+                                        }" 
+                                        error-behavior="live" :disabled="modalReadonly || !formRender.edit.end_datetime">
                                     </FormulateInput>
                                     <formulate-input ref="event-formulate-form-1-info" label="Info"
                                         :key="'event-formulate-form-1-info-' + formKey" type="textarea" v-model="event.info"
