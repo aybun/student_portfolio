@@ -132,7 +132,7 @@
                                             ">
                                         </FormulateInput>
                                     </div>
-                                    <FormulateInput ref="project-formulate-form-1-attachment_link" type="url" validation="optional|url"
+                                    <FormulateInput ref="project-formulate-form-1-attachment_link" type="url" validation="optional|url|max:200,length"
                                         v-model="project.attachment_link" label="Attachment link" help="optional" :disabled="
                                             modalReadonly || !formRender.edit.attachment_link
                                         "></FormulateInput>

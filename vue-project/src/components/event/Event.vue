@@ -279,9 +279,11 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
+            if (typeof testMode !== "undefined"){
                 this.eventFormHasbeenSubmitted = formIsValid;
-
+                return;
+            }
+                
             if (!formIsValid) return;
             //Packing values.
             this.assignBooleanValueToCheckboxFields(
@@ -793,7 +795,7 @@ export default {
                                         "></FormulateInput>
                                     <FormulateInput ref="event-formulate-form-1-attachment_link" type="url"
                                         v-model="event.attachment_link" label="Attachment link" placeholder="URL"
-                                        validation="optional|url" help="optional" :disabled="
+                                        validation="optional|url|max:200,length" help="optional" :disabled="
                                             modalReadonly || !formRender.edit.attachment_link
                                         ">
                                     </FormulateInput>

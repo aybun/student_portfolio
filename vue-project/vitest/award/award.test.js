@@ -265,6 +265,14 @@ describe("Test award.", () => {
         await flushPromises();
         // console.log(attachment_link.validationErrors.length)
         expect(attachment_link.validationErrors.length).toBe(0);
+        
+        attachment_link = wrapper.vm.$refs[ref_attachment_link];
+        await wrapper.setData({ award: { attachment_link: '#'.repeat(201) } });
+        attachment_link.performValidation();
+        await flushPromises();
+        expect(attachment_link.validationErrors).toContain('Attachment link must be less than or equal to 200 characters long.');
+        // End  attachment_link
+
 
         //Test : attachment_file
         const attachment_file = wrapper.vm.$refs[ref_attachment_file];

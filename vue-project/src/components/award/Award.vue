@@ -846,7 +846,7 @@ export default {
                                     <div class="mb-3">
                                         <FormulateInput ref="award-formulate-form-1-attachment_link" type="url"
                                             v-model="award.attachment_link" label="Attachment link"
-                                            placeholder="URL" help="optional" validation="optional|url"
+                                            placeholder="URL" help="optional" validation="optional|url|max:200,length"
                                             :disabled="
                                                 modalReadonly || !formRender.edit.attachment_link
                                             "></FormulateInput>

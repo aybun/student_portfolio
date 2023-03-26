@@ -659,6 +659,10 @@ export default {
         axios.get(this.$API_URL + "student").then((response) => {
             this.studentTable = response.data;
         });
+
+        if (this.user !== null){
+            this._generate_formRender();
+        }
         // console.log(this.user) user is passed via props.
         
     },
