@@ -268,7 +268,7 @@ export default {
 
             if (typeof this.testMode !== "undefined"){
                 this.eventAttendanceFormHasbeenSubmitted = formIsValid;
-                return;
+                return ;
             }
                 
             if (!formIsValid) return;

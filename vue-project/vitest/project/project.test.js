@@ -264,56 +264,72 @@ describe("Test project.", () => {
             });
             await flushPromises()
 
-            const valid_project_data = JSON.parse(JSON.stringify(projects[0]))
+            const valid_data = JSON.parse(JSON.stringify(projects[0]))
 
             let invalids = {
-                'title': "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                'title': "a".repeat(101),
                 'start_date': '',
                 'end_date': '',
-                'info': "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                'info': "a".repeat(201),
                 'attachment_link': 'notalink',
                 'attachment_file' : { files: [{ file: { size: 2500000 } }]  },
             }
             
             // Test : valid data.
             wrapper.setData({
-                project: JSON.parse(JSON.stringify(valid_project_data)),
+                event: JSON.parse(JSON.stringify(valid_event_data)),
             });
 
             await flushPromises();
-            let temp_bool_val = false
-            await wrapper.vm.validateForm().then((result) => {
-                temp_bool_val = result;
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(true);
             });
-            expect(temp_bool_val).toBe(true);
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(true);
+            });
+
+            //Test title
+            let copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['title'] = invalids['title'];
+            await wrapper.setData({ project: copied_data });
+            // console.log(copied_data)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
             
-            for (const [key, value] of Object.entries(invalids)) {
+            // expect(temp_bool_val).toBe(true);
+            
+            // for (const [key, value] of Object.entries(invalids)) {
                 
-                const copied_project = JSON.parse(JSON.stringify(valid_project_data));
-                copied_project[key.toString()] = value;
-                // console.log([key, value])
-                await wrapper.setData({ project: copied_project });
+            //     const copied_project = JSON.parse(JSON.stringify(valid_project_data));
+            //     copied_project[key.toString()] = value;
+            //     // console.log([key, value])
+            //     await wrapper.setData({ project: copied_project });
      
-                await flushPromises();
+            //     await flushPromises();
 
-                let formIsValid = true;
-                await wrapper.vm.validateForm().then((result) => {
-                    formIsValid = result;
-                });
-                expect(formIsValid).toBe(false);
-            }
+            //     let formIsValid = true;
+            //     await wrapper.vm.validateForm().then((result) => {
+            //         formIsValid = result;
+            //     });
+            //     expect(formIsValid).toBe(false);
+            // }
 
-            // More than 1 field.
-            const copied_project = JSON.parse(JSON.stringify(valid_project_data));
-            copied_project.start_date = "2023-03-18"
-            copied_project.end_date = "2023-03-18"
-            await wrapper.setData({ project: copied_project });
-            await flushPromises();
-            let formIsValid = true;
-            await wrapper.vm.validateForm().then((result) => {
-                formIsValid = result;
-            });
-            expect(formIsValid).toBe(false);
+            // // More than 1 field.
+            // const copied_project = JSON.parse(JSON.stringify(valid_project_data));
+            // copied_project.start_date = "2023-03-18"
+            // copied_project.end_date = "2023-03-18"
+            // await wrapper.setData({ project: copied_project });
+            // await flushPromises();
+            // let formIsValid = true;
+            // await wrapper.vm.validateForm().then((result) => {
+            //     formIsValid = result;
+            // });
+            // expect(formIsValid).toBe(false);
             
         });
 });

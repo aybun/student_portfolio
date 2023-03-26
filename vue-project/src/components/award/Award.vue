@@ -31,16 +31,7 @@ export default {
 
             checkboxes: [],
             checkboxFields: ["approved", "used_for_calculation"],
-            formulateInputFieldRefs: [
-                "formulate-input-title",
-                "formulate-input-rank",
-                "formulate-input-received_date",
-                "formulate-input-info",
-                "formulate-input-approved",
-                "formulate-input-used_for_calculation",
-                "formulate-input-attachment_link",
-                "formulate-input-attachment_file",
-            ],
+            // awardFormHasBeenSubmitted : false,
 
             modalReadonly: false,
 
@@ -178,9 +169,8 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined"){
-                this.awardFormHasbeenSubmitted = formIsValid;
-                return;
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid;
             }
                 
             if (!formIsValid) return;
@@ -276,12 +266,12 @@ export default {
         async updateClick() {
             let formIsValid = false;
             await this.validateForm().then((result) => {
+
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined"){
-                this.awardFormHasbeenSubmitted = formIsValid;
-                return;
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid;
             }
                 
 
@@ -532,13 +522,13 @@ export default {
             await this.$formulate.submit("award-formulate-form-1");
 
             const vue_formulate_valid = this.$refs["award-formulate-form-1"].isValid;
-
+            console.log('vue_formulate_valid', vue_formulate_valid)
             //vee-validate scope : award
             let vee_validate_valid = false;
             await this.$validator.validateAll('award-formulate-form-1').then((result) => {
                 vee_validate_valid = result;
             });
-
+            console.log('vee_validate_valid', vee_validate_valid)
             //We could take the result. But we want to be explicit here.
             // const vee_validate_valid = !this.veeErrors.has("multiselect-receivers");
 

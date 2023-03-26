@@ -279,11 +279,10 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined"){
-                this.eventFormHasbeenSubmitted = formIsValid;
-                return;
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid;
             }
-                
+            
             if (!formIsValid) return;
             //Packing values.
             this.assignBooleanValueToCheckboxFields(
@@ -339,6 +338,11 @@ export default {
             await this.validateForm().then((result) => {
                 formIsValid = result;
             });
+
+            if (typeof this.testMode !== "undefined"){
+
+                return formIsValid;
+            }
 
             if (!formIsValid) return;
 
@@ -561,7 +565,7 @@ export default {
             await this.$formulate.submit("event-formulate-form-1");
 
             const vue_formulate_valid = this.$refs["event-formulate-form-1"].isValid;
-
+            console.log('vue_formulate_valid', vue_formulate_valid)
             //vee-validate
             // await this.$validator.validate().then((result) => {
             //     return result
@@ -583,8 +587,9 @@ export default {
         },
         _data_processing_for_test() {
             //Assume that the fields related to api calls are ready to be processed.
+            this.event = this.getEmptyEvent();
             this._generate_formRender();
-            this.prepareData();
+            // this.prepareData();
             // Rename for view multiselect. And backend receive list of dict of the field name id.
             // this.studentTable = this.assignFieldAsIdField(this.studentTable, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk
             this.staffTable = this.assignFieldAsIdField(this.staffTable, 'user_id_fk', 'id') // Now, row.id === row.user_id_fk

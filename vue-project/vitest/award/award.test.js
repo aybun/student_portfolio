@@ -144,9 +144,9 @@ describe("Test award.", () => {
     it("award-input-field-validation", async () => {
         const localVue = createLocalVue();
         localVue.use(VueFormulate, {
-            plugins: [FormulateVueDatetimePlugin, FormulateVSelectPlugin ],
-            mimes:{
-              csv: 'text',
+            plugins: [FormulateVueDatetimePlugin, FormulateVSelectPlugin],
+            mimes: {
+                csv: 'text',
             },
         });
         localVue.use(VeeValidate, { errorBagName: "veeErrors" });
@@ -265,7 +265,7 @@ describe("Test award.", () => {
         await flushPromises();
         // console.log(attachment_link.validationErrors.length)
         expect(attachment_link.validationErrors.length).toBe(0);
-        
+
         attachment_link = wrapper.vm.$refs[ref_attachment_link];
         await wrapper.setData({ award: { attachment_link: '#'.repeat(201) } });
         attachment_link.performValidation();
@@ -296,9 +296,9 @@ describe("Test award.", () => {
 
             const localVue = createLocalVue();
             localVue.use(VueFormulate, {
-                plugins: [FormulateVueDatetimePlugin, FormulateVSelectPlugin ],
-                mimes:{
-                  csv: 'text',
+                plugins: [FormulateVueDatetimePlugin, FormulateVSelectPlugin],
+                mimes: {
+                    csv: 'text',
                 },
             });
             localVue.use(VeeValidate, { errorBagName: "veeErrors" });
@@ -308,7 +308,7 @@ describe("Test award.", () => {
                     return {
                         award: {}, // This is the input
                         testMode: true, //Skill api calls in the award component.
-                        // awardFormHasBeenSubmitted: true,
+                        // awardFormHasBeenSubmitted: false,
 
                         user: JSON.parse(JSON.stringify(user_staff)),
                         awards: JSON.parse(JSON.stringify(awards)),
@@ -321,50 +321,161 @@ describe("Test award.", () => {
             });
             await flushPromises()
 
-            const valid_award_data = { "id": 14, "title": "test", "rank": 0, "received_date": "2023-03-19", "info": "", "created_by": 4, "approved": true, "approved_by": 1, "used_for_calculation": true, "attachment_link": "https://www.google.com/", "attachment_file": null, "skills": [{ "id": 2 }, { "id": 1 }], "receivers": [{ "id": 2 }], "supervisors": [{ "id": 3 }, { "id": 1 }] }
+            const valid_award_data = { "id": 14, "title": "test", "rank": 0, "received_date": "2023-03-19", "info": "", "created_by": 4, "approved": true, "approved_by": 1, "used_for_calculation": true, "attachment_link": "", "attachment_file": "http://localhost/private-media/C%3A/Users/Tuta/Documents/GitHub/year-4/student_portfolio/student_portfolio/private-media/award_14_Fq5EVrNaMAAFkYE.jfif", "skills": [{ "id": 2 }, { "id": 1 }], "receivers": [{ "id": 2 }], "supervisors": [{ "id": 1 }, { "id": 3 }] };
 
             let invalids = {
-                'title': "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                'title': "a".repeat(101),
                 'rank': 'a',
                 'received_date': '',
-                'info': "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                'info': "a".repeat(201),
                 'receivers': [],
                 'attachment_link': 'notalink',
-                'attachment_file' : { files: [{ file: { size: 2500000 } }]  },
+                'attachment_file': { files: [{ file: { size: 2500000 } }] },
             }
-            
+
             // Test : valid data.
             wrapper.setData({
                 award: JSON.parse(JSON.stringify(valid_award_data)),
             });
 
-            // await flushPromises()
-            // wrapper.vm.testLog()
-            // console.log(wrapper.vm.testLog())
-            // wrapper.vm.updateClick();
-            await flushPromises();
-            let temp_bool_val = false
-            await wrapper.vm.validateForm().then((result) => {
-                temp_bool_val = result;
+            await flushPromises()
+
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(true);
+            })
+
+            await flushPromises()
+
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(true);
+            })
+
+            await flushPromises()
+
+            //Test title
+            let copied_data = JSON.parse(JSON.stringify(valid_award_data))
+            copied_data['title'] = invalids['title']
+            wrapper.setData({
+                award: copied_data,
             });
-            expect(temp_bool_val).toBe(true);
-            
-            for (const [key, value] of Object.entries(invalids)) {
-                
-                const copied_award = JSON.parse(JSON.stringify(valid_award_data));
-                copied_award[key.toString()] = value;
-                // console.log([key, value])
-                await wrapper.setData({ award: copied_award });
-     
-                await flushPromises();
+            await flushPromises()
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            //End title
 
-                let formIsValid = true;
-                await wrapper.vm.validateForm().then((result) => {
-                    formIsValid = result;
-                });
-                expect(formIsValid).toBe(false);
-            }
+            //Test rank
+            copied_data = JSON.parse(JSON.stringify(valid_award_data))
+            copied_data['rank'] = invalids['rank']
+            wrapper.setData({
+                award: copied_data,
+            });
+            await flushPromises()
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            })
 
+            //Test rank
+            copied_data = JSON.parse(JSON.stringify(valid_award_data))
+            copied_data['rank'] = invalids['rank']
+            wrapper.setData({
+                award: copied_data,
+            });
+            await flushPromises()
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            })
+
+            //Test received_date
+            copied_data = JSON.parse(JSON.stringify(valid_award_data))
+            copied_data['received_date'] = invalids['received_date']
+            wrapper.setData({
+                award: copied_data,
+            });
+            await flushPromises()
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            })
+
+            //Test info
+            copied_data = JSON.parse(JSON.stringify(valid_award_data))
+            copied_data['info'] = invalids['info']
+            wrapper.setData({
+                award: copied_data,
+            });
+            await flushPromises()
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            })
+
+            //Test info
+            copied_data = JSON.parse(JSON.stringify(valid_award_data))
+            copied_data['receivers'] = invalids['receivers']
+            wrapper.setData({
+                award: copied_data,
+            });
+            await flushPromises()
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            })
+
+            // Test attachment_link
+            copied_data = JSON.parse(JSON.stringify(valid_award_data))
+            copied_data['attachment_link'] = invalids['attachment_link']
+            console.log(copied_data['attachment_link'])
+            wrapper.setData({
+                award: copied_data,
+            });
+            await flushPromises()
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            })  
+            await flushPromises()
+
+
+            //Test attachment_file
+            copied_data = JSON.parse(JSON.stringify(valid_award_data))
+            copied_data['attachment_file'] = invalids['attachment_file']
+            wrapper.setData({
+                award: copied_data,
+            });
+            await flushPromises()
+            wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            })
+            await flushPromises()
+            wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            })
         });
 
 

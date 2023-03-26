@@ -222,6 +222,7 @@ describe("Test event.", () => {
                 },
             });
             localVue.use(VeeValidate, { errorBagName: "veeErrors" });
+
             const wrapper = mount(Event, {
                 localVue,
                 data() {
@@ -257,40 +258,136 @@ describe("Test event.", () => {
             });
 
             await flushPromises();
-            let temp_bool_val = false
-            await wrapper.vm.validateForm().then((result) => {
-                temp_bool_val = result;
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(true);
             });
-            expect(temp_bool_val).toBe(true);
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(true);
+            });
             
-            //Test : invalid data
-            for (const [key, value] of Object.entries(invalids)) {
-                
-                const copied_event = JSON.parse(JSON.stringify(valid_event_data));
-                copied_event[key.toString()] = value;
-                // console.log([key, value])
-                await wrapper.setData({ event: copied_event });
-     
-                await flushPromises();
-
-                let formIsValid = true;
-                await wrapper.vm.validateForm().then((result) => {
-                    formIsValid = result;
-                });
-                expect(formIsValid).toBe(false);
-            }
-
-            // More than 1 field.
-            const copied_event = JSON.parse(JSON.stringify(valid_event_data));
-            copied_event.start_datetime = "2023-03-21T18:57"
-            copied_event.end_datetime = "2022-03-21T18:57"
+            //Test title
+            let copied_event = JSON.parse(JSON.stringify(valid_event_data));
+            copied_event['title'] = invalids['title'];
             await wrapper.setData({ event: copied_event });
+            console.log(copied_event)
             await flushPromises();
-            let formIsValid = true;
-                await wrapper.vm.validateForm().then((result) => {
-                    formIsValid = result;
-                });
-            expect(formIsValid).toBe(false);
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            
+            //Test start_datetime
+            copied_event = JSON.parse(JSON.stringify(valid_event_data));
+            copied_event['start_datetime'] = invalids['start_datetime'];
+            await wrapper.setData({ event: copied_event });
+            // console.log(copied_event)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            
+            //Test start_datetime
+            copied_event = JSON.parse(JSON.stringify(valid_event_data));
+            copied_event['end_datetime'] = invalids['end_datetime'];
+            await wrapper.setData({ event: copied_event });
+            // console.log(copied_event)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test info
+            copied_event = JSON.parse(JSON.stringify(valid_event_data));
+            copied_event['info'] = invalids['info'];
+            await wrapper.setData({ event: copied_event });
+            // console.log(copied_event)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test attachment_link
+            copied_event = JSON.parse(JSON.stringify(valid_event_data));
+            copied_event['attachment_link'] = invalids['attachment_link'];
+            await wrapper.setData({ event: copied_event });
+            // console.log(copied_event)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test attachment_link
+            copied_event = JSON.parse(JSON.stringify(valid_event_data));
+            copied_event['attachment_file'] = invalids['attachment_file'];
+            await wrapper.setData({ event: copied_event });
+            // console.log(copied_event)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test : Start and End
+            //     copied_event.start_datetime = "2023-03-21T18:57"
+        //     copied_event.end_datetime = "2022-03-21T18:57"
+            copied_event = JSON.parse(JSON.stringify(valid_event_data));
+            copied_event['start_datetime'] = "2023-03-21T18:57"
+            copied_event['end_datetime'] = "2022-03-21T18:57"
+            await wrapper.setData({ event: copied_event });
+            // console.log(copied_event)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            
+
+
+            // for (const [key, value] of Object.entries(invalids)) {
+                
+            //     const copied_event = JSON.parse(JSON.stringify(valid_event_data));
+            //     copied_event[key.toString()] = value;
+            //     // console.log([key, value])
+            //     await wrapper.setData({ event: copied_event });
+     
+            //     await flushPromises();
+
+            //     let formIsValid = true;
+            //     await wrapper.vm.validateForm().then((result) => {
+            //         formIsValid = result;
+            //     });
+            //     expect(formIsValid).toBe(false);
+            // }
+
+        //     // More than 1 field.
+        //     const copied_event = JSON.parse(JSON.stringify(valid_event_data));
+        //     copied_event.start_datetime = "2023-03-21T18:57"
+        //     copied_event.end_datetime = "2022-03-21T18:57"
+        //     await wrapper.setData({ event: copied_event });
+        //     await flushPromises();
+        //     let formIsValid = true;
+        //         await wrapper.vm.validateForm().then((result) => {
+        //             formIsValid = result;
+        //         });
+        //     expect(formIsValid).toBe(false);
 
         });
 });

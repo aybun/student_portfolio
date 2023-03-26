@@ -406,8 +406,9 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
-                this.projectFormHasbeenSubmitted = formIsValid;
+            if (typeof testMode !== "undefined"){
+                return formIsValid;
+            }
 
             if (!formIsValid) return;
 
@@ -463,9 +464,10 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
-                this.projectFormHasbeenSubmitted = formIsValid;
-
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid;
+            }
+                
             if (!formIsValid) return;
 
             this.assignBooleanValueToCheckboxFields(
