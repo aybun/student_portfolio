@@ -278,7 +278,7 @@ export default {
             await this.validateForm().then((result) => {
                 formIsValid = result;
             });
-            
+
             if (typeof this.testMode !== "undefined"){
                 return formIsValid;
             }
@@ -319,7 +319,7 @@ export default {
             await this.$formulate.submit("skill-formulate-form-1");
 
             const vue_formulate_valid = this.$refs["skill-formulate-form-1"].isValid;
-
+            console.log('vue_formulate_valid', vue_formulate_valid)
             return vue_formulate_valid;
         },
         reassignUpdatedElementIntoList(list, element) {

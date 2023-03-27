@@ -107,6 +107,68 @@ describe("Test Skill", () => {
     });
     
 
+    it("skill-form-submission", async () => {
+
+        const wrapper = mount(Skill, {
+            localVue,
+            data() {
+                return {
+                    skill: {}, 
+                    testMode: true, //Block api calls,
+    
+                    user: JSON.parse(JSON.stringify(user_staff)),
+    
+                    skills: JSON.parse(JSON.stringify(skillTable)),
+                };
+            },
+            // created : function(){}
+        });
+
+        await flushPromises()
+
+        let valid_data = JSON.parse(JSON.stringify(skillTable[0]))
+        
+        let invalids = {
+            'title': "a".repeat(101),
+            'info': "a".repeat(201),
+        }
+        
+        // Test : valid data.
+        wrapper.setData({ skill : JSON.parse(JSON.stringify(valid_data)) });
+        // console.log(wrapper.vm.skill)
+        await flushPromises()
+        await wrapper.vm.updateClick().then((result) => {
+            expect(result).toBe(true);
+        })
+        await wrapper.vm.createClick().then((result) => {
+            expect(result).toBe(true);
+        })
+
+        // Test : title
+        let copied_data = JSON.parse(JSON.stringify(valid_data));
+        copied_data['title'] = invalids['title'];
+        wrapper.setData({ skill : copied_data });
+        await flushPromises()
+        await wrapper.vm.updateClick().then((result) => {
+            expect(result).toBe(false);
+        })
+        await wrapper.vm.createClick().then((result) => {
+            expect(result).toBe(false);
+        })
+
+        // Test : info
+        copied_data = JSON.parse(JSON.stringify(valid_data));
+        copied_data['info'] = invalids['info'];
+        wrapper.setData({ skill : copied_data });
+        await flushPromises()
+        await wrapper.vm.updateClick().then((result) => {
+            expect(result).toBe(false);
+        })
+        await wrapper.vm.createClick().then((result) => {
+            expect(result).toBe(false);
+        })
+        
+    });
 
 
 
