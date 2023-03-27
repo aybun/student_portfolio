@@ -271,8 +271,9 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
-                this.skillgroupFormHasbeenSubmitted = formIsValid;
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid
+            }
 
             if (!formIsValid) return;
 
@@ -315,9 +316,10 @@ export default {
                 formIsValid = result;
             });
             
-            if (typeof testMode !== "undefined")
-                this.skillgroupFormHasbeenSubmitted = formIsValid;
-
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid
+            }
+            
             if (!formIsValid) return;
 
             const outForm = new FormData();
