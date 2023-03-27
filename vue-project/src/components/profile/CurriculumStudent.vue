@@ -305,7 +305,7 @@ export default {
         },
     },
     created: function () {
-
+        
         this.variables.API_URL = this.$API_URL
 
         axios.get(this.variables.API_URL + "student", { params: { curriculum_id: this.curriculum_id } })

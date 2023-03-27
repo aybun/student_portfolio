@@ -87,14 +87,14 @@
                             </button>
                             
                             <FormulateForm name="curriculum-formulate-form-1" ref="curriculum-formulate-form-1">
-                                <formulate-input ref="curriculum-formulate-input-th_name" type="text" v-model="curriculum.th_name"
+                                <formulate-input ref="curriculum-formulate-form-1-th_name" type="text" v-model="curriculum.th_name"
                                         label="Thai Name" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.th_name"></formulate-input>
-                                <formulate-input ref="curriculum-formulate-input-en_name" type="text" v-model="curriculum.en_name"
-                                    label="English Name" validation="required|max:100|alpha:latin"
+                                <formulate-input ref="curriculum-formulate-form-1-en_name" type="text" v-model="curriculum.en_name"
+                                    label="English Name" validation="required|max:100"
                                     :readonly="modalReadonly || !formRender.edit.en_name"></formulate-input>
                                 <FormulateInput
-                                    ref="curriculum-formulate-input-start_date"
+                                    ref="curriculum-formulate-form-1-start_date"
                                     type="date"
                                     v-model="curriculum.start_date"
                                     label="Start Date"
@@ -103,7 +103,7 @@
                                     :disabled="modalReadonly || !formRender.edit.start_date"
                                     ></FormulateInput>
                                 <FormulateInput
-                                    ref="curriculum-formulate-input-end_date"
+                                    ref="curriculum-formulate-form-1-end_date"
                                     type="date"
                                     v-model="curriculum.end_date"
                                     label="End Date"
@@ -118,13 +118,13 @@
                                         },
                                     }"
                                     :validation-messages="{
-                                        later: 'End datetime must be later than start date.',
+                                        later: 'End date must be later than start date.',
                                     }"
                                     error-behavior="live"
                                     :disabled="modalReadonly || !formRender.edit.end_date"
                                     ></FormulateInput>
-                                <formulate-input ref="curriculum-formulate-input-info" label="Info"
-                                        :key="'curriculum-formulate-input-info-' + formKey" type="textarea"
+                                <formulate-input ref="curriculum-formulate-form-1-info" label="Info"
+                                        :key="'curriculum-formulate-form-1-info-' + formKey" type="textarea"
                                         v-model="curriculum.info" validation="max:200,length"
                                         :readonly="modalReadonly || !formRender.edit.info"
                                         validation-name="info"></formulate-input>
@@ -141,9 +141,9 @@
                                     <span v-show="veeErrors.has('curriculum-formulate-form-1.skillgroups')" style="color: red">{{  veeErrors.first('curriculum-formulate-form-1.skillgroups') }}</span>
                                 </div>
                                 <p></p>
-                                <FormulateInput type="file"
-                                    :key="'curriculum-formulate-input-attachment_file-' + formKey" ref="curriculum-formulate-input-attachment_file"
-                                    name="formulate-input-attachment_file" v-model="curriculum.attachment_file" label="Attachment file"
+                                <FormulateInput type="file" ref="curriculum-formulate-form-1-attachment_file"
+                                    :key="'curriculum-formulate-form-1-attachment_file-' + formKey"
+                                    v-model="curriculum.attachment_file" label="Attachment file"
                                     help="" 
                                     :validation-rules="{ 
                                         maxFileSize :  (context, ... args) => {
@@ -204,7 +204,7 @@
           @click="showCurriculumStudentModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
           Close
         </button></template>
-        <CurriculumStudent :curriculum_id="curriculum.id" :user="user"></CurriculumStudent>
+        <CurriculumStudent v-if="typeof this.testMode === 'undefined'" :curriculum_id="curriculum.id" :user="user"></CurriculumStudent>
     </EventAttendanceModal>
 
 </div >
@@ -416,8 +416,9 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
-                this.curriculumFormHasbeenSubmitted = formIsValid;
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid;
+            }
 
             if (!formIsValid) return;
 
@@ -461,8 +462,9 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
-                this.curriculumFormHasbeenSubmitted = formIsValid;
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid;
+            }
 
             if (!formIsValid) return;
 
@@ -535,13 +537,13 @@ export default {
             await this.$formulate.submit("curriculum-formulate-form-1");
 
             const vue_formulate_valid = this.$refs["curriculum-formulate-form-1"].isValid;
-
+            console.log('vue_formulate_valid', vue_formulate_valid)
             //vee-validate  scope : curriculum
             let vee_validate_valid = false;
             await this.$validator.validateAll("curriculum-formulate-form-1").then((result) => {
                 vee_validate_valid = result;
             });
-
+            console.log('vee_validate_valid', vee_validate_valid)
             return vue_formulate_valid && vee_validate_valid;
         },
 
@@ -669,7 +671,7 @@ export default {
 
     created: async function(){
         
-        if (typeof testMode !== 'undefined'){
+        if (typeof this.testMode !== 'undefined'){
             this.curriculum = this.getEmptyCurriculum()
             this._generate_formRender()
             return;

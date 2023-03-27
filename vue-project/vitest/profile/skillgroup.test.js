@@ -40,7 +40,7 @@ const ref_name = skillgroup_formname + '-' + 'name'
 const ref_info = skillgroup_formname + '-' + 'info'
 const ref_skills = skillgroup_formname + '-' + 'skills'
 
-describe("Test Skillgroup", () => {
+describe("Skillgroup", () => {
     it("skillgroup-input-field-validation", async () => {
         const wrapper = mount(Skillgroup, {
             localVue,
@@ -84,7 +84,7 @@ describe("Test Skillgroup", () => {
         //Test : info
         const info = wrapper.vm.$refs[ref_info];
 
-        //info : || 201 chars
+        //info : empty string.
         await wrapper.setData({
             skillgroup: {
                 info: "",
@@ -94,6 +94,7 @@ describe("Test Skillgroup", () => {
         await flushPromises();
         expect(info.validationErrors.length).toBe(0);
 
+        //info : || 201 chars
         await wrapper.setData({
             skillgroup: {
                 info: "a".repeat(201),
@@ -150,7 +151,7 @@ describe("Test Skillgroup", () => {
             'info': "a".repeat(201),
             'skills': null,
         }
-        
+
         //Test valid data
         wrapper.setData({ skillgroup : JSON.parse(JSON.stringify(valid_data)) });
         await flushPromises()

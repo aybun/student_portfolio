@@ -863,7 +863,7 @@ export default {
                     @click="showEventAttendanceModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
                     Close
                 </button></template>
-            <EventAttendance :event_id="event.id" :user="user"></EventAttendance>
+            <EventAttendance v-if="typeof this.testMode === 'undefined'" :event_id="event.id" :user="user"></EventAttendance>
             <!-- <template v-slot:params><EventAttendance :event_id="event.id"></EventAttendance></template> -->
         </EventAttendanceModal>
 
