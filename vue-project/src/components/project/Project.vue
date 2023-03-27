@@ -406,7 +406,7 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined"){
+            if (typeof this.testMode !== "undefined"){
                 return formIsValid;
             }
 

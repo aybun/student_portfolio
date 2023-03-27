@@ -277,7 +277,7 @@ describe("Test project.", () => {
             
             // Test : valid data.
             wrapper.setData({
-                event: JSON.parse(JSON.stringify(valid_event_data)),
+                project: JSON.parse(JSON.stringify(valid_data)),
             });
 
             await flushPromises();
@@ -301,6 +301,85 @@ describe("Test project.", () => {
                 expect(result).toBe(false);
             });
             
+            //Test start_date
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['start_date'] = invalids['start_date'];
+            await wrapper.setData({ project: copied_data });
+            // console.log(copied_data)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test end_date
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['end_date'] = invalids['end_date'];
+            await wrapper.setData({ project: copied_data });
+            // console.log(copied_data)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test info
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['info'] = invalids['info'];
+            await wrapper.setData({ project: copied_data });
+            // console.log(copied_data)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test attachment_link
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['attachment_link'] = invalids['attachment_link'];
+            await wrapper.setData({ project: copied_data });
+            // console.log(copied_data)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test attachment_file
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['attachment_file'] = invalids['attachment_file'];
+            await wrapper.setData({ project: copied_data });
+            // console.log(copied_data)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['start_date'] = "2023-03-18";
+            copied_data['end_date'] = "2023-03-18";
+            await wrapper.setData({ project: copied_data });
+            // console.log(copied_data)
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+
             // expect(temp_bool_val).toBe(true);
             
             // for (const [key, value] of Object.entries(invalids)) {

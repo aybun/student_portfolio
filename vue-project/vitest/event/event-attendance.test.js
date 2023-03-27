@@ -182,34 +182,81 @@ describe("Test event.", () => {
             }
             
             // Test : valid data.
-            wrapper.setData({
-                eventAttendance: JSON.parse(JSON.stringify(valid_data)),
+            wrapper.setData({ eventAttendance: JSON.parse(JSON.stringify(valid_data)), });
+            
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(true);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(true);
+            });
+            
+            //Test university_id
+            let copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['university_id'] = invalids['university_id'];
+            wrapper.setData({ eventAttendance: copied_data, });
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
             });
 
+            //Test firstname
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['firstname'] = invalids['firstname'];
+            wrapper.setData({ eventAttendance: copied_data, });
             await flushPromises();
-            let temp_bool_val = false;
-            await wrapper.vm.validateForm().then((result) => {
-                temp_bool_val = result;
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
             });
-            expect(temp_bool_val).toBe(true);
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test middlename
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['middlename'] = invalids['middlename'];
+            wrapper.setData({ eventAttendance: copied_data, });
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
+
+            //Test middlename
+            copied_data = JSON.parse(JSON.stringify(valid_data));
+            copied_data['lastname'] = invalids['lastname'];
+            wrapper.setData({ eventAttendance: copied_data, });
+            await flushPromises();
+            await wrapper.vm.createClick().then((result) => {
+                expect(result).toBe(false);
+            });
+            await wrapper.vm.updateClick().then((result) => {
+                expect(result).toBe(false);
+            });
             
             //Test : invalid data
-            for (const [key, value] of Object.entries(invalids)) {
+            // for (const [key, value] of Object.entries(invalids)) {
                 
-                const copied_data = JSON.parse(JSON.stringify(valid_data));
-                copied_data[key.toString()] = value;
-                // console.log([key, value])
-                await wrapper.setData({ eventAttendance: copied_data });
+            //     const copied_data = JSON.parse(JSON.stringify(valid_data));
+            //     copied_data[key.toString()] = value;
+            //     // console.log([key, value])
+            //     await wrapper.setData({ eventAttendance: copied_data });
                 
-                await flushPromises();
+            //     await flushPromises();
 
-                let formIsValid = true;
-                await wrapper.vm.validateForm().then((result) => {
-                    formIsValid = result;
-                    // console.log('in validate form')
-                });
-                expect(formIsValid).toBe(false);
-            }
+            //     let formIsValid = true;
+            //     await wrapper.vm.validateForm().then((result) => {
+            //         formIsValid = result;
+            //         // console.log('in validate form')
+            //     });
+            //     expect(formIsValid).toBe(false);
+            // }
 
         });
 });

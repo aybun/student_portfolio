@@ -267,8 +267,7 @@ export default {
             });
 
             if (typeof this.testMode !== "undefined"){
-                this.eventAttendanceFormHasbeenSubmitted = formIsValid;
-                return ;
+                return formIsValid;
             }
                 
             if (!formIsValid) return;
@@ -314,8 +313,7 @@ export default {
             });
 
             if (typeof this.testMode !== "undefined"){
-                this.eventAttendanceFormHasbeenSubmitted = formIsValid;
-                return ;
+                return formIsValid;
             }
                 
             if (!formIsValid) return;
@@ -410,13 +408,13 @@ export default {
             await this.$formulate.submit(formulate_form_formname);
 
             const vue_formulate_valid = this.$refs[formulate_form_formname].isValid;
-
+            console.log('vue_formulate_valid', vue_formulate_valid)
             //vee-validate scope : formulate_form_formname
             let vee_validate_valid = false;
             await this.$validator.validateAll(formulate_form_formname).then((result) => {
                 vee_validate_valid = result;
             });
-            
+            console.log('vee_validate_valid', vee_validate_valid)
             return vue_formulate_valid && vee_validate_valid;
         },
         syncByUniversityIdClick() {
