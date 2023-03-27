@@ -239,8 +239,9 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof testMode !== "undefined")
-                this.skillFormHasbeenSubmitted = formIsValid;
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid;
+            }
 
             if (!formIsValid) return;
 
@@ -277,9 +278,10 @@ export default {
             await this.validateForm().then((result) => {
                 formIsValid = result;
             });
-
-            if (typeof testMode !== "undefined")
-                this.skillFormHasbeenSubmitted = formIsValid;
+            
+            if (typeof this.testMode !== "undefined"){
+                return formIsValid;
+            }
 
             if (!formIsValid) return;
 

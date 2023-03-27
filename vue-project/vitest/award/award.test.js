@@ -178,11 +178,11 @@ describe("Test award.", () => {
         await flushPromises();
         expect(title.validationErrors).toContain("Title is required.");
 
-        //title : max:100  || the string contains 102 characters.
+        //title : max:100  || the string contains 101 characters.
         await wrapper.setData({
             award: {
                 title:
-                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "a".repeat(101),
             },
         });
         title.performValidation();
@@ -228,10 +228,10 @@ describe("Test award.", () => {
         //Test : info
         const info = wrapper.vm.$refs[ref_info];
 
-        //received_date : required || 204 chars
+        //info : || 201 chars
         await wrapper.setData({
             award: {
-                info: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                info: "a".repeat(201),
             },
         });
         info.performValidation();
