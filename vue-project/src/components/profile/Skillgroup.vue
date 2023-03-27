@@ -71,7 +71,7 @@
                         <div class="d-flex flex-row bd-highlight mb-3">
                             <div class="p-2 w-50 bd-highlight">
                                 <FormulateForm name="skillgroup-formulate-form-1" ref="skillgroup-formulate-form-1">
-                                    <formulate-input ref="skillgroup-formulate-input-name" type="text"
+                                    <formulate-input ref="skillgroup-formulate-form-1-name" type="text"
                                         v-model="skillgroup.name" label="Name" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.name"></formulate-input>
                                     <formulate-input ref="skillgroup-formulate-form-1-info" label="Info"
@@ -80,6 +80,7 @@
                                         :readonly="modalReadonly || !formRender.edit.info"
                                         validation-name="info"></formulate-input>
                                         <FormulateInput
+                                            ref="skillgroup-formulate-form-1-skills"
                                             v-model="skillgroup.skills"
                                             type="group"
                                             name="skills"

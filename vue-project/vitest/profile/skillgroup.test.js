@@ -7,7 +7,7 @@ import { describe, it, expect } from "vitest";
 
 import { mount, shallowMount, createLocalVue } from "@vue/test-utils";
 import flushPromises from "flush-promises";
-import Skill from "./src/components/profile/Skill.vue";
+import Skillgroup from "./src/components/profile/Skillgroup.vue";
 
 import FormulateVueDatetimePlugin from "@cone2875/vue-formulate-datetime";
 import FormulateVSelectPlugin from '@cone2875/vue-formulate-select';
@@ -35,47 +35,48 @@ const localVue = createLocalVue();
             });
             localVue.use(VeeValidate, { errorBagName: "veeErrors" });
 
-const skill_formname = "skill-formulate-form-1";
-const ref_title = skill_formname + '-' + 'title'
-const ref_info = skill_formname + '-' + 'info'
+const skillgroup_formname = "skillgroup-formulate-form-1";
+const ref_name = skillgroup_formname + '-' + 'name'
+const ref_info = skillgroup_formname + '-' + 'info'
+const ref_skills = skillgroup_formname + '-' + 'skills'
 
 describe("Test Skill", () => {
     it("skill-input-field-validation", async () => {
-        const wrapper = mount(Skill, {
+        const wrapper = mount(Skillgroup, {
             localVue,
             data() {
                 return {
-                    skill: {}, 
+                    skillgroup: {}, 
                     testMode: true, //Block api calls,
     
                     user: JSON.parse(JSON.stringify(user_staff)),
-    
-                    skills: JSON.parse(JSON.stringify(skillTable)),
+                    
+                    skillgroups: JSON.parse(JSON.stringify(skillTable)),
                 };
             },
-            // created : function(){}
+
         });
 
-        //Test : title
-        const title = wrapper.vm.$refs[ref_title];
+        //Test : name
+        const name = wrapper.vm.$refs[ref_name];
 
         // title : required
-        await wrapper.setData({ skill: { title: "" } });
-        title.performValidation();
+        await wrapper.setData({ skillgroup: { name: "" } });
+        name.performValidation();
         await flushPromises();
-        expect(title.validationErrors).toContain("Title is required.");
+        expect(name.validationErrors).toContain("Name is required.");
 
         //title : max:100  || the string contains 101 characters.
         await wrapper.setData({
-            skill: {
-                title:
+            skillgroup: {
+                name:
                     "a".repeat(101),
             },
         });
-        title.performValidation();
+        name.performValidation();
         await flushPromises();
-        expect(title.validationErrors).toContain(
-            "Title must be less than or equal to 100 characters long."
+        expect(name.validationErrors).toContain(
+            "Name must be less than or equal to 100 characters long."
         );
         //End Test : title
 
@@ -84,7 +85,7 @@ describe("Test Skill", () => {
 
         //info : || 201 chars
         await wrapper.setData({
-            skill: {
+            skillgroup: {
                 info: "",
             },
         });
@@ -93,7 +94,7 @@ describe("Test Skill", () => {
         expect(info.validationErrors.length).toBe(0);
 
         await wrapper.setData({
-            skill: {
+            skillgroup: {
                 info: "a".repeat(201),
             },
         });
@@ -103,7 +104,22 @@ describe("Test Skill", () => {
             "Info must be less than or equal to 200 characters long."
         );
         //End info
-            
+        
+        //Test : skills
+        let skills = wrapper.vm.$refs[ref_skills];
+
+        //info : || 201 chars
+        await wrapper.setData({
+            skillgroup: {
+                skills: null,
+            },
+        });
+
+        skills.performValidation();
+        await flushPromises();
+        // console.log(skills.validationErrors)
+        expect(skills.validationErrors).toContain("Skills is required.");
+
     });
     
 
