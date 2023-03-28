@@ -156,7 +156,7 @@
                                     :validation-messages="{ maxFileSize : (context) => {
                                                 return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';},                                     
                                             }" 
-                                    error-behavior="live" validation-event="input" validation="maxFileSize:2000000" upload-behavior="delayed" :disabled="
+                                    error-behavior="live" validation-event="input" validation="optional|maxFileSize:2000000" upload-behavior="delayed" :disabled="
                                         modalReadonly || !formRender.edit.attachment_file
                                     "></FormulateInput>
                                     <button v-if="(copiedCurriculum.attachment_file !== null)" type="button"

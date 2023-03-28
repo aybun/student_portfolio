@@ -808,7 +808,7 @@ export default {
                                     <FormulateInput type="file" ref="event-formulate-form-1-attachment_file"
                                         :key="'event-formulate-form-1-attachment_file-' + formKey"
                                         v-model="event.attachment_file" label="Attachment file" error-behavior="live"
-                                        validation-event="input" validation="maxFileSize:2000000" upload-behavior="delayed" :disabled="
+                                        validation-event="input" validation="optional|maxFileSize:2000000" upload-behavior="delayed" :disabled="
                                             modalReadonly || !formRender.edit.attachment_file
                                         " :validation-rules="{
                                             maxFileSize: (context, ...args) => {
