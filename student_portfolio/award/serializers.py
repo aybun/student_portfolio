@@ -2,6 +2,7 @@ from rest_framework import serializers
 import json
 from django.contrib.auth.models import User
 
+
 from event.serializers import EventSerializer
 from .access_policies import AwardApiAccessPolicy
 from .models import Award
@@ -213,3 +214,8 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     data['approved_by'] = None
 
         return instance, data
+
+    def validate_attachment_file(self, file):
+        if file.size > 2000000:
+            raise serializers.ValidationError("The file size must be less than 2 mb.")
+        return file

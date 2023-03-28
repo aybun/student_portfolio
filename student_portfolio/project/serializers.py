@@ -153,3 +153,9 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                         data.pop('approved_by', None)
 
         return instance, data
+
+
+    def validate_attachment_file(self, file):
+        if file.size > 2000000:
+            raise serializers.ValidationError("The file size must be less than 2 mb.")
+        return file

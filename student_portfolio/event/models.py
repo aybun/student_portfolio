@@ -44,7 +44,7 @@ class Event(models.Model):
     arranged_inside = models.BooleanField(default=False)
 
     attachment_link = models.URLField(max_length=200, blank=True, default='')
-    attachment_file = PrivateFileField(upload_to=event_attachment_file_directory_path, max_file_size=1024*1024*2,
+    attachment_file = PrivateFileField(upload_to=event_attachment_file_directory_path, max_file_size=2000000,
                                       null=True, blank=True, max_length=500)
 
     skills = models.ManyToManyField(Skill, related_name='event_skill_set', null=True)
@@ -115,7 +115,7 @@ class Curriculum(models.Model):
     end_date = models.DateField(null=True)
     info = models.CharField(max_length=200, default='')
     attachment_file = PrivateFileField(upload_to=curriculum_attachment_file_directory_path,
-                                       max_file_size=1024 * 1024 * 2,
+                                       max_file_size=2000000,
                                        null=True, blank=True, max_length=500)
 
     skillgroups = models.ManyToManyField(Skillgroup, related_name='curriculum_skillgroup_set', null=True)

@@ -331,13 +331,16 @@ def eventAttendedListApi(request, user_id=0):
 def eventAttendanceBulkAddApi(request):
 
     data = request.data.dict()
+    # print(data)
     serializer = EventAttendanceBulkAddSerializer(data=data, context={'request': request})
     # print(data)
     if not serializer.is_valid():
+        print('serializer is not valid.')
         print(serializer.error_messages)
         print(serializer.errors)
         response_dict = {
             'message': 'Failed to add.',
+            'serializer_errors' : serializer.errors,
         }
         return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 

@@ -86,9 +86,8 @@ class CurriculumStudentBulkAddSerializer(FieldAccessMixin, serializers.Serialize
         return event_id
 
     def validate_csv_file(self, file):
-        if file.size > 10000000:
-            raise ValidationError("The file size must be less than 10 mb.")
-
+        if file.size > 2000000:
+            raise serializers.ValidationError("The file size must be less than 2 mb.")
         return file
 
 

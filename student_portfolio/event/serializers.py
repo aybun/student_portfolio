@@ -137,19 +137,20 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         start_datetime, end_datetime = (data.get('start_datetime', None), data.get('end_datetime', None))
         if start_datetime is not None and end_datetime is not None:
-            print("{} {} {}".format("start_datetime", type(start_datetime), start_datetime))
-            print("{} {} {}".format("end_datetime", type(end_datetime), end_datetime))
+            # print("{} {} {}".format("start_datetime", type(start_datetime), start_datetime))
+            # print("{} {} {}".format("end_datetime", type(end_datetime), end_datetime))
             if start_datetime > end_datetime:
                 raise ValidationError("End date must be after start date.")
+        elif ((start_datetime is None and end_datetime is not None) or (start_datetime is not None and end_datetime is None)):
+            raise ValidationError("start_datetime and end_datetime must be present at the same time.")
 
         return data
 
-    # def validate_end_datatime(self, end_datetime):
-    #
-    #     if self.initial_data.get('start_datetime') > end_datetime:
-    #         raise ValidationError("End date must be after start date.")
-    #
-    #     return end_datetime
+    def validate_attachment_file(self, file):
+        if file.size > 2000000:
+            raise serializers.ValidationError("The file size must be less than 2 mb.")
+        return file
+
 
     @staticmethod
     def custom_clean_skills(instance=None, data=None, context=None):
@@ -299,14 +300,6 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         return instance, data
 
-
-
-
-
-
-
-
-
 class EventAttendanceBulkAddSerializer(FieldAccessMixin, serializers.Serializer):
 
     event_id = serializers.IntegerField(required=True)
@@ -325,9 +318,8 @@ class EventAttendanceBulkAddSerializer(FieldAccessMixin, serializers.Serializer)
         return event_id
 
     def validate_csv_file(self, file):
-        if file.size > 10000000:
-            raise ValidationError("The file size must be less than 10 mb.")
-
+        if file.size > 2000000:
+            raise ValidationError("The file size must be less than 2 mb.")
         return file
 
 class CurriculumSkillGroupSerializer(serializers.ModelSerializer):
@@ -442,6 +434,10 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         return (instance, data)
 
+    def validate_attachment_file(self, file):
+        if file.size > 2000000:
+            raise serializers.ValidationError("The file size must be less than 2 mb.")
+        return file
 
 class SkillAssignedToSkillGroup(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)

@@ -39,7 +39,7 @@ class Award(models.Model):
     used_for_calculation = models.BooleanField(default=False)
 
     attachment_link = models.URLField(max_length=200, blank=True, default='')
-    attachment_file = PrivateFileField(upload_to=award_attachment_file_directory_path, max_file_size=1024*1024*2,
+    attachment_file = PrivateFileField(upload_to=award_attachment_file_directory_path, max_file_size=2000000,
                                       null=True, blank=True, max_length=500)
 
     #Many to Many fields

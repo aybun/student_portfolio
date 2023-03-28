@@ -35,7 +35,7 @@ class Project(models.Model):
     used_for_calculation = models.BooleanField(default=False)
 
     attachment_link = models.URLField(max_length=200, blank=True, default='')
-    attachment_file = PrivateFileField(upload_to=project_attachment_file_directory_path, max_file_size=1024*1024*2, null=True, blank=True, max_length=500)
+    attachment_file = PrivateFileField(upload_to=project_attachment_file_directory_path, max_file_size=2000000, null=True, blank=True, max_length=500)
 
     skills = models.ManyToManyField(Skill, related_name='project_skill_set', null=True)
     staffs = models.ManyToManyField(User, related_name='project_staff_set', null=True)

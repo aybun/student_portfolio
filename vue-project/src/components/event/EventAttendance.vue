@@ -494,6 +494,8 @@ export default {
                     if (typeof error.response.data.invalid_rows !== 'undefined')
                         alert(error.response.data.invalid_rows );
                     
+                    if (typeof error.response.data.serializer_errors !== 'undefined')
+                        console.log(error.response.data.serializer_errors)
 
                 });
         },
