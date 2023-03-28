@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+import datetime
 
 from django.db import models
 import django
@@ -24,7 +24,7 @@ class Award(models.Model):
     title = models.CharField(max_length=100)
     rank = models.IntegerField(default=0)
 
-    received_date = models.DateField(default=django.utils.timezone.now, blank=False)
+    received_date = models.DateField(default=datetime.date.today, blank=False)
 
 
     info = models.CharField(max_length=200, blank=True, default='')

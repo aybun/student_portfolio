@@ -248,9 +248,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
             if 'staff' in groups:
                 if data.get('approved', None) == 'true':
-                    # print(instance.approved)
                     if not instance.approved:
-                        print('here')
                         data['approved_by'] = request.user.id
                     else:
                         data.pop('approved_by', None)

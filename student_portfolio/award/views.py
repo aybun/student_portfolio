@@ -28,8 +28,8 @@ def award(request):
 
 
 @parser_classes([JSONParser, MultiPartParser])
-@permission_classes((AwardApiAccessPolicy,))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@permission_classes((AwardApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def awardApi(request, award_id=0):
 

@@ -323,7 +323,6 @@ class EventCRUD(APITestCase):
 
         factory = APIRequestFactory()
         request = factory.post('/api/event/', {'title': 'event 2'})
-        request = factory.get('/api/event/')
         view = eventApi
         force_authenticate(request, user=None)
         response = view(request, event_id=0)
