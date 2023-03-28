@@ -72,7 +72,7 @@
                             <div class="p-2 w-50 bd-highlight">
                                 <FormulateForm name="skillgroup-formulate-form-1" ref="skillgroup-formulate-form-1">
                                     <formulate-input ref="skillgroup-formulate-form-1-name" type="text"
-                                        v-model="skillgroup.name" label="Name" validation="required|max:100"
+                                        v-model="skillgroup.name" label="Name" validation="required|max:50"
                                         :readonly="modalReadonly || !formRender.edit.name"></formulate-input>
                                     <formulate-input ref="skillgroup-formulate-form-1-info" label="Info"
                                         :key="'skillgroup-formulate-form-1-info' + formKey" type="textarea"

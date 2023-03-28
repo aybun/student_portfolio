@@ -40,7 +40,7 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, read_only=True)
 
     title = serializers.CharField(max_length=100, required=True)
-    rank = serializers.IntegerField(required=False, read_only=False)
+    rank = serializers.IntegerField(required=False, read_only=False, min_value=0)
     received_date = serializers.DateField(required=False)
 
     info = serializers.CharField(max_length=200, allow_blank=True, required=False)
@@ -215,7 +215,7 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         return instance, data
 
-    def validate_attachment_file(self, file):
-        if file.size > 2000000:
-            raise serializers.ValidationError("The file size must be less than 2 mb.")
-        return file
+        def validate_attachment_file(self, file):
+            if file.size > 2000000:
+                raise serializers.ValidationError("The file size must be less than 2 mb.")
+            return file

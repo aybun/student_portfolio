@@ -486,8 +486,9 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
     class Meta:
         model = Skillgroup
         fields = ('id', 'name', 'info', 'skills')
-
         access_policy = SkillGroupApiAccessPolicy
+
+
     def create(self, validated_data):
 
         skills = validated_data.pop('assignskilltoskillgroup_skillgroup_set', None)

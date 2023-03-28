@@ -88,10 +88,10 @@
                             
                             <FormulateForm name="curriculum-formulate-form-1" ref="curriculum-formulate-form-1">
                                 <formulate-input ref="curriculum-formulate-form-1-th_name" type="text" v-model="curriculum.th_name"
-                                        label="Thai Name" validation="required|max:100"
+                                        label="Thai Name" validation="required|max:50"
                                         :readonly="modalReadonly || !formRender.edit.th_name"></formulate-input>
                                 <formulate-input ref="curriculum-formulate-form-1-en_name" type="text" v-model="curriculum.en_name"
-                                    label="English Name" validation="required|max:100"
+                                    label="English Name" validation="required|max:50"
                                     :readonly="modalReadonly || !formRender.edit.en_name"></formulate-input>
                                 <FormulateInput
                                     ref="curriculum-formulate-form-1-start_date"
