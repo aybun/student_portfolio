@@ -266,7 +266,7 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
                                                      queryset=Event.objects.all())
 
     university_id = serializers.CharField(min_length=11, max_length=11, required=True)
-
+    
     firstname = serializers.CharField(max_length=50, required=False, allow_blank=True)
     middlename = serializers.CharField(max_length=50, required=False, allow_blank=True)
     lastname = serializers.CharField(max_length=50, required=False, allow_blank=True)
