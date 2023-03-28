@@ -57,7 +57,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
     start_datetime = serializers.DateTimeField(required=False, format="%Y-%m-%dT%H:%M")
     end_datetime = serializers.DateTimeField(required=False, format="%Y-%m-%dT%H:%M")
 
-    info = serializers.CharField(max_length=200, allow_blank=True)
+    info = serializers.CharField(max_length=200, allow_blank=True, required=False)
 
     created_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False,
                                                     queryset=User.objects.all())
@@ -231,7 +231,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
             data['created_by'] = request.user.id
 
             if 'staff' in groups:
-                if data['approved'] == 'true':
+                if data.get('approved', None) == 'true':
                     data['approved_by'] = request.user.id
                 else:
                     data['approved_by'] = None
@@ -249,8 +249,10 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 data.pop('attachment_file', None)
 
             if 'staff' in groups:
-                if data['approved'] == 'true':
+                if data.get('approved', None) == 'true':
+                    # print(instance.approved)
                     if not instance.approved:
+                        print('here')
                         data['approved_by'] = request.user.id
                     else:
                         data.pop('approved_by', None)
@@ -266,7 +268,7 @@ class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
                                                      queryset=Event.objects.all())
 
     university_id = serializers.CharField(min_length=11, max_length=11, required=True)
-    
+
     firstname = serializers.CharField(max_length=50, required=False, allow_blank=True)
     middlename = serializers.CharField(max_length=50, required=False, allow_blank=True)
     lastname = serializers.CharField(max_length=50, required=False, allow_blank=True)

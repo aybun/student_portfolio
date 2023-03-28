@@ -44,8 +44,8 @@ def _delete_file(path):
        os.remove(path)
 
 @parser_classes([JSONParser, MultiPartParser ])
-@permission_classes((EventApiAccessPolicy,))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@permission_classes((EventApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventApi(request, event_id=0):
 
@@ -62,7 +62,7 @@ def eventApi(request, event_id=0):
                 return JsonResponse([], safe=False)
 
             serializer = Serializer(objects, many=True, context={'request': request})
-            print(serializer.data)
+            # print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
             id = event_id

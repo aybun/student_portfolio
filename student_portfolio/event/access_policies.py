@@ -12,6 +12,7 @@ class EventApiAccessPolicy(AccessPolicy):
             "effect": "allow"
 
         },
+
     ]
 
     @classmethod
@@ -27,6 +28,7 @@ class EventApiAccessPolicy(AccessPolicy):
         # Cleaning data
         if method == "POST":
             fields.pop('id', None)
+
 
         elif method == "PUT":
             fields.pop('created_by')
