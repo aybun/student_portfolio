@@ -140,8 +140,8 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
             # print("{} {} {}".format("start_datetime", type(start_datetime), start_datetime))
             # print("{} {} {}".format("end_datetime", type(end_datetime), end_datetime))
             if start_datetime > end_datetime:
-                raise ValidationError("End date must be after start date.")
-        elif ((start_datetime is None and end_datetime is not None) or (start_datetime is not None and end_datetime is None)):
+                raise ValidationError("End datetime must be after start datetime.")
+        elif (start_datetime is not None or end_datetime is not None):
             raise ValidationError("start_datetime and end_datetime must be present at the same time.")
 
         return data
@@ -438,6 +438,19 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
         if file.size > 2000000:
             raise serializers.ValidationError("The file size must be less than 2 mb.")
         return file
+
+    def validate(self, data):
+        start_date, end_date = (data.get('start_date', None), data.get('end_date', None))
+        if start_date is not None and end_date is not None:
+            # print("{} {} {}".format("start_datetime", type(start_datetime), start_datetime))
+            # print("{} {} {}".format("end_datetime", type(end_datetime), end_datetime))
+            if start_date > end_date:
+                raise ValidationError("End date must be after start date.")
+
+        elif start_date is not None or end_date is not None:
+            raise ValidationError("start_date and end_date must be present at the same time.")
+
+        return data
 
 class SkillAssignedToSkillGroup(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
