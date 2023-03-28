@@ -28,10 +28,10 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, read_only=True)
 
     title = serializers.CharField(max_length=100, required=True)
-    start_date = serializers.DateField(required=True)
-    end_date = serializers.DateField(required=True)
+    start_date = serializers.DateField(required=False)
+    end_date = serializers.DateField(required=False)
 
-    info = serializers.CharField(max_length=200, allow_blank=True)
+    info = serializers.CharField(max_length=200, required=False, allow_blank=True)
 
     created_by = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=False, queryset=User.objects.all())
 
@@ -130,7 +130,7 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 data.pop('attachment_file', None)
 
             if 'staff' in groups:
-                if data['approved'] == 'true':
+                if data.get('approved', None) == 'true':
                     data['approved_by'] = request.user.id
                 else:
                     data['approved_by'] = None
@@ -147,7 +147,7 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 if instance.approved: #If the project has already been approved. We won't reassign this user to approved_by.
                     data.pop('approved', None)
                 else:
-                    if data['approved'] == 'true':
+                    if data.get('approved', None) == 'true':
                         data['approved_by'] = request.user.id
                     else:
                         data.pop('approved_by', None)

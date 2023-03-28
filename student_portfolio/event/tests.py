@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 # from django.test import TestCase
 from .views import eventApi
 # Create your tests here.
-from rest_framework.test import APIRequestFactory, force_authenticate, APITestCase, RequestsClient, CoreAPIClient
+from rest_framework.test import APIRequestFactory, force_authenticate, APITestCase
 
 from django.test import Client
 
@@ -49,10 +49,10 @@ class EventCRUD(APITestCase):
 
     def test_staff_can_create(self):
         factory = APIRequestFactory()
-        user = User.objects.get(username='tubtab')  # tuta is staff.
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
         view = eventApi
 
-        request = factory.post('/api/event/', {'title': 'โครงการ'} )
+        request = factory.post('/api/event/', {'title': 'กิจกรรม'} )
         force_authenticate(request, user=user)
         response = view(request, event_id=0)
 
@@ -187,7 +187,7 @@ class EventCRUD(APITestCase):
         staff_user = User.objects.get(username='tubtab')  # tuta is staff
         view = eventApi
 
-        # Case 1
+        # Case 1 : approved=False : Expect approved to be the same, expect title to change
         create_request = factory.post('/api/event/', {'title': 'โครงการ'})
         force_authenticate(create_request, user=user)
         response = view(create_request, event_id=0)
@@ -197,8 +197,8 @@ class EventCRUD(APITestCase):
 
         self.assertEqual(data['title'], 'โครงการ')
         self.assertEqual(data['approved'], False)
-
-        out_dict = {'title': 'changed', 'id': event_id, 'approved': 'true'}
+        self.assertEqual(data['used_for_calculation'], False)
+        out_dict = {'title': 'changed', 'id': event_id, 'approved': 'true', 'used_for_calculation': 'true' }
 
         # Update part
         request = factory.put('/api/event/' + str(event_id), out_dict)
@@ -212,6 +212,7 @@ class EventCRUD(APITestCase):
 
         self.assertEqual(data['title'], 'changed')   # title has changed.
         self.assertEqual(data.get('approved'), False) # approved stays the same, False.
+        self.assertEqual(data['used_for_calculation'], False)
 
         # Case 2: student cannot update the approved event.
         # staff approves event
@@ -224,7 +225,7 @@ class EventCRUD(APITestCase):
         self.assertEqual(data.get('approved'), True)
 
         #student tries to update the event
-        out_dict = {'title': 'changed', 'id': event_id, 'approved': 'true'}
+        out_dict = {'title': 'reform', 'id': event_id}
         request = factory.put('/api/event/' + str(event_id), out_dict)
         force_authenticate(request, user=user)
         response = view(request, event_id=event_id)
@@ -235,8 +236,8 @@ class EventCRUD(APITestCase):
 
 
     def test_student_can_delete(self):
-        # Student can delete the unapproved project created the user.
-        # Student cannon deleted approved project nor the project created by other user.
+        # Student can delete the unapproved events created the user.
+        # Student cannot deleted neither approved events nor events created by other user.
 
 
         # event_1 created_by == user.id and approved=False.
@@ -377,7 +378,7 @@ class EventCRUD(APITestCase):
         event_id = data.get('id', None)
         self.assertNotEqual(event_id, None)
 
-        #the unauthenticated user tries to update the project
+        #the unauthenticated user tries to delete the project
         request = factory.delete('/api/event/' + str(event_id))
         view = eventApi
         force_authenticate(request, user=None)

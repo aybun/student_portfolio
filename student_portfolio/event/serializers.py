@@ -14,8 +14,6 @@ import json
 import csv
 
 
-
-
 class SkillSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
     title = serializers.CharField(max_length=50, required=True)
