@@ -74,12 +74,12 @@ describe("Curriculum", () => {
         // console.log(th_name.validationErrors)
         expect(th_name.validationErrors).toContain("Thai Name is required.");
         
-        // Test en_name : <= 100
+        // Test en_name : <= 50
         wrapper.setData({ curriculum: { th_name: "a".repeat(101) } });
         await flushPromises();
         th_name.performValidation();
         await flushPromises();
-        expect(th_name.validationErrors).toContain("Thai Name must be less than or equal to 100 characters long.");
+        expect(th_name.validationErrors).toContain("Thai Name must be less than or equal to 50 characters long.");
         //end th_name
 
         // Test en_name :required
@@ -90,12 +90,12 @@ describe("Curriculum", () => {
         await flushPromises();
         expect(en_name.validationErrors).toContain("English Name is required.");
         
-        // Test en_name : <= 100
+        // Test en_name : <= 50
         wrapper.setData({ curriculum: { en_name: "a".repeat(101) } });
         await flushPromises();
         en_name.performValidation();
         await flushPromises();
-        expect(en_name.validationErrors).toContain("English Name must be less than or equal to 100 characters long.");
+        expect(en_name.validationErrors).toContain("English Name must be less than or equal to 50 characters long.");
 
         //end en_name
 

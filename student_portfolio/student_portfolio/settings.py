@@ -234,7 +234,7 @@ PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'private-media')
 
 # LOGIN_REDIRECT_URL = '/home'
 LOGIN_REDIRECT_URL = '/home'
-LOGOUT_REDIRECT_URL = '/home'
+LOGOUT_REDIRECT_URL = '/localhost80:/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 

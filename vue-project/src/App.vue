@@ -1,37 +1,10 @@
 <script setup>
-import HelloWorld from "./components/HelloWorld.vue";
 </script>
 
 <template>
   <div id="app">
     <header>
-      <img
-        alt="Vue logo"
-        class="logo"
-        src="@/assets/logo.svg"
-        width="125"
-        height="125"
-      />
-
-      <div class="wrapper">
-        <HelloWorld msg="You did it!" />
-
-        <nav>
-          <router-link to="/">Home</router-link>
-          <router-link to="/about">About</router-link>
-          <router-link to="/project">Project</router-link>
-          <router-link to="/event">Event</router-link>
-          <router-link to="/award">Award</router-link>
-          <router-link to="/skillgroup">Skillgroup</router-link>
-          <router-link to="/curriculum">Curriculum</router-link>
-          <router-link to="/skillchart">Skill Chart</router-link>
-        </nav>
-      </div>
-    </header>
-
-    <router-view />
-
-    <div class="flex-shrink-0 p-3 bg-white" style="width: 280px">
+      <div class="flex-shrink-0 p-3 bg-white" style="width: 280px">
       <a
         href="/"
         class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom"
@@ -39,7 +12,7 @@ import HelloWorld from "./components/HelloWorld.vue";
         <svg class="bi me-2" width="30" height="24">
           <use xlink:href="#bootstrap" />
         </svg>
-        <span class="fs-5 fw-semibold">Collapsible</span>
+        <span class="fs-5 fw-semibold">Profile Management System</span>
       </a>
       <ul class="list-unstyled ps-0">
         <li class="mb-1">
@@ -53,9 +26,7 @@ import HelloWorld from "./components/HelloWorld.vue";
           </button>
           <div class="collapse show" id="home-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="#" class="link-dark rounded">Overview</a></li>
-              <li><a href="#" class="link-dark rounded">Updates</a></li>
-              <li><a href="#" class="link-dark rounded">Reports</a></li>
+              <!-- <li><a href="#" class="link-dark rounded">Overview</a></li> -->
             </ul>
           </div>
         </li>
@@ -73,10 +44,6 @@ import HelloWorld from "./components/HelloWorld.vue";
               <li><router-link to="/event" class="link-dark rounded" >Event</router-link></li>
               <li><router-link to="/event/event-attended-student" class="link-dark rounded" >Event Attended Student</router-link></li>
 
-                
-                
-              
-              <li><a href="#" class="link-dark rounded">Overview</a></li>
             </ul>
           </div>
         </li>
@@ -92,8 +59,9 @@ import HelloWorld from "./components/HelloWorld.vue";
           <div class="collapse" id="Profile-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><router-link to="/skillchart" class="link-dark rounded" >Skill Chart</router-link></li>
-              <li><router-link to="/skill" class="link-dark rounded" >Skill Editing Page</router-link></li>
-
+              <li><router-link to="/skill" class="link-dark rounded" >Skill</router-link></li>
+              <li><router-link to="/skillgroup" class="link-dark rounded" >Skillgroup</router-link></li>
+              <li><router-link to="/curriculum" class="link-dark rounded" >Curriculum</router-link></li>
               <!-- <li><a href="#" class="link-dark rounded">Overview</a></li> -->
             </ul>
           </div>
@@ -118,6 +86,26 @@ import HelloWorld from "./components/HelloWorld.vue";
             </ul>
           </div>
         </li>
+        <li class="mb-1">
+          <button
+            class="btn btn-toggle align-items-center rounded collapsed"
+            data-bs-toggle="collapse"
+            data-bs-target="#orders-collapse-2"
+            aria-expanded="false"
+          >
+            Award
+          </button>
+          <div class="collapse" id="orders-collapse-2">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li>
+                <router-link to="/award" class="link-dark rounded"
+                  >Award</router-link
+                >
+              </li>
+              <!-- <li><a href="#" class="link-dark rounded">New</a></li> -->
+            </ul>
+          </div>
+        </li>
         <li class="border-top my-3"></li>
         <li class="mb-1">
           <button
@@ -130,21 +118,19 @@ import HelloWorld from "./components/HelloWorld.vue";
           </button>
           <div class="collapse" id="account-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="#" class="link-dark rounded">New...</a></li>
-              <li><a href="#" class="link-dark rounded">Profile</a></li>
-              <li><a href="#" class="link-dark rounded">Settings</a></li>
-              <!-- <li><a href="http://127.0.0.1:8000/login" class="link-dark rounded">Login</a></li> -->
               <li>
-                <router-link to="/login-vue" class="link-dark rounded"
-                  >Login Vue</router-link
-                >
+                <router-link to="/login-vue" class="link-dark rounded">Login</router-link>
+
               </li>
-              <li><a href="#" class="link-dark rounded">Sign out</a></li>
+              <li><a href="/api/logout" class="link-dark rounded">Sign out</a></li>
             </ul>
           </div>
         </li>
       </ul>
     </div>
+    </header>
+
+    <router-view />
   </div>
 </template>
 

@@ -117,10 +117,7 @@ def eventApi(request, event_id=0):
             data = request.data.dict()
             object, data = Serializer.custom_clean(instance=object, data=data, context={'request' : request})
             serializer = Serializer(object, data=data, context={'request': request})
-            # print(event_data)
-            # print(event_serializer.is_valid())
             if serializer.is_valid():
-
                 try:
                     with transaction.atomic():
                         instance = serializer.save()
@@ -132,7 +129,6 @@ def eventApi(request, event_id=0):
                 print(serializer.error_messages)
 
         if success:
-            #Check if the file field passed is ''. or the new file is passed -> Remove the old file. Note: We have set the instance (we call them object here.) to None in custome_clean.
 
             if old_obj.attachment_file and not bool(object.attachment_file)\
                     or old_obj.attachment_file != object.attachment_file:

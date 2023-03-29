@@ -11,6 +11,7 @@ import FormulateVueDatetimePlugin from "@cone2875/vue-formulate-datetime";
 import FormulateVSelectPlugin from '@cone2875/vue-formulate-select';
 import 'vue-select/dist/vue-select.css';
 
+import axios from 'axios'
 import VueCookies from "vue-cookies";
 
 Vue.use(VeeValidate, {
@@ -33,13 +34,24 @@ Vue.prototype.$API_URL = "http://localhost:80/api/";
 new Vue({
   router,
   render: (h) => h(App),
+  data(){
+    return {
+      user:null,
+    }
+    
+  },
 
-  created: function () {
-    // axios.get(this.$API_URL + 'get-csrf').then((response)=>{
+  created: async function () {
+    // axios.get(this.$API_URL + 'user').then((response)=>{
     //   console.log(response, response.headers['x-csrftoken'])
     //   this.$cookies.set("x-csrftoken", response.headers['x-csrftoken'], "1d")
     //   // console.log(this.$cookies.get('x-csrftoken'))
     // })
+
+    await axios.get(this.$API_URL + "user").then((response) => {
+        this.user = response.data;
+      // console.log(this.user)
+    });
   },
 
   mounted: function () {},

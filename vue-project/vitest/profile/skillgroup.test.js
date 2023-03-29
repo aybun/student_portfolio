@@ -76,8 +76,9 @@ describe("Skillgroup", () => {
         });
         name.performValidation();
         await flushPromises();
+        console.log(name.validationErrors)
         expect(name.validationErrors).toContain(
-            "Name must be less than or equal to 100 characters long."
+            "Name must be less than or equal to 50 characters long."
         );
         //End Test : title
 
