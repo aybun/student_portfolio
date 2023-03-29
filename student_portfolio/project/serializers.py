@@ -168,7 +168,7 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
             raise serializers.ValidationError("The file size must be less than 2 mb.")
         return file
 
-    # def validate_approved_by(self, approved_by):
-    #     if approved_by == 'null' or approved_by == '':
-    #         return None
-    #     return approved_by
+    def validate_approved_by(self, approved_by):
+        if approved_by == 'null' or approved_by == '':
+            return None
+        return approved_by
