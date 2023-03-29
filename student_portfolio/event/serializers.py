@@ -234,6 +234,9 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     data['approved_by'] = request.user.id
                 else:
                     data['approved_by'] = None
+            else:
+                data.pop('approved', None)
+                data.pop('approved_by', None)
 
             attachment_file = data.get('attachment_file', None)
             if isinstance(attachment_file, str):
@@ -255,9 +258,16 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
                         data.pop('approved_by', None)
                 else:
                     data['approved_by'] = None
+            else:
+                data.pop("approved", None)
+                data.pop("approved_by", None)
 
         return instance, data
 
+    def validate_approved_by(self, approved_by):
+        if approved_by == 'null' or approved_by == '':
+            return None
+        return approved_by
 
 class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
@@ -321,6 +331,8 @@ class EventAttendanceBulkAddSerializer(FieldAccessMixin, serializers.Serializer)
         if file.size > 2000000:
             raise ValidationError("The file size must be less than 2 mb.")
         return file
+
+
 
 class CurriculumSkillGroupSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)

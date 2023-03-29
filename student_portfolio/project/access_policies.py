@@ -17,11 +17,13 @@ class ProjectApiAccessPolicy(AccessPolicy):
         groups = request.user.groups.values_list('name', flat=True)
         method = request.method
 
-        # Cleaning data
-        if method == "POST":
 
-            for field in ['id']:
-                fields.pop(field, None)
+        if method == "GET":
+            pass
+
+        # Cleaning data
+        elif method == "POST":
+            fields.pop('id', None)
 
             if 'staff' not in groups:
                 fields.pop('used_for_calculation', None)

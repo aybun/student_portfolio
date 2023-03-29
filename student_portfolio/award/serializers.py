@@ -194,6 +194,9 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     data['approved_by'] = request.user.id
                 else:
                     data['approved_by'] = None
+            else:
+                data.pop('approved', None)
+                data.pop('approved_by', None)
 
         elif method == 'PUT':
             attachment_file = data.get('attachment_file', None)
@@ -203,7 +206,6 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 data.pop('attachment_file', None)
 
 
-            # data['approved_by']
             if 'staff' in groups:
                 if data.get('approved', None) == 'true':
                     if not instance.approved:
@@ -212,10 +214,18 @@ class AwardSerializer(FieldAccessMixin, serializers.ModelSerializer):
                         data.pop('approved_by', None)
                 else:
                     data['approved_by'] = None
+            else:
+                data.pop('approved', None)
+                data.pop('approved_by', None)
 
         return instance, data
 
-        def validate_attachment_file(self, file):
-            if file.size > 2000000:
-                raise serializers.ValidationError("The file size must be less than 2 mb.")
-            return file
+    def validate_attachment_file(self, file):
+        if file.size > 2000000:
+            raise serializers.ValidationError("The file size must be less than 2 mb.")
+        return file
+
+    def validate_approved_by(self, approved_by):
+        if approved_by == 'null' or approved_by == '':
+            return None
+        return approved_by

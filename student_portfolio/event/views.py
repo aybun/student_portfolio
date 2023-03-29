@@ -115,8 +115,9 @@ def eventApi(request, event_id=0):
             success = False
         else:
             data = request.data.dict()
+            print(data)
             object, data = Serializer.custom_clean(instance=object, data=data, context={'request' : request})
-            serializer = Serializer(object, data=data, context={'request': request})
+            serializer = Serializer(instance=object, data=data, context={'request': request})
             if serializer.is_valid():
                 try:
                     with transaction.atomic():

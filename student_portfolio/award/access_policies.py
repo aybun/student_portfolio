@@ -17,19 +17,25 @@ class AwardApiAccessPolicy(AccessPolicy):
         groups = request.user.groups.values_list('name', flat=True)
         method = request.method
 
-        # Cleaning data
-        if method == "POST":
-            fields.pop('id', None)
 
-        elif method == "PUT":
-            # if instance.approved_by:
-            #     fields.pop('approved_by', None)
+        if method == "GET":
+            pass
+
+        elif method == "POST":
+            fields.pop('id', None)
 
             if 'staff' not in groups:
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
                 fields.pop('approved_by', None)
 
+        elif method == "PUT":
+            fields.pop('created_by', None)
+
+            if 'staff' not in groups:
+                fields.pop('used_for_calculation', None)
+                fields.pop('approved', None)
+                fields.pop('approved_by', None)
 
         return fields
 

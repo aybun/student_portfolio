@@ -134,6 +134,10 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     data['approved_by'] = request.user.id
                 else:
                     data['approved_by'] = None
+            else:
+                data.pop('approved', None)
+                data.pop('approved_by', None)
+
 
         elif method == 'PUT':
 
@@ -144,13 +148,17 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 data.pop('attachment_file', None)
 
             if 'staff' in groups:
-                if instance.approved: #If the project has already been approved. We won't reassign this user to approved_by.
-                    data.pop('approved', None)
-                else:
-                    if data.get('approved', None) == 'true':
+                if data.get('approved', None) == 'true':
+                    if not instance.approved:
                         data['approved_by'] = request.user.id
                     else:
                         data.pop('approved_by', None)
+                else:
+                    data['approved_by'] = None
+            else:
+                data.pop("approved", None)
+                data.pop("approved_by", None)
+
 
         return instance, data
 
@@ -159,3 +167,8 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
         if file.size > 2000000:
             raise serializers.ValidationError("The file size must be less than 2 mb.")
         return file
+
+    # def validate_approved_by(self, approved_by):
+    #     if approved_by == 'null' or approved_by == '':
+    #         return None
+    #     return approved_by

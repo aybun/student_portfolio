@@ -20,20 +20,22 @@ class EventApiAccessPolicy(AccessPolicy):
         groups = request.user.groups.values_list('name', flat=True)
         method = request.method
 
-        # Field Access
-        # if 'staff' not in groups:
-        #     fields.pop('approved', None)
-        #     fields.pop('used_for_calculation', None)
 
+        if method == "GET":
+            pass
         # Cleaning data
         if method == "POST":
             fields.pop('id', None)
 
+            if 'staff' not in groups:  # The user is a student or lower level user.
+                fields.pop('used_for_calculation', None)
+                fields.pop('approved', None)
+                fields.pop('approved_by', None)
 
         elif method == "PUT":
             fields.pop('created_by')
 
-            if 'staff' not in groups: #The user is a student or lower level user.
+            if 'staff' not in groups:  # The user is a student or lower level user.
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
                 fields.pop('approved_by', None)
