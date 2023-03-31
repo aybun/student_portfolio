@@ -9,7 +9,7 @@ import SupportIcon from "./icons/IconSupport.vue";
 
 <template>
   <div>
-    <WelcomeItem>
+    <!-- <WelcomeItem>
       <template #icon>
         <DocumentationIcon />
       </template>
@@ -95,6 +95,6 @@ import SupportIcon from "./icons/IconSupport.vue";
       sustainability. You can help us by
       <a target="_blank" href="https://vuejs.org/sponsor/">becoming a sponsor</a
       >.
-    </WelcomeItem>
+    </WelcomeItem> -->
   </div>
 </template>

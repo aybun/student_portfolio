@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
+        <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
             Create Skill
         </button>
@@ -35,7 +35,7 @@
 
             <template slot="table-row" slot-scope="props">
                 <span v-if="props.column.field == 'action'">
-                    <button v-if="user.is_staff" type="button" class="btn btn-light mr-1" data-bs-toggle="modal"
+                    <button v-if="user.is_staff || user.is_student" type="button" class="btn btn-light mr-1" data-bs-toggle="modal"
                         data-bs-target="#edit-info-modal" @click="viewClick(props.row)">
                         <i class="bi bi-eye"></i>
                     </button>

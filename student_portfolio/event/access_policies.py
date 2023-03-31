@@ -44,6 +44,9 @@ class EventApiAccessPolicy(AccessPolicy):
 
     @classmethod
     def scope_query_object(cls, request):
+
+
+
         groups = request.user.groups.values_list('name', flat=True)
 
         if request.method == "GET":
@@ -276,7 +279,10 @@ class EventAttendedListApiAccessPolicy(AccessPolicy):
 
             event_attendance_used_for_calculation = request.GET.get('event_attendance_used_for_calculation', None)
             if event_attendance_used_for_calculation is not None:
-                event_attendance_used_for_calculation = bool(event_attendance_used_for_calculation)
+                if event_attendance_used_for_calculation == 'true':
+                    event_attendance_used_for_calculation = True
+                else:
+                    event_attendance_used_for_calculation = False
 
                 attendances = EventAttendance.objects.filter(synced=True, user_id_fk=request.user.id,
                                                              used_for_calculation=event_attendance_used_for_calculation)

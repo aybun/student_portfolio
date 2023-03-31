@@ -1,6 +1,6 @@
 <template>
 <div>
-    <button type="button"
+    <button v-if="user.is_staff" type="button"
             class="btn btn-primary m-2 fload-end"
             data-bs-toggle="modal"
             data-bs-target="#edit-info-modal"

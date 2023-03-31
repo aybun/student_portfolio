@@ -42,8 +42,8 @@ export default {
     axios.defaults.withCredentials = true;
 
     axios.get(this.$API_URL + "get-csrf").then((response) => {
-      console.log(response, response.headers["x-csrftoken"]);
-      this.$cookies.set("csrftoken", response.headers["x-csrftoken"], "1d");
+      // console.log(response, response.headers["x-csrftoken"]);
+      // this.$cookies.set("csrftoken", response.headers["x-csrftoken"], "1d");
       // document.cookie = 'x-csrftoken=' + '; expires=Sun, 1 Jan 2023 00:00:00 UTC; path=/'
       // console.log(document.cookie)
     });
@@ -51,30 +51,11 @@ export default {
 
   methods: {
     sendLoginInfoClick(data) {
-      // console.log(data)
-      // let username = this.username
-      // let password = this.password
-      // console.log(data.username, data.password)
-      // const cookies = new Cookies();
+      
       const token = Buffer.from(
         `${data.username}:${data.password}`,
         "utf8"
       ).toString("base64");
-
-      // fetch(this.$API_URL+"login", {
-      //     method: "POST",
-      //     headers: {
-      //         "Content-Type": "application/json",
-      //         "X-CSRFToken": this.$cookies.get("csrftoken"),
-      //     },
-      //     credentials: "include",
-      //     body: JSON.stringify({username: username, password: password}),
-      // }).then((response)=>{
-      //         alert(response.data)
-      // })
-
-      // url: this.$MAIN_BACKEND_URL+"api-token-auth/",
-      // this.$cookies.get('x-csrftoken')
 
       axios.defaults.xsrfCookieName = "csrftoken";
       axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -97,14 +78,14 @@ export default {
         },
       }).then((response) => {
         alert(JSON.stringify(response.data));
-        console.log(response.headers.toJSON());
-        console.log(document.cookie);
-      });
+        // console.log(response.headers.toJSON());
+        // console.log(document.cookie);
+        window.location.replace("/home");
+      }).catch((error)=>{
+        alert(JSON.stringify(error.response.data.message));
+      })
     },
 
-    // seeCookies(){
-    //     console.log(document.cookie)
-    // }
   },
 };
 </script>

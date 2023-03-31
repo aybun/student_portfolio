@@ -1,3 +1,4 @@
+import http
 import json
 
 from django.contrib.auth.models import User
@@ -52,7 +53,7 @@ def userApi(request):
 def get_csrf(request):
     response = JsonResponse({'detail': 'CSRF cookie set'})
     response['X-CSRFToken'] = get_token(request)
-    print(response.__dict__)
+    # print(response.__dict__)
     return response
 
 # @authentication_classes((SessionAuthentication, BasicAuthentication))
@@ -60,44 +61,55 @@ def get_csrf(request):
 @api_view(['POST',])
 @permission_classes((AllowAny,))
 def login_view(request):
-    print(request.data)
-    print(type(request.data))
+    # print(request.data)
+    # print(type(request.data))
     # data = json.loads(request.body)
     # username = data.get('username', None)
     # password = data.get('password', None)
     data = request.data.get('username_password', None)
     if data is None:
-        return JsonResponse({'detail': 'Please provide username and password.'}, status=400)
+        return JsonResponse({'message': 'Please provide username and password.'}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     data = json.loads(data)
 
-    print(data)
+    # print(data)
     username = data.get('username', None)
     password = data.get('password', None)
-    print(username, password)
+    # print(username, password)
     # print(request.POST)
     if username is None or password is None:
-        return JsonResponse({'detail': 'Please provide username and password.'}, status=400)
+        return JsonResponse({'message': 'Please provide username and password.'}, status=http.HTTPStatus.BAD_REQUEST)
 
     user = authenticate(username=username, password=password)
 
     if user is None:
-        return JsonResponse({'detail': 'Invalid credentials.'}, status=400)
+        return JsonResponse({'message': 'Invalid credentials.'}, status=http.HTTPStatus.BAD_REQUEST)
 
     login(request, user)
-    return JsonResponse({'detail': 'Successfully logged in.'})
+    return JsonResponse({'message': 'Successfully logged in.'})
 
 
 def logout_view(request):
     if not request.user.is_authenticated:
-        return JsonResponse({'detail': 'You\'re not logged in.'}, status=400)
+        return JsonResponse({'message': 'You\'re not logged in.'})
 
     logout(request)
-    return JsonResponse({'detail': 'Successfully logged out.'})
+    return JsonResponse({'message': 'Successfully logged out.'})
 
 @ensure_csrf_cookie
 def session_view(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({'isAuthenticated': False})
 
-    return JsonResponse({'isAuthenticated': True})
+    if not request.user.is_authenticated:
+        respose_dict = {
+            'data': {
+                'isAuthenticated': False
+            },
+        }
+        return JsonResponse(respose_dict)
+    else:
+        respose_dict = {
+            'data': {
+                'isAuthenticated': True
+            },
+        }
+        return JsonResponse({'isAuthenticated': True})

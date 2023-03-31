@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import Award from "../components/award/Award.vue";
 import Login from "../components/registration/Login.vue";
+import Logout from "/src/components/registration/Logout.vue";
 import Event from "../components/event/Event.vue";
 import EventAttendedStudent from '/src/components/event/EventAttendedStudent.vue'
 import Project from "/src/components/project/Project.vue";
@@ -38,6 +39,11 @@ const router = new VueRouter({
       path: "/login-vue",
       name: "login-vue",
       component: Login,
+    },
+    {
+      path: "/logout",
+      name: "logout",
+      component: Logout,
     },
     {
       path: "/event",

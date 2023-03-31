@@ -656,21 +656,32 @@ export default {
 <template>
     <div>
 
-        <button v-if="!onlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal"
+        <!-- <button v-if="!onlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal"
             data-bs-target="#edit-info-modal" @click="addClick()">
             Add Event
-        </button>
+        </button> -->
 
-        <vue-good-table ref="event-vgt" :columns="vgtColumns" :rows="events" :select-options="{
-            enabled: false,
-            selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
-        }" :search-options="{ enabled: true }" :pagination-options="{
-    enabled: true,
-    mode: 'records',
-    perPage: 20,
-    setCurrentPage: 1,
-}">
+        <vue-good-table ref="event-vgt" :columns="vgtColumns" :rows="events" 
+            :select-options="{
+                enabled: false,
+                selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
+            }" 
+            :search-options="{ enabled: true }" 
+            :pagination-options="{
+                enabled: true,
+                mode: 'records',
+                perPage: 20,
+                setCurrentPage: 1,
+            }">
+
             <div slot="table-actions">
+                <div>
+                    <button v-if="!onlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal"
+                        data-bs-target="#edit-info-modal" @click="addClick()">
+                        Add Event
+                    </button>
+                </div>
+                
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
                         aria-expanded="false">
