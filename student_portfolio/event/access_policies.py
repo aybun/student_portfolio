@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_access_policy import FieldAccessMixin, AccessPolicy
 from django.db.models import Q
 
@@ -23,6 +25,8 @@ class EventApiAccessPolicy(AccessPolicy):
 
         if method == "GET":
             pass
+
+
         # Cleaning data
         if method == "POST":
             fields.pop('id', None)
@@ -50,11 +54,21 @@ class EventApiAccessPolicy(AccessPolicy):
         groups = request.user.groups.values_list('name', flat=True)
 
         if request.method == "GET":
+            lower_bound_start_datetime = request.GET.get('lower_bound_start_datetime', None)
+            upper_bound_start_datetime = request.GET.get('upper_bound_start_datetime', None)
+
+            query_object = Q()
+            if lower_bound_start_datetime is not None:
+                query_object &= Q(start_datetime__gte=datetime.strptime(lower_bound_start_datetime, '%Y-%m-%dT%H:%M:%S.%fZ'))
+
+            if upper_bound_start_datetime is not None:
+                query_object &= Q(start_datetime__lte=datetime.strptime(upper_bound_start_datetime, '%Y-%m-%dT%H:%M:%S.%fZ'))
+
             if 'staff' in groups:
-                return Q()
+                return query_object
 
             elif 'student' in groups:
-                return (Q(approved=True) & Q(arranged_inside=True)) | Q(created_by=request.user.id)
+                return query_object & (Q(approved=True) & Q(arranged_inside=True)) | Q(created_by=request.user.id)
 
         elif request.method == "PUT":
             if 'staff' in groups:

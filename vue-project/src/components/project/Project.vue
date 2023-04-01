@@ -1,5 +1,11 @@
 <template>
     <div>
+        <FormulateForm>
+            <h2 class="form-title">Query Parameters</h2>
+            <formulate-input type="date"  label="Lower bound start date" v-model="queryParameters.lower_bound_start_date"></formulate-input>
+            <formulate-input type="date"  label="Upper bound start date" v-model="queryParameters.upper_bound_start_date"></formulate-input>
+            <formulate-input type="button" @click="refreshData();">Query</formulate-input>
+        </FormulateForm>
         <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
             Propose Project
@@ -216,6 +222,11 @@ export default {
             
             staffTable: [],
             user: {},
+            
+            queryParameters : {
+                lower_bound_start_date: "2022-06-01",
+                upper_bound_start_date: "2023-06-01"
+            },
 
             checkboxes: [],
             checkboxFields: ["approved", "used_for_calculation"],
@@ -349,7 +360,9 @@ export default {
         },
 
         refreshData() {
-            axios.get(this.$API_URL + "project").then((response) => {
+            const searchParams = new URLSearchParams([['lower_bound_start_date', this.queryParameters.lower_bound_start_date],
+                                                          ['upper_bound_start_date', this.queryParameters.upper_bound_start_date]]);
+            axios.get(this.$API_URL + "project", {params : searchParams}).then((response) => {
                 this.projects = response.data;
             });
         },
@@ -727,7 +740,7 @@ export default {
         });
 
         this._generate_formRender();
-
+        
         axios.get(this.$API_URL + "project").then((response) => {
             this.projects = response.data;
         });

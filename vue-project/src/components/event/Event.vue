@@ -46,7 +46,11 @@ export default {
             modalReadonly: false,
 
             showEventAttendanceModal: false,
-
+            queryParameters : {
+                lower_bound_start_datetime: "2022-06-01T00:00:00.000Z",
+                upper_bound_start_datetime: "2023-06-01T00:00:00.000Z"
+            },
+            
             event: {},
             copiedEvent: {},
 
@@ -213,11 +217,14 @@ export default {
                 axios.get(this.$API_URL + "event-attended/list", { params: eventAttendedParams })
                     .then((response) => {
                         this.events = response.data;
-                        console.log(this.events)
+                        // console.log(this.events)
                     });
             }
             else {
-                axios.get(this.$API_URL + "event").then((response) => {
+                // console.log(this.queryParameters)
+                const searchParams = new URLSearchParams([['lower_bound_start_datetime', this.queryParameters.lower_bound_start_datetime],
+                                                          ['upper_bound_start_datetime', this.queryParameters.upper_bound_start_datetime]]);
+                axios.get(this.$API_URL + "event", {params: searchParams}).then((response) => {
                     this.events = response.data;
                 });
             }
@@ -655,11 +662,17 @@ export default {
 
 <template>
     <div>
-
-        <!-- <button v-if="!onlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal"
+        <FormulateForm>
+            <h2 class="form-title">Query Parameters</h2>
+            <formulate-input type="vue-datetime" datetype="datetime" label="Lower bound start datetime" v-model="queryParameters.lower_bound_start_datetime"></formulate-input>
+            <formulate-input type="vue-datetime" datetype="datetime" label="Upper bound start datetime" v-model="queryParameters.upper_bound_start_datetime"></formulate-input>
+            <formulate-input type="button" @click="refreshData();">Query</formulate-input>
+        </FormulateForm>
+        
+        <button v-if="!onlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal"
             data-bs-target="#edit-info-modal" @click="addClick()">
             Add Event
-        </button> -->
+        </button>
 
         <vue-good-table ref="event-vgt" :columns="vgtColumns" :rows="events" 
             :select-options="{
@@ -675,12 +688,7 @@ export default {
             }">
 
             <div slot="table-actions">
-                <div>
-                    <button v-if="!onlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal"
-                        data-bs-target="#edit-info-modal" @click="addClick()">
-                        Add Event
-                    </button>
-                </div>
+                
                 
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"

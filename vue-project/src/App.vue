@@ -3,102 +3,108 @@
 
 <template>
   <div id="app">
-    <div class="row h-100">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark flex-lg-column flex-lg-row" style="position: sticky; top: 0;">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Student Profile Management</a>
+      </div>
+    </nav>
+    <div class="container-fluid h-100 custom-container-fluid">
+      <div class="row h-100">
 
-      <div class="col-md-2 d-none d-md-block bg-light sidebar" style="width: 280px; flex-direction: column;">
-        <div class="sidebar-sticky">
-          <ul class="list-unstyled ps-0">
-            <li class="mb-1">
-              <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
-                data-bs-target="#home-collapse" aria-expanded="true">
-                Home
-              </button>
-              <div class="collapse show" id="home-collapse">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                  <li><router-link to="/home" class="link-dark rounded">home</router-link></li>
-                </ul>
-              </div>
-            </li>
-            <li class="mb-1">
-              <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
-                data-bs-target="#dashboard-collapse" aria-expanded="false">
-                Event
-              </button>
-              <div class="collapse" id="dashboard-collapse">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                  <li><router-link to="/event" class="link-dark rounded">Event</router-link></li>
-                  <li><router-link to="/event/event-attended-student" class="link-dark rounded">Event Attended
-                      Student</router-link></li>
+        <div class="col-md-2 d-none d-md-block bg-light sidebar" style="width: 280px; flex-direction: column;">
+          <div class="sidebar-sticky">
+            <ul class="list-unstyled ps-0">
+              <li class="mb-1">
+                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#home-collapse" aria-expanded="true">
+                  Home
+                </button>
+                <div class="collapse show" id="home-collapse">
+                  <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                    <li><router-link to="/home" class="link-dark rounded">home</router-link></li>
+                  </ul>
+                </div>
+              </li>
+              <li class="mb-1">
+                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#dashboard-collapse" aria-expanded="false">
+                  Event
+                </button>
+                <div class="collapse" id="dashboard-collapse">
+                  <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                    <li><router-link to="/event" class="link-dark rounded">Event</router-link></li>
+                    <li><router-link to="/event/event-attended-student" class="link-dark rounded">Event Attended
+                        Student</router-link></li>
 
-                </ul>
-              </div>
-            </li>
-            <li class="mb-1">
-              <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
-                data-bs-target="#Profile-collapse" aria-expanded="false">
-                Profile
-              </button>
-              <div class="collapse" id="Profile-collapse">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                  <li><router-link to="/skillchart" class="link-dark rounded">Skill Chart</router-link></li>
-                  <li><router-link to="/skill" class="link-dark rounded">Skill</router-link></li>
-                  <li><router-link to="/skillgroup" class="link-dark rounded">Skillgroup</router-link></li>
-                  <li><router-link to="/curriculum" class="link-dark rounded">Curriculum</router-link></li>
-                  <!-- <li><a href="#" class="link-dark rounded">Overview</a></li> -->
-                </ul>
-              </div>
-            </li>
-            <li class="mb-1">
-              <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
-                data-bs-target="#orders-collapse" aria-expanded="false">
-                Project
-              </button>
-              <div class="collapse" id="orders-collapse">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                  <li>
-                    <router-link to="/project" class="link-dark rounded">Project</router-link>
-                  </li>
-                  <!-- <li><a href="#" class="link-dark rounded">New</a></li> -->
-                </ul>
-              </div>
-            </li>
-            <li class="mb-1">
-              <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
-                data-bs-target="#orders-collapse-2" aria-expanded="false">
-                Award
-              </button>
-              <div class="collapse" id="orders-collapse-2">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                  <li>
-                    <router-link to="/award" class="link-dark rounded">Award</router-link>
-                  </li>
-                  <!-- <li><a href="#" class="link-dark rounded">New</a></li> -->
-                </ul>
-              </div>
-            </li>
-            <li class="border-top my-3"></li>
-            <li class="mb-1">
-              <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
-                data-bs-target="#account-collapse" aria-expanded="false">
-                Account
-              </button>
-              <div class="collapse" id="account-collapse">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                  <li><router-link to="/login-vue" class="link-dark rounded">Login</router-link></li>
-                  <li><router-link to="/logout" class="link-dark rounded">Sign Out</router-link></li>
-                </ul>
-              </div>
-            </li>
-          </ul>
+                  </ul>
+                </div>
+              </li>
+              <li class="mb-1">
+                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#Profile-collapse" aria-expanded="false">
+                  Profile
+                </button>
+                <div class="collapse" id="Profile-collapse">
+                  <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                    <li><router-link to="/skillchart" class="link-dark rounded">Skill Chart</router-link></li>
+                    <li><router-link to="/skill" class="link-dark rounded">Skill</router-link></li>
+                    <li><router-link to="/skillgroup" class="link-dark rounded">Skillgroup</router-link></li>
+                    <li><router-link to="/curriculum" class="link-dark rounded">Curriculum</router-link></li>
+                    <!-- <li><a href="#" class="link-dark rounded">Overview</a></li> -->
+                  </ul>
+                </div>
+              </li>
+              <li class="mb-1">
+                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#orders-collapse" aria-expanded="false">
+                  Project
+                </button>
+                <div class="collapse" id="orders-collapse">
+                  <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                    <li>
+                      <router-link to="/project" class="link-dark rounded">Project</router-link>
+                    </li>
+                    <!-- <li><a href="#" class="link-dark rounded">New</a></li> -->
+                  </ul>
+                </div>
+              </li>
+              <li class="mb-1">
+                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#orders-collapse-2" aria-expanded="false">
+                  Award
+                </button>
+                <div class="collapse" id="orders-collapse-2">
+                  <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                    <li>
+                      <router-link to="/award" class="link-dark rounded">Award</router-link>
+                    </li>
+                    <!-- <li><a href="#" class="link-dark rounded">New</a></li> -->
+                  </ul>
+                </div>
+              </li>
+              <li class="border-top my-3"></li>
+              <li class="mb-1">
+                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#account-collapse" aria-expanded="false">
+                  Account
+                </button>
+                <div class="collapse" id="account-collapse">
+                  <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                    <li><router-link to="/login-vue" class="link-dark rounded">Login</router-link></li>
+                    <li><router-link to="/logout" class="link-dark rounded">Sign Out</router-link></li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div>
+
         </div>
 
-      </div>
-
-      <div class="col-lg-10">
-        <router-view />
+        <div class="col-lg-10">
+          <router-view />
+        </div>
       </div>
     </div>
-
 
     <header v-if="false">
       <div class="flex-shrink-0 p-3 bg-white" style="width: 280px">
@@ -199,65 +205,65 @@
 </template>
 
 <style scoped>
-header {
+/* header {
   line-height: 1.5;
   max-height: 100vh;
-}
+} */
 
-.logo {
+/* .logo {
   display: block;
   margin: 0 auto 2rem;
-}
+} */
 
-nav {
+/* nav {
   width: 100%;
   font-size: 12px;
   text-align: center;
   margin-top: 2rem;
-}
+} */
 
-nav a.router-link-exact-active {
+/* nav a.router-link-exact-active {
   color: var(--color-text);
-}
+} */
 
-nav a.router-link-exact-active:hover {
+/* nav a.router-link-exact-active:hover {
   background-color: transparent;
-}
+} */
 
-nav a {
+/* nav a {
   display: inline-block;
   padding: 0 1rem;
   border-left: 1px solid var(--color-border);
-}
+} */
 
-nav a:first-of-type {
+/* nav a:first-of-type {
   border: 0;
-}
+} */
 
-@media (min-width: 1024px) {
+/* @media (min-width: 1024px) {
   header {
     display: flex;
     place-items: center;
     padding-right: calc(var(--section-gap) / 2);
-  }
+  } */
 
-  .logo {
+/* .logo {
     margin: 0 2rem 0 0;
-  }
+  } */
 
-  header .wrapper {
+/* header .wrapper {
     display: flex;
     place-items: flex-start;
     flex-wrap: wrap;
-  }
+  } */
 
-  nav {
+/* nav {
     text-align: left;
     margin-left: -1rem;
     font-size: 1rem;
 
     padding: 1rem 0;
     margin-top: 1rem;
-  }
-}
+  } */
+/* } */
 </style>

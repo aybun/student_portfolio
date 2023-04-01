@@ -31,8 +31,12 @@ export default {
 
             checkboxes: [],
             checkboxFields: ["approved", "used_for_calculation"],
-            // awardFormHasBeenSubmitted : false,
-
+            
+            queryParameters : {
+                lower_bound_received_date: "2022-06-01",
+                upper_bound_received_date: "2023-06-01"
+            },
+            
             modalReadonly: false,
 
             formRenderSpec: {
@@ -151,7 +155,9 @@ export default {
         },
 
         refreshData() {
-            axios.get(this.$API_URL + "award").then((response) => {
+            const searchParams = new URLSearchParams([['lower_bound_received_date', this.queryParameters.lower_bound_received_date],
+                                                          ['upper_bound_received_date', this.queryParameters.upper_bound_received_date]]);
+            axios.get(this.$API_URL + "award", {params : searchParams}).then((response) => {
                 this.awards = response.data;
             });
         },
@@ -618,10 +624,7 @@ export default {
 
         this._generate_formRender();
 
-        axios.get(this.$API_URL + "award").then((response) => {
-            this.awards = response.data;
-            // console.log(this.awards)
-        });
+        this.refreshData();
 
         axios.get(this.$API_URL + "student").then((response) => {
             // this.studentTable = response.data;
@@ -675,17 +678,18 @@ export default {
 
 <template>
     <div>
+        <FormulateForm>
+            <h2 class="form-title">Query Parameters</h2>
+            <formulate-input type="date"  label="Lower bound received date" v-model="queryParameters.lower_bound_received_date"></formulate-input>
+            <formulate-input type="date"  label="Upper bound received date" v-model="queryParameters.upper_bound_received_date"></formulate-input>
+            <formulate-input type="button" @click="refreshData();">Query</formulate-input>
+        </FormulateForm>
+
         <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
             Create Award
         </button>
 
-        <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = true">
-            show approved
-        </button>
-        <button type="button" class="btn btn-primary m-2 fload-end" v-on:click="showApproved = false">
-            show unapproved
-        </button>
 
         <vue-good-table ref="award-vgt" :columns="vgtColumns" :rows="awards"
             :select-options="{ enabled: false, selectOnCheckboxOnly: true }" :search-options="{ enabled: true }"
