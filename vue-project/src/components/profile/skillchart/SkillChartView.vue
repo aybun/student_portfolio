@@ -76,7 +76,7 @@ export default {
             //Initialize skillFreq
 
 
-            const skillFreq = {}
+            const skillFreq = {};
             for (let i=0; i<this.skillTable.length; ++i){
                 skillFreq[this.skillTable[i].id] = 0
             }

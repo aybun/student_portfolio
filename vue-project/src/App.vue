@@ -33,6 +33,7 @@
                 <div class="collapse" id="dashboard-collapse">
                   <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                     <li><router-link to="/event" class="link-dark rounded">Event</router-link></li>
+                    <li><router-link to="/event-summary" class="link-dark rounded">Event Summary</router-link></li>
                     <li><router-link to="/event/event-attended-student" class="link-dark rounded">Event Attended
                         Student</router-link></li>
 

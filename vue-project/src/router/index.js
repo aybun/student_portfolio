@@ -11,6 +11,7 @@ import Skill from "/src/components/profile/Skill.vue";
 import Skillgroup from "/src/components/profile/Skillgroup.vue";
 import Curriculum from "/src/components/profile/Curriculum.vue"
 import SkillChartView from "/src/components/profile/skillchart/SkillChartView.vue"
+import EventSummary from "/src/components/event/event-summary/EventSummary.vue"
 Vue.use(VueRouter);
 
 const router = new VueRouter({
@@ -79,6 +80,11 @@ const router = new VueRouter({
       path: "/skillchart",
       name: "skillchart",
       component: SkillChartView,
+    },
+    {
+      path: "/event-summary",
+      name: "event-summary",
+      component: EventSummary,
     },
   ],
 });

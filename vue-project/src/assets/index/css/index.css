@@ -2,6 +2,7 @@
 
 /* @import "bootstrap/css/bootstrap.min.css"; */
 
+
 @import "bootstrap-icons/font/bootstrap-icons.css";
 
 @import 'vue-good-table/dist/vue-good-table.css';
@@ -21,9 +22,9 @@
     overflow-y: hidden; don't show content that exceeds my height */
     /* min-height: 100%; */
     /* height:auto; */
-    height: 100% !important;
+    height: 100vh !important;
     
-    position: fixed;
+    /* position: fixed; */
     /* margin-top: 4%; */
 }
 

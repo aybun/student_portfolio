@@ -49,8 +49,8 @@ class AwardApiAccessPolicy(AccessPolicy):
 
             lower_bound_received_date = request.GET.get('lower_bound_received_date', None)
             upper_bound_received_date = request.GET.get('upper_bound_received_date', None)
-            print(lower_bound_received_date)
-            print(upper_bound_received_date)
+            # print(lower_bound_received_date)
+            # print(upper_bound_received_date)
             query_object = Q()
             if lower_bound_received_date is not None:
                 query_object &= Q(received_date__gte=datetime.strptime(lower_bound_received_date, '%Y-%m-%d'))
