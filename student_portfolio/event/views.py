@@ -890,3 +890,66 @@ def skillGroupApi(request, skillgroup_id=0):
 #         events = Event.objects.filter(approved__in=[True])
 #         events_serializer = EventAccessPolicyTestSerializer(events, many=True, context = {'request':request})
 #         return JsonResponse(events_serializer.data, safe=False)
+
+# @parser_classes([JSONParser, MultiPartParser ])
+# @api_view(['GET'])
+# @permission_classes((EventApiAccessPolicy,))
+# @authentication_classes((SessionAuthentication, BasicAuthentication))
+# def eventApi(request, event_id=0):
+#
+#     Serializer = EventSerializer
+#     AccessPolicyClass = EventApiAccessPolicy
+#     Model = Event
+
+@parser_classes([JSONParser, MultiPartParser ])
+@api_view(['GET'])
+@permission_classes((EventCurriculumSummaryApiAccessPolicy,))
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def eventCurriculumSummaryApi(request):
+    #This will return the average skill of students compared to goal points prescribed.
+
+    #get curriculum id
+
+    curriculum_id = request.GET.get('curriculum_id')
+    # print(curriculum_id)
+    curriculum = Curriculum.objects.get(id=curriculum_id)
+    students   = UserProfile.objects.filter(enroll=curriculum_id, faculty_role=2)
+
+
+    event_query_object = EventApiAccessPolicy.scope_query_object(request=request)
+    events = Event.objects.filter(event_query_object)
+
+    skillTable = Skill.objects.all()
+
+
+    if not events.exists():
+        pass
+
+    event_attendances = EventAttendance.objects.filter(
+                                                        event_id_fk__in=events.values_list('id', flat=True),
+                                                        used_for_calculation=True,
+                                                        synced=True,
+                                                        user_id_fk__in=students.values_list('user_id_fk', flat=True)
+                                                       )
+
+    skill_freq = {} #We want to index by id of SkillTable.
+    for e in skillTable:
+        skill_freq[e.id] = 0
+
+    for attendance in event_attendances:
+        for event in events:
+            if attendance.event_id_fk.id == event.id:
+                # print(type(event.skills))
+                # print(event.skills)
+                for skill in event.skills.all():
+                    # print('{} : {}'.format('skill', skill))
+                    skill_freq[skill.id] += 1
+
+    for e in skillTable:
+        skill_freq[e.id] = float(skill_freq[e.id]) / len(students)
+
+    # print(skill_freq)
+
+    return JsonResponse(skill_freq, safe=False)
+
+

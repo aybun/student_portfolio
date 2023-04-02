@@ -15,7 +15,7 @@ urlpatterns=[
     path('event', views.event),
     path('api/event', views.eventApi),
     path('api/event/<int:event_id>', views.eventApi),
-
+    path('api/event/curriculum-summary', views.eventCurriculumSummaryApi),
     # path('event/eventRegisterRequest', views.eventRegisterRequest),
     # path('api/eventRegisterRequest', views.eventRegisterRequestApi),
     # path('api/eventRegisterRequest/<int:event_id>', views.eventRegisterRequestApi),

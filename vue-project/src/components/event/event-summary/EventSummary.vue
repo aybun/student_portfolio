@@ -16,12 +16,19 @@
                 :close-on-select="true" :multiple="false" :options="curriculums" :custom-label="_curriculum_custom_label"
                 track-by="id" placeholder="Select..." open-direction="bottom" :disabled="false">
             </multiselect>
-            <formulate-input type="button" @click="reloadRadarCharts();">Compute</formulate-input>
+            <formulate-input type="button" @click="reloadRadarCharts(); querySummaryAndReloadAverageRadarCharts();">Compute</formulate-input>
         </FormulateForm>
 
         <div v-if="radarChartsLoaded" :key="'skill-radar-charts-' + radarCharstKey">
             <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts">
                 <SkillRadarChart :ref="'skill-radar-chart-' + index"  :loaded="radarChartsLoaded" :chartData="radarChartsDataList[index]" :chartOptions="radarChartsOptionList[index]"></SkillRadarChart>
+            </div>
+        </div>
+
+        <p>Average Radar Charts</p>
+        <div v-if="avgRadarChartsLoaded" :key="'avg-skill-radar-charts-' + radarCharstKey">
+            <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts">
+                <SkillRadarChart  :loaded="avgRadarChartsLoaded" :chartData="avgRadarChartsDataList[index]" :chartOptions="avgRadarChartsOptionList[index]"></SkillRadarChart>
             </div>
         </div>
     </div>
@@ -66,6 +73,10 @@ export default {
             radarChartsOptionList: [],
             radarChartsLoaded: false,
             radarCharstKey:1,
+            eventCurriculumSummaryFreq : {},
+            avgRadarChartsDataList:[],
+            avgRadarChartsOptionList: [],
+            avgRadarChartsLoaded: false,
 
             skillFreq: [],
 
@@ -73,6 +84,9 @@ export default {
             barChartOption: {},
             barChartLoaded: false,
             // barChartKey:1,
+
+            
+
             queryParameters: {
                 lower_bound_start_datetime: "2022-06-01T00:00:00.000Z",
                 upper_bound_start_datetime: "2023-06-01T00:00:00.000Z"
@@ -94,18 +108,48 @@ export default {
             this.prepareChartData();
             this.reloadBarChart();
             this.reloadRadarCharts();
+
+            if (this.curriculum !== null){
+                await this.getEventCurriculumSummary()
+                this.reloadAverageRaderCharts();
+            }
             // this.barChartKey += 1;
         },
         async queryEvents() {
-            const eventSearchParams = new URLSearchParams([['lower_bound_start_datetime', this.queryParameters.lower_bound_start_datetime],
-            ['upper_bound_start_datetime', this.queryParameters.upper_bound_start_datetime]]);
+            const eventSearchParams = new URLSearchParams([
+                ['used_for_calculation', true],
+                ['lower_bound_start_datetime', this.queryParameters.lower_bound_start_datetime],
+                ['upper_bound_start_datetime', this.queryParameters.upper_bound_start_datetime]]);
             return await axios.get(this.variables.API_URL + "event", { params: eventSearchParams })
                 .then((response) => {
                     this.events = response.data;
                     // console.log(this.events)
                 });
-        },
 
+            if (curriculum !== null){
+                this.getEventCurriculumSummary();
+            }    
+        },
+        async getEventCurriculumSummary(){
+            const eventSearchParams = new URLSearchParams([
+                ['used_for_calculation', true],
+                ['lower_bound_start_datetime', this.queryParameters.lower_bound_start_datetime],
+                ['upper_bound_start_datetime', this.queryParameters.upper_bound_start_datetime],
+                ['curriculum_id', this.curriculum.id],
+            ]);
+            return await axios.get(this.variables.API_URL + "event/curriculum-summary", { params: eventSearchParams })
+                .then((response) => {
+                    this.eventCurriculumSummaryFreq = response.data;
+                    // console.log(this.events)
+                });
+        },
+        async querySummaryAndReloadAverageRadarCharts(){
+            if (this.curriculum !== null){
+                await this.getEventCurriculumSummary()
+                this.reloadAverageRaderCharts();
+            }
+            return
+        },
         getEmptyArrayOfArrays(arrayLength) {
             const arr = new Array(arrayLength)
             for (let i = 0; i < arrayLength; ++i) {
@@ -201,6 +245,32 @@ export default {
 
             return result_dict
         },
+        getDataForAverageRadarCharts(skillgroups_for_charts) {
+            const n_groups = skillgroups_for_charts.length
+            const chart_freq_data = this.getEmptyArrayOfArrays(n_groups)
+            const goal_freq_data = this.getEmptyArrayOfArrays(n_groups)
+            const skill_label_data = this.getEmptyArrayOfArrays(n_groups)
+
+            for (let i = 0; i < skillgroups_for_charts.length; ++i) {
+                for (let j = 0; j < skillgroups_for_charts[i].skills.length; ++j) {
+
+                    const temp_skill_id = skillgroups_for_charts[i].skills[j].skill_id_fk
+                    // console.log(temp_skill_id)
+                    // console.log(this.skillTable)
+                    chart_freq_data[i].push(this.eventCurriculumSummaryFreq[temp_skill_id])
+                    goal_freq_data[i].push(skillgroups_for_charts[i].skills[j].goal_point)
+                    skill_label_data[i].push(this.reindexedSkillTable[temp_skill_id].title)
+                }
+            }
+
+            const result_dict = {
+                'chart_freq_data': chart_freq_data,
+                'goal_freq_data': goal_freq_data,
+                'skill_label_data': skill_label_data
+            }
+
+            return result_dict
+        },
 
         getDataForBarChart() {
 
@@ -254,85 +324,6 @@ export default {
             this.barChartLoaded = true;
 
         },
-
-        reloadCharts() {
-            const curriculum = this.getCurriculum()
-            // console.log(curriculum)
-            const skillgroups_for_charts = this.getSkillgroupsForChartsFromCurriculum(curriculum)
-            // console.log(skillgroups_for_charts)
-            const data_for_chart = this.getDataForChart(skillgroups_for_charts)
-            // console.log(data_for_chart)
-
-            
-            const chart_freq_data = data_for_chart['chart_freq_data']
-            const goal_freq_data = data_for_chart['goal_freq_data']
-            const skill_label_data = data_for_chart['skill_label_data']
-
-            const chartDataList = []
-            const chartOptionList = []
-            for (let i = 0; i < skillgroups_for_charts.length; ++i) {
-
-                const chart_data = {}
-                chart_data.labels = skill_label_data[i]
-                chart_data.datasets = [
-                    {
-                        label: 'My Skills',
-                        data: chart_freq_data[i],
-                        fill: true,
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgb(255, 99, 132)',
-                        pointBackgroundColor: 'rgb(255, 99, 132)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(255, 99, 132)'
-                    },
-                    {
-                        label: 'Goal',
-                        data: goal_freq_data[i],
-                        fill: true,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgb(54, 162, 235)',
-                        pointBackgroundColor: 'rgb(54, 162, 235)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(54, 162, 235)'
-                    },
-                ]
-
-
-                const option = {
-                    // responsive: false,
-                    // maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            max: 10,
-                            min: 0,
-                        },
-                    },
-
-                    elements: {
-                        line: {
-                            borderWidth: 3,
-
-                        }
-                    },
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: skillgroups_for_charts[i].name
-                        }
-                    },
-                }
-
-                chartDataList.push(chart_data)
-                chartOptionList.push(option)
-            }
-
-            this.chartDataList = chartDataList
-            this.chartOptionList = chartOptionList
-            this.chartsLoaded = true
-        },
-
         reloadRadarCharts() {
             if (this.curriculum === null)
                 return;
@@ -419,7 +410,87 @@ export default {
 
         },
 
+        reloadAverageRaderCharts(){
+            if (this.curriculum === null)
+                return;
 
+            this.avgRadarChartsLoaded = false;
+            this.radarChartsKey += 1;
+
+            const curriculum = this.curriculum;
+            //Assume this.skillgroupsForRadarCharts computed.
+            const skillgroups_for_charts = this.getSkillgroupsForChartsFromCurriculum(curriculum)
+            this.skillgroupsForRadarCharts = skillgroups_for_charts
+
+            const data_for_chart = this.getDataForAverageRadarCharts(skillgroups_for_charts)
+            const chart_freq_data = data_for_chart['chart_freq_data']
+            const goal_freq_data = data_for_chart['goal_freq_data']
+            const skill_label_data = data_for_chart['skill_label_data']
+            
+            const chartDataList = []
+            const chartOptionList = []
+            for (let i = 0; i < skillgroups_for_charts.length; ++i ){
+
+                const chart_data = {}
+                chart_data.labels = skill_label_data[i]
+                chart_data.datasets = [
+                        {
+                            label: 'My Skills',
+                            data: chart_freq_data[i],
+                            fill: true,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            pointBackgroundColor: 'rgb(255, 99, 132)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(255, 99, 132)'
+                        },
+                        {
+                            label: 'Goal',
+                            data: goal_freq_data[i],
+                            fill: true,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            pointBackgroundColor: 'rgb(54, 162, 235)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(54, 162, 235)'
+                        },
+                ]
+                
+                
+                const option = {
+                            responsive: false,
+                            maintainAspectRatio: false,
+                    scales:{
+                        r:{
+                            max:10,
+                            min:0,
+                        },
+                    },
+
+                    elements: {
+                            line: {
+                                borderWidth: 3,
+                                
+                            }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: skillgroups_for_charts[i].name
+                        }
+                    },
+                }
+
+                chartDataList.push(chart_data)
+                chartOptionList.push(option)
+            }
+            
+            this.avgRadarChartsDataList = chartDataList
+            this.avgRadarChartsOptionList = chartOptionList
+            this.avgRadarChartsLoaded = true
+        },
 
         _curriculum_custom_label({ id, th_name }) {
             if (id === "" || id === null || typeof id === 'undefined') {
@@ -474,11 +545,13 @@ export default {
                 // console.log(this.skillTable)
             });
 
+        
+        this.queryPrepareReloadCharts();
+        // await this.queryEvents()
 
-        await this.queryEvents()
-
-        this.prepareChartData();
-        this.reloadBarChart();
+        // this.prepareChartData();
+        // this.reloadBarChart();
+        
         // this.reloadCharts()
 
 

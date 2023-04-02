@@ -56,8 +56,12 @@ class EventApiAccessPolicy(AccessPolicy):
         if request.method == "GET":
             lower_bound_start_datetime = request.GET.get('lower_bound_start_datetime', None)
             upper_bound_start_datetime = request.GET.get('upper_bound_start_datetime', None)
+            used_for_calculation = request.GET.get('used_for_calculation', None)
 
             query_object = Q()
+            if used_for_calculation is not None:
+                query_object &= Q(used_for_calculation=(used_for_calculation == 'true'))
+
             if lower_bound_start_datetime is not None:
                 query_object &= Q(start_datetime__gte=datetime.strptime(lower_bound_start_datetime, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
@@ -322,6 +326,16 @@ class EventAttendanceBulkAddApiAccessPolicy(AccessPolicy):
     statements = [
         {
             "action": ["<method:put>"],
+            "principal": ["group:staff"],
+            "effect": "allow"
+
+        },
+    ]
+
+class EventCurriculumSummaryApiAccessPolicy(AccessPolicy):
+    statements = [
+        {
+            "action": ["<method:get>"],
             "principal": ["group:staff"],
             "effect": "allow"
 

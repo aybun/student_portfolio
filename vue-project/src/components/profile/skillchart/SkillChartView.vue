@@ -1,6 +1,6 @@
 <template>
     <div v-if="chartsLoaded">
-        <div v-for="(skillgroup, index ) in skillgroups" :key="'skill-radar-chart-' + index">
+        <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts" :key="'skill-radar-chart-' + index">
             <SkillRadarChart :ref="'skill-radar-chart-' + index"  :loaded="chartsLoaded" :chartData="chartDataList[index]" :chartOptions="chartOptionList[index]"></SkillRadarChart>
         </div>
     </div>
@@ -37,6 +37,7 @@ export default {
             chartDataList:[],
             chartOptionList:[],
             chartsLoaded:false,
+            skillgroupsForRadarCharts:[],
 
             skillFreq:[],
             // skillLabels:[],
@@ -151,9 +152,13 @@ export default {
         },
 
         reloadCharts(){
+            
+            this.chartsLoaded=false;
+
             const curriculum = this.getCurriculum()
             // console.log(curriculum)
             const skillgroups_for_charts = this.getSkillgroupsForChartsFromCurriculum(curriculum)
+            this.skillgroupsForRadarCharts = skillgroups_for_charts;
             // console.log(skillgroups_for_charts)
             const data_for_chart = this.getDataForChart(skillgroups_for_charts)
             // console.log(data_for_chart)
