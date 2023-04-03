@@ -244,8 +244,13 @@ class SkillTableApiAccessPolicy(AccessPolicy):
         },
         {
             "action": ["<method:put>", "<method:post>"],
-            "principal": ["staff"],
+            "principal": ["group:staff"],
             "effect": "allow"
+        },
+        {
+            "action": ["<method:delete>"],
+            "principal": ["*"],
+            "effect": "deny"
         },
     ]
     @classmethod

@@ -2,7 +2,7 @@ import http
 import json
 from django.contrib.auth.models import User, Group
 # from django.test import TestCase
-from .views import eventApi
+from .views import eventApi, skillTableApi
 # Create your tests here.
 from rest_framework.test import APIRequestFactory, force_authenticate, APITestCase
 
@@ -82,9 +82,7 @@ class EventCRUD(APITestCase):
         request = factory.get('/api/event/' + str(event_id)) #Get method contains no message.
         force_authenticate(request, user=user)
         response = view(request, event_id=event_id)
-        # print(type(response))
         data = json.loads(response.content)
-        # print(data)
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id'), event_id)
 
@@ -108,11 +106,8 @@ class EventCRUD(APITestCase):
         request = factory.put('/api/event/' + str(event_id), out_dict)
         force_authenticate(request, user=user)
         response = view(request, event_id=event_id)
-        # print(type(response))
         response_data = json.loads(response.content)
-        # print(response_data)
         data = response_data['data']
-        # print(data)
         self.assertEqual(data.get('approved'), True)
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id'), event_id)
@@ -160,7 +155,7 @@ class EventCRUD(APITestCase):
         user = User.objects.get(username='tamtam')  # tamtam is student.
         view = eventApi
 
-        # create part
+        #Create
         create_request = factory.post('/api/event/', {'title': 'ฺโครงการ'})
         force_authenticate(create_request, user=user)
         response = view(create_request, event_id=0)
@@ -168,9 +163,9 @@ class EventCRUD(APITestCase):
         data = response_data['data']
         event_id = data.get('id')
 
+        #Update
         self.assertEqual(data['approved'], False)
         out_dict = {'title': 'โครงการ', 'id': event_id, 'approved': 'true'}
-
         request = factory.get('/api/event/' + str(event_id))  # Get method contains no message.
         force_authenticate(request, user=user)
         response = view(request, event_id=event_id)
@@ -382,4 +377,123 @@ class EventCRUD(APITestCase):
         view = eventApi
         force_authenticate(request, user=None)
         response = view(request, event_id=event_id)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+
+
+class SkillCRUD(APITestCase):
+    def setUp(self):
+        # print('in setup')
+        staff_group = Group.objects.get_or_create(name='staff')
+        student_group = Group.objects.get_or_create(name='student')
+
+        staff_user = User.objects.create(username='tubtab', password='Tubtab12345678')
+        student_user_tamtam = User.objects.create(username='tamtam', password='Tamtam12345678')
+        student_user_tubtim = User.objects.create(username='tubtim', password='Tubtim12345678')
+
+        staff_group[0].user_set.add(staff_user)
+        student_group[0].user_set.add(student_user_tamtam)
+        student_group[0].user_set.add(student_user_tubtim)
+
+    def test_staff_create(self):
+        factory = APIRequestFactory()
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
+        view = skillTableApi
+        api_string = '/api/skillTable/'
+
+        # print(user.groups.values_list('name', flat=True))
+        request = factory.post(api_string, {'title': 'ทักษะที่ 1'})
+        force_authenticate(request, user=user)
+        response = view(request, skill_id=0)
+        # response.render()
+        response_data = json.loads(response.content)
+        # print(response_data)
+        data = response_data['data']
+        # print(data)
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+
+    def test_staff_read(self):
+        factory = APIRequestFactory()
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
+        view = skillTableApi
+        api_string = '/api/skillTable/'
+
+        # CREATE
+        request = factory.post(api_string, {'title': 'ทักษะที่ 1'})
+        force_authenticate(request, user=user)
+        response = view(request, skill_id=0)
+        # response.render()
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        #READ
+        request = factory.get(api_string + str(id))  # Get method contains no message.
+        force_authenticate(request, user=user)
+        response = view(request, skill_id=id)
+        # response.render()
+        data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertEqual(data.get('id'), id)
+
+    def test_staff_update(self):
+        factory = APIRequestFactory()
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
+        view = skillTableApi
+        api_string = '/api/skillTable/'
+
+        # CREATE
+        request = factory.post(api_string, {'title': 'ทักษะที่ 1'})
+        force_authenticate(request, user=user)
+        response = view(request, skill_id=0)
+        # response.render()
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        # UPDATE
+        out_dict = { 'id' : id, 'title': 'เปลี่ยนไปเป็นรัก'}
+        request = factory.put(api_string + str(id), out_dict)
+        force_authenticate(request, user=user)
+        response = view(request, skill_id=id)
+        # response.render()
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertEqual(data.get('id'), id)
+        self.assertEqual(data.get('title'), 'เปลี่ยนไปเป็นรัก')
+
+    def test_staff_cannot_delete(self):
+        factory = APIRequestFactory()
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
+        view = skillTableApi
+        api_string = '/api/skillTable/'
+
+        #Create
+        request = factory.post(api_string, {'title': 'ทักษะที่ 1'})
+        force_authenticate(request, user=user)
+        response = view(request, skill_id=0)
+        # response.render()
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        #Delete
+        request = factory.delete(api_string + str(id))
+        force_authenticate(request, user=user)
+        response = view(request, skill_id=id)
+        response.render()
+        response_data = json.loads(response.content)
+        # print(response_data)
+        # print('status code : {}'.format(response.status_code))
         self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
