@@ -273,7 +273,8 @@ class SkillTableApiAccessPolicy(AccessPolicy):
                 return Q()
             elif 'student' in groups:
                 return Q()
-
+            else: #unauthenticated user.
+                return Q()
         elif request.method == "PUT":
             return Q()
 
