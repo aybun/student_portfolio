@@ -52,6 +52,10 @@ new Vue({
         this.user = response.data;
       // console.log(this.user)
     });
+
+    // this.$nextTick( () => {
+    //   document.getElementById('')
+    // })
   },
 
   mounted: function () {},

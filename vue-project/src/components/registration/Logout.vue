@@ -20,6 +20,7 @@
   
       axios.get(this.$API_URL + "logout").then((response) => {
         alert(response.data.message)
+        window.location.replace("/home");
 
       }).catch((error)=>{
         alert(error.response.data.message);

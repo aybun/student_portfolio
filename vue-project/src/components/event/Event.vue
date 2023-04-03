@@ -971,7 +971,7 @@ export default {
                 </div>
             </div>
         </div>
-
+        
         <EventAttendanceModal v-model="showEventAttendanceModal" :click-to-close="false">
             <template v-slot:title>Event Attendance</template>
 
