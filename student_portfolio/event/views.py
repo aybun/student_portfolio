@@ -868,38 +868,6 @@ def skillGroupApi(request, skillgroup_id=0):
         else:
             return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
-#Testing AccessPolicy
-
-# @permission_classes((EventAccessPolicy,))
-# @authentication_classes((SessionAuthentication, BasicAuthentication))
-# @api_view(("GET",))
-# @permission_classes((EventAccessPolicy,))
-# def eventWithAccessPolicyApi(request, eventId=0):
-#
-#     if request.method=='GET':
-#         event = Event.objects.get(eventId=eventId)
-#         event_serializer = EventAccessPolicyTestSerializer(event, context = {'request':request})
-#         print(event_serializer.data)
-#         return JsonResponse(event_serializer.data, safe=False)
-#
-# @permission_classes((EventAccessPolicy,))
-# @api_view(("GET",))
-# @authentication_classes((SessionAuthentication, BasicAuthentication))
-# def listEventsWithAccessPolicyApi(request):
-#     if request.method =='GET':
-#         events = Event.objects.filter(approved__in=[True])
-#         events_serializer = EventAccessPolicyTestSerializer(events, many=True, context = {'request':request})
-#         return JsonResponse(events_serializer.data, safe=False)
-
-# @parser_classes([JSONParser, MultiPartParser ])
-# @api_view(['GET'])
-# @permission_classes((EventApiAccessPolicy,))
-# @authentication_classes((SessionAuthentication, BasicAuthentication))
-# def eventApi(request, event_id=0):
-#
-#     Serializer = EventSerializer
-#     AccessPolicyClass = EventApiAccessPolicy
-#     Model = Event
 
 @parser_classes([JSONParser, MultiPartParser ])
 @api_view(['GET'])
@@ -952,4 +920,23 @@ def eventCurriculumSummaryApi(request):
 
     return JsonResponse(skill_freq, safe=False)
 
+@parser_classes([JSONParser, MultiPartParser ])
+@api_view(['GET'])
+@permission_classes((EventApiAccessPolicy,))
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def eventAsyncSearchApi(request):
 
+    event_search_term = request.GET.get("event_search_term")
+    limit_number = 7
+
+    if event_search_term is None:
+        return JsonResponse([], safe=False)
+
+    query_scope_object = EventApiAccessPolicy.scope_query_object(request=request)
+    if event_search_term.isdigit():
+        events = Event.objects.filter(Q(id=int(event_search_term)) & query_scope_object)[:limit_number]
+
+    else: #Search on title.
+        events = Event.objects.filter(Q(title__contains=event_search_term) & query_scope_object)[:limit_number]
+
+    return JsonResponse(EventSerializer(instance=events, many=True, context={'request' : request}).data, safe=False)

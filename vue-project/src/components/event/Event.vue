@@ -9,7 +9,7 @@ import "flatpickr/dist/flatpickr.min.css";
 import * as bootstrap from "bootstrap"; //where is bootstrap-icons??
 import "vue-datetime/dist/vue-datetime.min.css";
 
-import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
+// import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
 
 // components
 import EventAttendance from "/src/components/event/EventAttendance.vue";
@@ -20,7 +20,7 @@ export default {
         VueGoodTable,
         Multiselect,
 
-        VueFinalModal,
+        // VueFinalModal,
 
         //Custom components
         EventAttendanceModal,
@@ -48,9 +48,17 @@ export default {
             showEventAttendanceModal: false,
             queryParameters : {
                 lower_bound_start_datetime: "2022-06-01T00:00:00.000Z",
-                upper_bound_start_datetime: "2023-06-01T00:00:00.000Z"
+                upper_bound_start_datetime: "2023-06-01T00:00:00.000Z",
+                
             },
             
+            asyncSeachEventVariables : {
+                event_search_term: '',
+                isLoading:false,
+                event:null,
+                events:[],
+            },
+
             event: {},
             copiedEvent: {},
 
@@ -86,7 +94,7 @@ export default {
                     // tooltip: "A simple tooltip",
                     thClass: "text-center",
                     tdClass: "text-center",
-                    hidden: true,
+                    hidden: false,
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
@@ -192,8 +200,8 @@ export default {
             return {
                 id: 0,
                 title: "",
-                start_datetime: new Date(),
-                end_datetime: new Date(),
+                start_datetime: '',
+                end_datetime: '',
                 info: "",
 
                 created_by: "",
@@ -259,7 +267,7 @@ export default {
             this.copiedEvent = JSON.parse(stringified);
 
             this.checkboxes = this.getListOfTrueCheckboxFields(
-                this.event,
+                event,
                 this.checkboxFields
             );
         },
@@ -483,9 +491,9 @@ export default {
         },
 
         _skills_custom_label({ id, title }) {
-            if (id === "" || Object.is(id, null)) {
+            if (id === "" || id === null || typeof id === 'undefined') {
                 return "Select";
-            } else if (Object.is(title, null) || typeof title === "undefined") {
+            } else if (title === null || typeof title === "undefined") {
                 for (let i = 0; i < this.skillTable.length; ++i) {
                     if (this.skillTable[i].id === id) {
                         const temp = this.skillTable[i];
@@ -592,6 +600,84 @@ export default {
 
             return list
         },
+        
+        cloneEventSettings(){
+
+            let event = this.event
+            let pastEvent = this.asyncSeachEventVariables.event
+
+            if (typeof pastEvent.id === 'undefined')
+                return;
+            
+            const shouldBeCopiedFields = [
+                                        'start_datetime', 
+                                        'end_datetime',
+                                        'used_for_calculation',
+                                        'arranged_inside', 
+                                        'skills'];
+
+            shouldBeCopiedFields.forEach((e)=>{
+                event[e] = pastEvent[e]
+            });
+
+            let today_date = (new Date()).toISOString().slice(0,10) //yyyy-mm-dd
+            let start_datetime_time_string = event.start_datetime.split("T")[1]
+            let end_datetime_time_string = event.end_datetime.split("T")[1]
+            // console.log(today_date)
+            // console.log(start_datetime_time_string)
+            
+            event.start_datetime = today_date + "T" + start_datetime_time_string
+            event.end_datetime = today_date + "T" + end_datetime_time_string
+            // console.log(event.start_datetime)
+            this.assignDataToEventForm(event);
+        },
+        _event_custom_label({id, title}){
+            if (id === "" || id === null || typeof id === 'undefined') {
+                return "Select";
+            } else if (title === null || typeof title === "undefined") {
+
+                const table = this.asyncSeachEventVariables.events
+                for (let i = 0; i < table.length; ++i) {
+                    if (table[i].id === id) {
+                        const temp = table[i];
+                        // console.log('in the loop : ', temp)
+                        return `${temp.id} ${temp.title}`;
+                    }
+                }
+            }
+
+            return `${id} ${title}`;
+        },
+        async asyncSearchEvent(event_search_term){
+            if (event_search_term === '' || event_search_term === null )
+                return;
+            
+            const vars = this.asyncSeachEventVariables
+            vars.isLoading = true
+
+            if(typeof window.LIT !== 'undefined') {
+                clearTimeout(window.LIT);
+            }
+
+            window.LIT = setTimeout(async () =>  {
+                
+            
+                const searchParams = new URLSearchParams([
+                    ['event_search_term',  event_search_term]
+                ]);
+
+                await axios.get(this.$API_URL + "event/async-search", {params : searchParams}).then((response) => {
+                    vars.events = response.data;
+                // console.log(this.user)
+                });
+
+                vars.isLoading = false
+
+
+            }, 500); //setTimeout
+
+            
+        },
         _data_processing_for_test() {
             //Assume that the fields related to api calls are ready to be processed.
             this.event = this.getEmptyEvent();
@@ -650,6 +736,8 @@ export default {
                 .addEventListener("hidden.bs.modal", (event) => {
                     this.veeErrors.clear();
                     this.formKey += 1;
+                    this.asyncSeachEventVariables.events = []
+                    this.asyncSeachEventVariables.event = null
                 });
         })
     },
@@ -762,9 +850,18 @@ export default {
                                     data-bs-target="#edit-info-modal">
                                     Show Attendances
                                 </button>
-
+                                
+                                <multiselect v-if="addingNewEvent && !modalReadonly" v-model="asyncSeachEventVariables.event" id="asyncSearchEventMultiselect" :custom-label="_event_custom_label" track-by="id" placeholder="Search and Clone the event settings" open-direction="bottom" :options="asyncSeachEventVariables.events" 
+                                    :multiple="false" :searchable="true" :loading="asyncSeachEventVariables.isLoading" :internal-search="false" :clear-on-select="false" 
+                                    :close-on-select="true" :options-limit="7" :limit="7" :max-height="600" :show-no-results="false" :hide-selected="true" @search-change="asyncSearchEvent">
+                                    <span slot="noResult">No elements found. Consider changing the search query.</span>
+                                </multiselect>
+                                <button v-if="addingNewEvent && !modalReadonly" type="button" class="btn btn-primary m-2 fload-end"
+                                    @click="cloneEventSettings();" >Clone settings 
+                                </button>
+                                
                                 <FormulateForm name="event-formulate-form-1" ref="event-formulate-form-1"
-                                    #default="{ hasErrors }">
+                                >
                                     <formulate-input ref="event-formulate-form-1-title" type="text" v-model="event.title"
                                         label="Title" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
@@ -882,7 +979,7 @@ export default {
                     @click="showEventAttendanceModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
                     Close
                 </button></template>
-            <EventAttendance v-if="typeof this.testMode === 'undefined'" :event_id="event.id" :user="user"></EventAttendance>
+            <EventAttendance v-if="!addingNewEvent && (typeof this.testMode === 'undefined') " :event_id="event.id" :user="user"></EventAttendance>
             <!-- <template v-slot:params><EventAttendance :event_id="event.id"></EventAttendance></template> -->
         </EventAttendanceModal>
 

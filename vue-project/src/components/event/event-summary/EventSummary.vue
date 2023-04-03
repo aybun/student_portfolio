@@ -18,15 +18,15 @@
             </multiselect>
             <formulate-input type="button" @click="reloadRadarCharts(); querySummaryAndReloadAverageRadarCharts();">Compute</formulate-input>
         </FormulateForm>
-
+        
         <div v-if="radarChartsLoaded" :key="'skill-radar-charts-' + radarCharstKey">
             <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts">
                 <SkillRadarChart :ref="'skill-radar-chart-' + index"  :loaded="radarChartsLoaded" :chartData="radarChartsDataList[index]" :chartOptions="radarChartsOptionList[index]"></SkillRadarChart>
             </div>
         </div>
-
+            
         <p>Average Radar Charts</p>
-        <div v-if="avgRadarChartsLoaded" :key="'avg-skill-radar-charts-' + radarCharstKey">
+        <div v-if="avgRadarChartsLoaded" :key="'avg-skill-radar-charts-' + avgRadarChartsKey">
             <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts">
                 <SkillRadarChart  :loaded="avgRadarChartsLoaded" :chartData="avgRadarChartsDataList[index]" :chartOptions="avgRadarChartsOptionList[index]"></SkillRadarChart>
             </div>
@@ -77,6 +77,7 @@ export default {
             avgRadarChartsDataList:[],
             avgRadarChartsOptionList: [],
             avgRadarChartsLoaded: false,
+            avgRadarChartsKey:1,
 
             skillFreq: [],
 
@@ -415,7 +416,7 @@ export default {
                 return;
 
             this.avgRadarChartsLoaded = false;
-            this.radarChartsKey += 1;
+            this.avgRadarChartsKey += 1;
 
             const curriculum = this.curriculum;
             //Assume this.skillgroupsForRadarCharts computed.
