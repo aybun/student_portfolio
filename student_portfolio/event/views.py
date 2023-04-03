@@ -754,10 +754,10 @@ def skillgroup(request):
     return render(request, 'profile/skillgroup.html', {})
 
 @parser_classes([JSONParser, MultiPartParser])
-@permission_classes((SkillGroupApiAccessPolicy,))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@permission_classes((SkillGroupApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
-def skillGroupApi(request, skillgroup_id=0):
+def skillgroupApi(request, skillgroup_id=0):
 
     Serializer = SkillGroupSerializer
     AccessPolicyClass = SkillGroupApiAccessPolicy

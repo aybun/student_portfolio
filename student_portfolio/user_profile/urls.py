@@ -25,10 +25,11 @@ urlpatterns=[
     path('profile/curriculum-student/<int:curriculum_id>', views.curriculumStudent),
     path('api/curriculum', event_views.curriculumApi),
     path('api/curriculum/<int:curriculum_id>', event_views.curriculumApi),
+    path('api/curriculum-student-bulk-add', views.curriculumStudentBulkAddApi),
 
     path('profile/skillgroup', event_views.skillgroup),
-    path('api/skillgroup', event_views.skillGroupApi),
-    path('api/skillgroup/<int:skillgroup_id>', event_views.skillGroupApi),
-    path('api/curriculum-student-bulk-add', views.curriculumStudentBulkAddApi),
+    path('api/skillgroup', event_views.skillgroupApi),
+    path('api/skillgroup/<int:skillgroup_id>', event_views.skillgroupApi),
+
 
 ]

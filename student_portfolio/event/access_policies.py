@@ -276,7 +276,8 @@ class SkillTableApiAccessPolicy(AccessPolicy):
             else: #unauthenticated user.
                 return Q()
         elif request.method == "PUT":
-            return Q()
+            if 'staff' in groups:
+                return Q()
 
         elif request.method == "DELETE":
             #CurrentlyDisabled
