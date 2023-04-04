@@ -21,7 +21,7 @@ class UserProfile(models.Model):
     firstname   = models.CharField(max_length=50, blank=True, default='')
     middlename  = models.CharField(max_length=50, blank=True, default='')
     lastname    = models.CharField(max_length=50, blank=True, default='')
-
+    
     email = models.EmailField(max_length=254, blank=True, default='')
 
     faculty_role = models.ForeignKey(FacultyRole, null=True, on_delete=models.SET_NULL)

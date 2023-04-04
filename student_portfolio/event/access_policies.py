@@ -334,7 +334,7 @@ class EventAttendedListApiAccessPolicy(AccessPolicy):
 class EventAttendanceBulkAddApiAccessPolicy(AccessPolicy):
     statements = [
         {
-            "action": ["<method:put>"],
+            "action": ["<method:post>"],
             "principal": ["group:staff"],
             "effect": "allow"
 

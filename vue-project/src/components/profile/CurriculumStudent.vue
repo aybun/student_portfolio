@@ -226,7 +226,7 @@ export default {
             axios.defaults.xsrfCookieName = 'csrftoken';
             axios.defaults.xsrfHeaderName = 'X-CSRFToken';
             axios({
-                method: 'post',
+                method: 'put',
                 url: this.variables.API_URL + "curriculum-student-bulk-add",
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',

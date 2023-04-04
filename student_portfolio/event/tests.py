@@ -1374,7 +1374,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         message = response_data['message']
-        self.assertEqual(message, "The university id does not exist.")
+        self.assertEqual(message, "The university id does not exist or the entered university id is not valid. You might need to add the data to the database.")
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 

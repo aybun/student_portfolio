@@ -13,10 +13,11 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 
 # from student.models import Student
+from user_profile.access_policies import StudentApiAccessPolicy
 from user_profile.models import UserProfile
 from .models import Event, EventAttendance, Skill, Curriculum, Skillgroup
 from .serializers import EventSerializer, SkillSerializer, EventSkillSerializer, EventAttendanceSerializer, \
-    CurriculumSerializer, SkillGroupSerializer, EventAttendanceBulkAddSerializer
+    CurriculumSerializer, SkillGroupSerializer, EventAttendanceBulkAddSerializer, CurriculumStudentBulkAddSerializer
 
 from rest_framework.decorators import parser_classes, api_view, permission_classes, authentication_classes, action
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
@@ -213,7 +214,7 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
             return JsonResponse({"message": "The student is present in the attendance table."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
         if not UserProfile.objects.filter(university_id=data['university_id']).exists():
-            return JsonResponse({"message": "The university id does not exist."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({"message": "The university id does not exist or the entered university id is not valid. You might need to add the data to the database."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
         _, data = Serializer.custom_clean(data=data, context={'request':request})
@@ -323,16 +324,16 @@ def eventAttendedListApi(request, user_id=0):
 
 @parser_classes((MultiPartParser, JSONParser,))
 @api_view(['POST'])
-@permission_classes((EventAttendanceBulkAddApiAccessPolicy,))
+@permission_classes((EventAttendanceApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendanceBulkAddApi(request):
 
     data = request.data.dict()
-    # print(data)
+    print(data)
     serializer = EventAttendanceBulkAddSerializer(data=data, context={'request': request})
     # print(data)
     if not serializer.is_valid():
-        print('serializer is not valid.')
+        # print('serializer is not valid.')
         print(serializer.error_messages)
         print(serializer.errors)
         response_dict = {
@@ -343,6 +344,8 @@ def eventAttendanceBulkAddApi(request):
 
     event_id = serializer.validated_data['event_id']
     csv_file = serializer.validated_data['csv_file']
+    all_passed = (data.get('all_passed', None) == 'true')
+    all_must_valid = (data.get('all_must_valid', None) == 'true')
 
     decoded_csv_file = csv_file.read().decode(encoding='utf-8-sig')
     io_string = io.StringIO(decoded_csv_file)
@@ -355,17 +358,17 @@ def eventAttendanceBulkAddApi(request):
     # print(header)
     for (index, row) in enumerate(csvreader):
         # print(row)
-        temp_dict = {'event_id_fk': event_id}
+        temp_dict = {'event_id_fk': event_id, 'used_for_calculation': all_passed}
         for (col_label, col) in zip(header, row):
             temp_dict[col_label] = col
             # print(temp_dict)
 
         if not UserProfile.objects.filter(university_id=temp_dict['university_id']).exists():
-            invalid_rows.append((index, row, 'university id does not exist.'))
+            invalid_rows.append((index, row, 'The university id does not exist or the entered university id is not valid. You might need to add the data to the database.'))
             continue
 
         if EventAttendance.objects.filter(event_id_fk=event_id, university_id=temp_dict['university_id']).exists():
-            invalid_rows.append((index, row, 'duplicated'))
+            invalid_rows.append((index, row, 'Duplicated. The student is present in the attendance table.'))
             continue
 
         attendance_serializer = EventAttendanceSerializer(data=temp_dict, context={'request': request})
@@ -376,7 +379,7 @@ def eventAttendanceBulkAddApi(request):
         else: #Note : Send out the invalid row.
             invalid_rows.append((index, row, 'invalid'))
 
-    if data['all_must_valid'] == 'true':
+    if all_must_valid:
         if len(invalid_rows) != 0:
             response_dict = {
                 'message': 'All rows must be valid but the file contains some invalid rows.',
@@ -428,8 +431,8 @@ def eventAttendanceBulkAddApi(request):
             return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @parser_classes((JSONParser, MultiPartParser))
-@permission_classes((EventAttendanceApiAccessPolicy,))
 @api_view(['PUT'])
+@permission_classes((EventAttendanceApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendanceMultiEditUsedForCalculationApi(request):
 
@@ -439,14 +442,7 @@ def eventAttendanceMultiEditUsedForCalculationApi(request):
         try:
             ids = json.loads(data['ids'])
 
-
-            used_for_calculation = data['used_for_calculation']
-            if (used_for_calculation == 'true'):
-                used_for_calculation = True
-            elif (used_for_calculation == 'false'):
-                used_for_calculation = False
-            else:
-                return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            used_for_calculation = (data.get('used_for_calculation', None) == 'true')
 
         except IntegrityError:
             return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -472,8 +468,8 @@ def eventAttendanceMultiEditUsedForCalculationApi(request):
             return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @parser_classes((JSONParser, MultiPartParser))
-@permission_classes((EventAttendanceApiAccessPolicy,))
 @api_view(['PUT'])
+@permission_classes((EventAttendanceApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def syncAttendanceByUniversityId(request, event_id=0):
 
@@ -748,6 +744,79 @@ def curriculumApi(request, curriculum_id=0):
             return JsonResponse({"message": "Deleted Successfully"}, safe=False)
         else:
             return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.client.INTERNAL_SERVER_ERROR)
+
+@parser_classes((MultiPartParser, JSONParser,))
+@api_view(['PUT'])
+@permission_classes((StudentApiAccessPolicy,))
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+def curriculumStudentBulkAddApi(request):
+    #Note : We have to ensure that every row is valid.
+
+    data = request.data.dict()
+    # print(data)
+    serializer = CurriculumStudentBulkAddSerializer(data=data, context={'request': request})
+
+    if not serializer.is_valid():
+        print(serializer.error_messages)
+        print(serializer.errors)
+        response_dict = {
+            'message': 'The serializer reject the input.',
+        }
+        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    curriculum_id = serializer.validated_data['curriculum_id']
+    csv_file = serializer.validated_data['csv_file']
+
+    decoded_csv_file = csv_file.read().decode(encoding='utf-8-sig')
+    io_string = io.StringIO(decoded_csv_file)
+    csvreader = csv.reader(io_string, delimiter=',')
+
+    header = next(csvreader)
+    university_id_index = header.index('university_id')
+    # university_ids = []
+    invalid_rows = []
+    valid_rows = []
+    # print("{} {}".format('header', header))
+    # print("{} {}".format('university_id_index', university_id_index))
+    for (index, row) in enumerate(csvreader):
+        # print("{} {}".format(index, row))
+        temp_student = UserProfile.objects.filter(university_id=row[university_id_index], faculty_role=2).first()
+
+        if temp_student is None:
+            invalid_rows.append((index, row, 'The university id does not exist or the entered university id is not valid. You might need to add the data to the database.'))
+        else:
+            valid_rows.append(temp_student)
+
+    # print(valid_rows)
+    # print(invalid_rows)
+    if len(invalid_rows) != 0:
+        response_dict = {
+            'message': 'All rows must be valid but the file contains some invalid rows.',
+            'invalid_rows': invalid_rows,
+        }
+        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    #Save to the database.
+    success = True
+    curriculum = Curriculum.objects.get(id=curriculum_id)
+    try:
+        with transaction.atomic():
+            for e in valid_rows:
+                e.enroll = curriculum
+                e.save()
+    except IntegrityError:
+        success = False
+
+    if success:
+        response_dict = {
+            'message': 'Added Successfully. All rows are valid.',
+        }
+        return JsonResponse(data=response_dict, safe=False)
+    else:
+        response_dict = {
+            'message': 'Failed to add.',
+        }
+        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def skillgroup(request):

@@ -113,12 +113,3 @@ class UserProfileApiAccessPolicy(AccessPolicy):
 
             elif 'student' in groups:
                 return Q(user_id_fk=request.user.id)
-
-class CurriculumStudentBulkAddApiAccessPolicy(AccessPolicy):
-    statements = [
-        {
-            "action": ["<method:get>"],
-            "principal": ["group:staff"],
-            "effect": "allow"
-        },
-    ]

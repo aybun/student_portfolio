@@ -13,10 +13,9 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 from django.http.response import JsonResponse
 
 from event.models import Curriculum
-from .access_policies import UserProfileApiAccessPolicy, StaffApiAccessPolicy, StudentApiAccessPolicy, \
-    CurriculumStudentBulkAddApiAccessPolicy
+from .access_policies import UserProfileApiAccessPolicy, StaffApiAccessPolicy, StudentApiAccessPolicy
 from .models import UserProfile
-from .serializers import UserProfileSerializer, StudentSerializer, StaffSerializer, CurriculumStudentBulkAddSerializer
+from .serializers import UserProfileSerializer, StudentSerializer, StaffSerializer
 
 
 # Create your views here.
@@ -36,8 +35,8 @@ def editStudentProfile(request):
     return render(request, 'profile/edit_student_profile.html')
 
 @parser_classes([JSONParser, MultiPartParser])
-@permission_classes((StaffApiAccessPolicy,))
 @api_view(['GET'])
+@permission_classes((StaffApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def staffApi(request, userprofile_id=0):
     Serializer = StaffSerializer
@@ -65,8 +64,8 @@ def staffApi(request, userprofile_id=0):
 
 
 @parser_classes([JSONParser, MultiPartParser])
-@permission_classes((StudentApiAccessPolicy,))
 @api_view(['GET', 'PUT'])
+@permission_classes((StudentApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def studentApi(request, userprofile_id=0):
     Serializer = StudentSerializer
@@ -121,8 +120,8 @@ def studentApi(request, userprofile_id=0):
             return JsonResponse("Failed to Update")
 
 @parser_classes([JSONParser, MultiPartParser])
-@permission_classes((UserProfileApiAccessPolicy,))
 @api_view(['GET'])
+@permission_classes((UserProfileApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def profileApi(request, userprofile_id=0):
 
@@ -158,78 +157,6 @@ def curriculumStudent(request, curriculum_id=0):
     }
     return render(request, 'profile/curriculum_student.html', stuff_for_frontend)
 
-@parser_classes((MultiPartParser, JSONParser,))
-@permission_classes((CurriculumStudentBulkAddApiAccessPolicy,))
-@api_view(['POST'])
-@authentication_classes((SessionAuthentication, BasicAuthentication))
-def curriculumStudentBulkAddApi(request):
-    #Note : We have to ensure that every row is valid.
-
-    data = request.data.dict()
-    # print(data)
-    serializer = CurriculumStudentBulkAddSerializer(data=data, context={'request': request})
-
-    if not serializer.is_valid():
-        print(serializer.error_messages)
-        print(serializer.errors)
-        response_dict = {
-            'message': 'The serializer reject the input.',
-        }
-        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    curriculum_id = serializer.validated_data['curriculum_id']
-    csv_file = serializer.validated_data['csv_file']
-
-    decoded_csv_file = csv_file.read().decode(encoding='utf-8-sig')
-    io_string = io.StringIO(decoded_csv_file)
-    csvreader = csv.reader(io_string, delimiter=',')
-
-    header = next(csvreader)
-    university_id_index = header.index('university_id')
-    # university_ids = []
-    invalid_rows = []
-    valid_rows = []
-    # print("{} {}".format('header', header))
-    # print("{} {}".format('university_id_index', university_id_index))
-    for (index, row) in enumerate(csvreader):
-        # print("{} {}".format(index, row))
-        temp_student = UserProfile.objects.filter(university_id=row[university_id_index], faculty_role=2).first()
-
-        if temp_student is None:
-            invalid_rows.append((index, row, 'university id does not exist.'))
-        else:
-            valid_rows.append(temp_student)
-
-    # print(valid_rows)
-    # print(invalid_rows)
-    if len(invalid_rows) != 0:
-        response_dict = {
-            'message': 'All rows must be valid but the file contains some invalid rows.',
-            'invalid_rows': invalid_rows,
-        }
-        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    #Save to the database.
-    success = True
-    curriculum = Curriculum.objects.get(id=curriculum_id)
-    try:
-        with transaction.atomic():
-            for e in valid_rows:
-                e.enroll = curriculum
-                e.save()
-    except IntegrityError:
-        success = False
-
-    if success:
-        response_dict = {
-            'message': 'Added Successfully. All rows are valid.',
-        }
-        return JsonResponse(data=response_dict, safe=False)
-    else:
-        response_dict = {
-            'message': 'Failed to add.',
-        }
-        return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def eventAttendance(request):
@@ -237,17 +164,4 @@ def eventAttendance(request):
 
     }
     return render(request, 'profile/event_attendance.html', stuff_for_frontend)
-
-
-# def skillChartDataApi(request):
-#
-#     user_id_fk = request.user.id
-#
-#
-#     student_profile = UserProfile.objects.filter(user_id_fk=user_id_fk).first()
-#
-#     if student_profile is None:
-#         return ''
-#
-#
 

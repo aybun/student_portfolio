@@ -464,6 +464,27 @@ class CurriculumSerializer(FieldAccessMixin, serializers.ModelSerializer):
 
         return data
 
+class CurriculumStudentBulkAddSerializer(serializers.Serializer):
+    curriculum_id = serializers.IntegerField(required=True)
+    csv_file = serializers.FileField(required=True, allow_empty_file=False)
+
+    class Meta:
+        # Model = EventAttendance
+        fields = ('event_id', 'csv_file')
+
+    def validate_curriculum_id(self, event_id):
+        instance = Curriculum.objects.filter(id=event_id)
+
+        if not instance.exists():
+            raise ValidationError("The curriculum_id = {} does not exist.".format(event_id))
+
+        return event_id
+
+    def validate_csv_file(self, file):
+        if file.size > 2000000:
+            raise serializers.ValidationError("The file size must be less than 2 mb.")
+        return file
+
 class SkillAssignedToSkillGroup(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
 

@@ -147,25 +147,25 @@ def awardApi(request, award_id=0):
         else:
             return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
-@parser_classes([JSONParser, MultiPartParser])
-@permission_classes((AwardApiAccessPolicy,))
-@api_view(['DELETE'])
-@authentication_classes((SessionAuthentication, BasicAuthentication))
-def awardApiMultiDelete(request):
-
-    data = request.data.dict()
-    print(data)
-    ids = json.loads(data['ids'])
-    query_object = AwardApiAccessPolicy.scope_query_object(request=request)
-    objects = Award.objects.filter(Q(id__in=ids) & query_object)
-
-    success = True
-    try:
-        with transaction.atomic():
-            objects.delete()
-    except IntegrityError:
-        success = False
-    if success:
-        return JsonResponse("Deleted Successfully", safe=False)
-    else:
-        return JsonResponse("Failed to delete.", safe=False)
+# @parser_classes([JSONParser, MultiPartParser])
+# @permission_classes((AwardApiAccessPolicy,))
+# @api_view(['DELETE'])
+# @authentication_classes((SessionAuthentication, BasicAuthentication))
+# def awardApiMultiDelete(request):
+#
+#     data = request.data.dict()
+#     print(data)
+#     ids = json.loads(data['ids'])
+#     query_object = AwardApiAccessPolicy.scope_query_object(request=request)
+#     objects = Award.objects.filter(Q(id__in=ids) & query_object)
+#
+#     success = True
+#     try:
+#         with transaction.atomic():
+#             objects.delete()
+#     except IntegrityError:
+#         success = False
+#     if success:
+#         return JsonResponse("Deleted Successfully", safe=False)
+#     else:
+#         return JsonResponse("Failed to delete.", safe=False)

@@ -60,10 +60,11 @@ export default {
             addByFileForm: {
                 csvFile: "",
                 all_must_valid: true,
+                all_passed : false,
                 checkboxes: ["all_must_valid"],
-
+                
                 //Do not need reset
-                checkboxFields: ["all_must_valid"],
+                checkboxFields: ["all_must_valid", "all_passed"],
                 formKey: 1,
             },
             
@@ -282,7 +283,7 @@ export default {
             }
             outDict.set("event_id_fk", this.event_id);
             outDict.set('university_id', this.eventAttendance.university_id.university_id)
-
+            
             axios.defaults.xsrfCookieName = "csrftoken";
             axios.defaults.xsrfHeaderName = "X-CSRFToken";
             axios({
@@ -462,6 +463,7 @@ export default {
                 event_id: this.event_id,
                 csv_file: this.cleanAttachmentFile(form.csvFile),
                 all_must_valid: form.all_must_valid,
+                all_passed : form.all_passed,
             };
             // console.log(outDict);
             const outForm = new FormData();
@@ -562,6 +564,7 @@ export default {
 
             this.addByFileForm.csvFile = "";
             this.addByFileForm.all_must_valid = true;
+            this.addByFileForm.all_passed = false;
             this.addByFileForm.checkboxes = ["all_must_valid"];
         },
         toggleColumn(index, event) {
@@ -828,10 +831,13 @@ export default {
                     :disabled="false">
                 </FormulateInput>
                 <FormulateInput ref="event-attendance-formulate-form-2-all-valid-checkbox"
-                    v-model="addByFileForm.checkboxes" :options="{ all_must_valid: 'All rows must be valid' }"
+                    v-model="addByFileForm.checkboxes" :options="{ all_must_valid: 'All rows must be valid.' }"
                     type="checkbox" :disabled="false">
                 </FormulateInput>
-
+                <FormulateInput ref="event-attendance-formulate-form-2-all-passed-checkbox"
+                    v-model="addByFileForm.checkboxes" :options="{ all_passed: 'All passed.' }"
+                    type="checkbox" :disabled="false">
+                </FormulateInput>
                 <button type="button" @click="bulkAddClick()" class="btn btn-primary">
                     Process
                 </button>
