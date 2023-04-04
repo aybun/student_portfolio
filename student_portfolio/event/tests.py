@@ -2,7 +2,7 @@ import http
 import json
 from django.contrib.auth.models import User, Group
 # from django.test import TestCase
-from .views import eventApi, skillTableApi, skillgroupApi
+from .views import eventApi, skillTableApi, skillgroupApi, curriculumApi
 # Create your tests here.
 from rest_framework.test import APIRequestFactory, force_authenticate, APITestCase
 
@@ -773,7 +773,7 @@ class SkillgroupCRUD(APITestCase):
 
         # Update
         out_dict = {'id': id, 'name': 'เปลี่ยนไปเป็นรัก'}
-        request = factory.put(api_string + str(id), out_dict)  # Get method contains no message.
+        request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=user)
         response = view(request, skillgroup_id=id)
         response_data = json.loads(response.content)
@@ -985,7 +985,7 @@ class SkillgroupCRUD(APITestCase):
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
-        #Update
+        #Delete
         request = factory.delete(api_string + str(id))
         force_authenticate(request, user=unauthenticated_user)
         response = view(request, skillgroup_id=id)
@@ -993,4 +993,302 @@ class SkillgroupCRUD(APITestCase):
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
 
-        
+
+class CurriculumCRUD(APITestCase):
+    def setUp(self):
+        # print('in setup')
+        staff_group = Group.objects.get_or_create(name='staff')
+        student_group = Group.objects.get_or_create(name='student')
+        staff_user = User.objects.create(username='tubtab', password='Tubtab12345678')
+        student_user_tamtam = User.objects.create(username='tamtam', password='Tamtam12345678')
+        student_user_tubtim = User.objects.create(username='tubtim', password='Tubtim12345678')
+
+        staff_group[0].user_set.add(staff_user)
+        student_group[0].user_set.add(student_user_tamtam)
+        student_group[0].user_set.add(student_user_tubtim)
+
+
+    def test_staff_can_create(self):
+        factory = APIRequestFactory()
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        #Create
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        # print(response_data)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id', None), None)
+
+    def test_staff_can_read(self):
+        factory = APIRequestFactory()
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        #Read
+        request = factory.get(api_string + str(id))
+        force_authenticate(request, user=user)
+        response = view(request, curriculum_id=id)
+        # print("Staff can read response : {}".format(response))
+        data = json.loads(response.content) # Get method contains no message.
+        # print("Staff can read data : {}".format(data))
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertEqual(data.get('id', None), id)
+
+    def test_staff_can_update(self):
+        factory = APIRequestFactory()
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        #Create
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        #Update
+        out_dict = {'id': id, 'th_name': 'เปลี่ยนไปเป็นรัก'}
+        request = factory.put(api_string + str(id), out_dict)
+        force_authenticate(request, user=user)
+        response = view(request, curriculum_id=id)
+        response_data = json.loads(response.content)
+        data = data = response_data['data']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertEqual(data.get('id'), id)
+        self.assertEqual(data.get('th_name', None), 'เปลี่ยนไปเป็นรัก')
+
+    def test_staff_can_delete(self):
+        factory = APIRequestFactory()
+        user = User.objects.get(username='tubtab')  # tubtab is staff.
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        # Delete
+        request = factory.delete(api_string + str(id))
+        force_authenticate(request, user=user)
+        response = view(request, curriculum_id=id)
+        # response.render()
+        response_data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+
+    def test_student_cannot_create(self):
+        factory = APIRequestFactory()
+        student_user = User.objects.get(username='tamtam')  # tamtam is 'student'.
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=student_user)
+        response = view(request, curriculum_id=0)
+        response.render()
+        response_data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+
+    def test_student_can_read(self):
+        factory = APIRequestFactory()
+        staff_user = User.objects.get(username='tubtab')
+        student_user = User.objects.get(username='tamtam')
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create : Staff creates.
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=staff_user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        #Read : Student reads.
+        request = factory.get(api_string + str(id))
+        force_authenticate(request, user=student_user)
+        response = view(request, curriculum_id=id)
+        data = json.loads(response.content)  # Get method contains no message.
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertEqual(data.get('id', None), id)
+
+    def test_student_cannot_update(self):
+        factory = APIRequestFactory()
+        staff_user = User.objects.get(username='tubtab')
+        student_user = User.objects.get(username='tamtam')
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create : Staff creates.
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=staff_user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        #Update : Student tries to update and should failt to do so.
+        out_dict = {'id': id, 'th_name': 'เปลี่ยนไปเป็นรัก'}
+        request = factory.put(api_string + str(id), out_dict)
+        force_authenticate(request, user=student_user)
+        response = view(request, curriculum_id=id)
+        response.render()
+        response_data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+
+    def test_student_cannot_delete(self):
+        factory = APIRequestFactory()
+        staff_user = User.objects.get(username='tubtab')
+        student_user = User.objects.get(username='tamtam')
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create : Staff creates.
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=staff_user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        # Delete : Student should fail to delete.
+        request = factory.delete(api_string + str(id))
+        force_authenticate(request, user=student_user)
+        response = view(request, curriculum_id=id)
+        response.render()
+        response_data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+
+    def test_unauthenticated_user_cannot_create(self):
+        factory = APIRequestFactory()
+        unauthenticated_user = None
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=unauthenticated_user)
+        response = view(request, skillgroup_id=0)
+        response.render()
+        response_data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+
+    def test_unauthenticated_user_cannot_read(self):
+        factory = APIRequestFactory()
+        staff_user = User.objects.get(username='tubtab')
+        unauthenticated_user = None
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create : Staff creates.
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=staff_user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        #Read : unauthenticated user tries to read and should fail to do so.
+        request = factory.get(api_string + str(id))
+        force_authenticate(request, user=unauthenticated_user)
+        response = view(request, curriculum_id=id)
+        response.render()
+        response_data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+
+    def test_unauthenticated_user_cannot_update(self):
+        factory = APIRequestFactory()
+        staff_user = User.objects.get(username='tubtab')
+        unauthenticated_user = None
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create : Staff creates.
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=staff_user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        #Update : Uauthenticated user tries to update and should fail to do so.
+        out_dict = {'id': id, 'th_name': 'เปลี่ยนไปเป็นรัก'}
+        request = factory.put(api_string + str(id), out_dict)
+        force_authenticate(request, user=unauthenticated_user)
+        response = view(request, curriculum_id=id)
+        response.render()
+        response_data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+
+
+    def test_unauthenticated_user_cannot_delete(self):
+        factory = APIRequestFactory()
+        staff_user = User.objects.get(username='tubtab')
+        unauthenticated_user = None
+        view = curriculumApi
+        api_string = '/api/curriculum/'
+
+        # Create : Staff creates.
+        request = factory.post(api_string, {'th_name': 'หลักสูตรที่ 1'})
+        force_authenticate(request, user=staff_user)
+        response = view(request)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        message = response_data['message']
+        self.assertEqual(response.status_code, http.HTTPStatus.OK)
+        self.assertNotEqual(data.get('id'), None)
+        id = data.get('id')
+
+        # Delete : Uauthenticated user tries to delete and should fail to do so.
+        request = factory.delete(api_string + str(id))
+        force_authenticate(request, user=unauthenticated_user)
+        response = view(request, curriculum_id=id)
+        response.render()
+        response_data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+    

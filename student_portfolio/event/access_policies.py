@@ -176,10 +176,12 @@ class CurriculumApiAccessPolicy(AccessPolicy):
                 return Q()
 
         elif request.method == "PUT":
-            return Q()
+            if 'staff' in groups:
+                return Q()
 
         elif request.method == "DELETE":
-            return Q()
+            if 'staff' in groups:
+                return Q()
 
 class SkillGroupApiAccessPolicy(AccessPolicy):
     statements = [

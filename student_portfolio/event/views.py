@@ -630,8 +630,8 @@ def curriculum(request):
     return render(request, 'profile/curriculum.html', {})
 
 @parser_classes([JSONParser, MultiPartParser ])
-@permission_classes((CurriculumApiAccessPolicy,))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@permission_classes((CurriculumApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def curriculumApi(request, curriculum_id=0):
     groups = list(request.user.groups.values_list('name', flat=True))
@@ -657,7 +657,7 @@ def curriculumApi(request, curriculum_id=0):
             if object is None:
                 return JsonResponse({}, safe=False)
 
-            curriculum_serializer = CurriculumSerializer(event, context={'request': request})
+            curriculum_serializer = CurriculumSerializer(instance=object, context={'request': request})
             return JsonResponse(curriculum_serializer.data, safe=False)
 
     elif request.method == "POST":
@@ -699,7 +699,7 @@ def curriculumApi(request, curriculum_id=0):
             success = False
         else:
             data = request.data.dict()
-            print(data)
+            # print(data)
             object, data = CurriculumSerializer.custom_clean(instance=object, data=data, context={'request': request})
             serializer = CurriculumSerializer(object, data=data, context={'request': request})
 
