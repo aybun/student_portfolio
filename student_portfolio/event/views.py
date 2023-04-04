@@ -176,9 +176,9 @@ def eventAttendance(request, event_id=0):
         return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
 
 
-@parser_classes((JSONParser,))
-@permission_classes((EventAttendanceApiAccessPolicy,))
+@parser_classes((JSONParser, MultiPartParser))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@permission_classes((EventAttendanceApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendanceApi(request, event_id=0, attendance_id=0):
 
@@ -297,8 +297,8 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
             return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @parser_classes([JSONParser, MultiPartParser])
-@permission_classes((EventAttendedListApiAccessPolicy,))
 @api_view(['GET'])
+@permission_classes((EventAttendedListApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendedListApi(request, user_id=0):
     Serializer = EventSerializer
@@ -322,8 +322,8 @@ def eventAttendedListApi(request, user_id=0):
 
 
 @parser_classes((MultiPartParser, JSONParser,))
-@permission_classes((EventAttendanceBulkAddApiAccessPolicy,))
 @api_view(['POST'])
+@permission_classes((EventAttendanceBulkAddApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendanceBulkAddApi(request):
 
