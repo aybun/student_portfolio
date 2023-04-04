@@ -1676,7 +1676,7 @@ class EventAttendanceCRUD(APITestCase):
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
-        
+
         # Delete : The Unauthenticated user should fail to delete.
         request = factory.delete(api_string + str(self.event.get('id')) + '/' + str(id))
         force_authenticate(request, user=unauthenticated_user)

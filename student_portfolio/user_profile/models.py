@@ -15,7 +15,7 @@ class FacultyRole(models.Model):
 class UserProfile(models.Model):
     id = models.BigAutoField(primary_key=True)
 
-    university_id  = models.CharField(max_length=11, blank=True, default='')
+    university_id  = models.CharField(max_length=11, blank=True, default='', unique=True)
     user_id_fk = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     firstname   = models.CharField(max_length=50, blank=True, default='')
