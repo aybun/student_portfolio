@@ -340,7 +340,8 @@ export default {
                     const message = response.data.message
                     this.events.push(data);
                     this.editClick(data) //Change viewing mode.
-                    alert(message + '\n' + JSON.stringify(data));
+                    // alert(message + '\n' + JSON.stringify(data));
+                    alert(message + '\n');
                 })
                 .catch((error) => {
                     alert(error.response.data.message);
@@ -402,7 +403,8 @@ export default {
                     const message = response.data.message
                     this.reassignUpdatedElementIntoList(this.events, data);
                     this.editClick(data)
-                    alert(message + '\n' + JSON.stringify(data));
+                    // alert(message + '\n' + JSON.stringify(data));
+                    alert(message + '\n');
                 })
                 .catch((error) => {
                     alert(error.response.data.message);

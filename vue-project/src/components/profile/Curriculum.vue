@@ -81,8 +81,8 @@
                     <div class="d-flex flex-row bd-highlight mb-3">
 
                         <div class="p-2 w-50 bd-highlight">
-                            <button type="button" class="btn btn-primary m-2 fload-end" @click="showCurriculumStudentModal=true;"
-                            data-bs-toggle="modal" data-bs-target="#edit-info-modal">
+                            <button v-if="!addingNewCurriculum" type="button" class="btn btn-primary m-2 fload-end" @click="showCurriculumStudentModal=true;"
+                                data-bs-toggle="modal" data-bs-target="#edit-info-modal">
                                 Show Students
                             </button>
                             
@@ -449,7 +449,8 @@ export default {
                 this.curriculums.push(data);
                 this.editClick(data)
                 
-                alert(message + '\n' + JSON.stringify(data));
+                // alert(message + '\n' + JSON.stringify(data));
+                alert(message);
             }).catch((error)=>{
                 alert(error.response.data.message)
             })
@@ -494,8 +495,8 @@ export default {
                 this.reassignUpdatedElementIntoList(this.curriculums, response.data.data);
                 this.editClick(data)
                 
-                alert(message + '\n' + JSON.stringify(data) );
-
+                // alert(message + '\n' + JSON.stringify(data) );
+                alert(message);
             }).catch((error)=>{
                 alert(error.response.data.message);
             })

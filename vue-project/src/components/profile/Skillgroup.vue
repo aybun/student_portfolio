@@ -301,7 +301,8 @@ export default {
                 this.skillgroups.push(data);
                 this.editClick(data)//Change viewing mode.
                 
-                alert(message + '\n' + JSON.stringify(data));
+                // alert(message + '\n' + JSON.stringify(data));
+                alert(message);
             }).catch((error) => {
                 alert(error.response.data.message);
             });
@@ -347,8 +348,8 @@ export default {
                 const message = response.data.message
                 this.reassignUpdatedElementIntoList(this.skillgroups, data); //With reactivity.
                 this.editClick(data)
-
-                alert(message + '\n' + JSON.stringify(data) );
+                // alert(message + '\n' + JSON.stringify(data) );
+                alert(message);
             }).catch((error) => {
                 alert(error.response.data.message);
             });

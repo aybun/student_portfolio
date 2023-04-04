@@ -466,7 +466,8 @@ export default {
                     this.projects.push(data);
                     this.editClick(data)
 
-                    alert(message + '\n' + JSON.stringify(data));
+                    // alert(message + '\n' + JSON.stringify(data));
+                    alert(message);
                 }).catch((error) => {
                     alert(error.response.data.message);
             });
@@ -524,7 +525,8 @@ export default {
                 this.reassignUpdatedElementIntoList(this.projects, data); //With reactivity.
                 this.editClick(data)
 
-                alert(message + '\n' + JSON.stringify(data) );
+                // alert(message + '\n' + JSON.stringify(data) );
+                alert(message);
             }).catch((error) => {
                 alert(error.response.data.message);
             });
