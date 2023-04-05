@@ -44,8 +44,9 @@ def _delete_file(path):
    if os.path.isfile(path):
        os.remove(path)
 
-@parser_classes([JSONParser, MultiPartParser ])
+
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@parser_classes([JSONParser, MultiPartParser ])
 @permission_classes((EventApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventApi(request, event_id=0):
@@ -176,9 +177,8 @@ def eventAttendance(request, event_id=0):
     else:
         return render(request, 'home/error.html', {'error_message': 'The user has no permission to access.'})
 
-
-@parser_classes((JSONParser, MultiPartParser))
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@parser_classes((JSONParser, MultiPartParser))
 @permission_classes((EventAttendanceApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendanceApi(request, event_id=0, attendance_id=0):
@@ -297,8 +297,8 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
         else:
             return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
-@parser_classes([JSONParser, MultiPartParser])
 @api_view(['GET'])
+@parser_classes([JSONParser, MultiPartParser])
 @permission_classes((EventAttendedListApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendedListApi(request, user_id=0):
@@ -321,9 +321,8 @@ def eventAttendedListApi(request, user_id=0):
             # print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
 
-
-@parser_classes((MultiPartParser, JSONParser,))
 @api_view(['POST'])
+@parser_classes((MultiPartParser, JSONParser,))
 @permission_classes((EventAttendanceApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendanceBulkAddApi(request):
@@ -430,8 +429,8 @@ def eventAttendanceBulkAddApi(request):
             }
             return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-@parser_classes((JSONParser, MultiPartParser))
 @api_view(['PUT'])
+@parser_classes((JSONParser, MultiPartParser))
 @permission_classes((EventAttendanceApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAttendanceMultiEditUsedForCalculationApi(request):
@@ -467,8 +466,8 @@ def eventAttendanceMultiEditUsedForCalculationApi(request):
         else:
             return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-@parser_classes((JSONParser, MultiPartParser))
 @api_view(['PUT'])
+@parser_classes((JSONParser, MultiPartParser))
 @permission_classes((EventAttendanceApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def syncAttendanceByUniversityId(request, event_id=0):
@@ -526,8 +525,8 @@ def syncAttendanceByUniversityId(request, event_id=0):
             return JsonResponse("Failed to sync.", safe=False)
 
 
-@parser_classes([JSONParser, MultiPartParser])
 @api_view(['GET', 'PUT', 'POST'])
+@parser_classes([JSONParser, MultiPartParser])
 @permission_classes((SkillTableApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def skillTableApi(request, skill_id=0):
@@ -625,8 +624,8 @@ def skillTableApi(request, skill_id=0):
 def curriculum(request):
     return render(request, 'profile/curriculum.html', {})
 
-@parser_classes([JSONParser, MultiPartParser ])
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@parser_classes([JSONParser, MultiPartParser ])
 @permission_classes((CurriculumApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def curriculumApi(request, curriculum_id=0):
@@ -745,8 +744,8 @@ def curriculumApi(request, curriculum_id=0):
         else:
             return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.client.INTERNAL_SERVER_ERROR)
 
-@parser_classes((MultiPartParser, JSONParser,))
 @api_view(['PUT'])
+@parser_classes((MultiPartParser, JSONParser,))
 @permission_classes((StudentApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def curriculumStudentBulkAddApi(request):
@@ -822,8 +821,8 @@ def curriculumStudentBulkAddApi(request):
 def skillgroup(request):
     return render(request, 'profile/skillgroup.html', {})
 
-@parser_classes([JSONParser, MultiPartParser])
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@parser_classes([JSONParser, MultiPartParser])
 @permission_classes((SkillGroupApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def skillgroupApi(request, skillgroup_id=0):
@@ -937,9 +936,8 @@ def skillgroupApi(request, skillgroup_id=0):
         else:
             return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
-
-@parser_classes([JSONParser, MultiPartParser ])
 @api_view(['GET'])
+@parser_classes([JSONParser, MultiPartParser ])
 @permission_classes((EventCurriculumSummaryApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventCurriculumSummaryApi(request):
@@ -989,8 +987,8 @@ def eventCurriculumSummaryApi(request):
 
     return JsonResponse(skill_freq, safe=False)
 
-@parser_classes([JSONParser, MultiPartParser ])
 @api_view(['GET'])
+@parser_classes([JSONParser, MultiPartParser ])
 @permission_classes((EventApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def eventAsyncSearchApi(request):

@@ -27,8 +27,8 @@ def _delete_file(path):
    if os.path.isfile(path):
        os.remove(path)
 
-@parser_classes([JSONParser, MultiPartParser ])
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@parser_classes([JSONParser, MultiPartParser ])
 @permission_classes((ProjectApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def projectApi(request, project_id=0):

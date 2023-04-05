@@ -34,8 +34,8 @@ def editStudentProfile(request):
 
     return render(request, 'profile/edit_student_profile.html')
 
-@parser_classes([JSONParser, MultiPartParser])
 @api_view(['GET'])
+@parser_classes([JSONParser, MultiPartParser])
 @permission_classes((StaffApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def staffApi(request, userprofile_id=0):
@@ -63,8 +63,8 @@ def staffApi(request, userprofile_id=0):
             return JsonResponse(serializer.data, safe=False)
 
 
-@parser_classes([JSONParser, MultiPartParser])
 @api_view(['GET', 'PUT'])
+@parser_classes([JSONParser, MultiPartParser])
 @permission_classes((StudentApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def studentApi(request, userprofile_id=0):
@@ -119,8 +119,8 @@ def studentApi(request, userprofile_id=0):
             print(serializer.error_messages)
             return JsonResponse("Failed to Update")
 
-@parser_classes([JSONParser, MultiPartParser])
 @api_view(['GET'])
+@parser_classes([JSONParser, MultiPartParser])
 @permission_classes((UserProfileApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def profileApi(request, userprofile_id=0):

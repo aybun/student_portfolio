@@ -6,7 +6,7 @@ class PrivateModelAccessPolicy(AccessPolicy):
         {
             "action": ["<method:get>", "<method:post>", "<method:put>", "<method:delete>"],
             "principal": ["group:staff", "group:student"],
-            "effect": "allow"
+            "effect": "deny"
 
         },
     ]

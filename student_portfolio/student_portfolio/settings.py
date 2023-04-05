@@ -47,8 +47,8 @@ INSTALLED_APPS = [
 
     'portfolio_management',
     'registration',
-    'student',
-    'staff',
+    # 'student',
+    # 'staff',
     'event',
     'user_profile',
     'project',

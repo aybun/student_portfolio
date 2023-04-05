@@ -31,7 +31,7 @@ def logoutView(request):
     return render(request, 'registration/error.html', {})
 
 def userApi(request):
-    print(request.user.is_authenticated)
+    # print(request.user.is_authenticated)
     groups = list(request.user.groups.values_list('name', flat=True))
 
     data_dict = {

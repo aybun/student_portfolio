@@ -26,9 +26,8 @@ def _delete_file(path):
 def award(request):
     return render(request, 'award/award.html', {})
 
-
-@parser_classes([JSONParser, MultiPartParser])
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@parser_classes([JSONParser, MultiPartParser])
 @permission_classes((AwardApiAccessPolicy,))
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def awardApi(request, award_id=0):
