@@ -298,13 +298,13 @@ export default {
                 },
             }).then((response) => {
                 const data = response.data.data
-                const message = response.data.message
+                const detail = response.data.detail
                 this.eventAttendances.push(data);
                 this.editClick(data) //Change viewing mode.
-                // alert(message + '\n' + JSON.stringify(data));
-                alert(message);
+                // alert(detail + '\n' + JSON.stringify(data));
+                alert(detail);
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
         },
         async updateClick() {
@@ -350,13 +350,13 @@ export default {
                 },
             }).then((response) => {
                 const data = response.data.data
-                const message = response.data.message
+                const detail = response.data.detail
                 this.reassignUpdatedElementIntoList(this.eventAttendances, data); //With reactivity.
                 this.editClick(data)
 
-                alert(message + '\n' + JSON.stringify(data) );
+                alert(detail + '\n' + JSON.stringify(data) );
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
         },
 
@@ -382,10 +382,10 @@ export default {
                 },
             }).then((response) => {
                 this.removeElementFromArrayById(this.eventAttendances, attendance_id);
-                alert(response.data.message)
+                alert(response.data.detail)
                 
             }).catch((error)=>{
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
         },
         removeElementFromArrayById(arr, id){
@@ -487,13 +487,13 @@ export default {
             })
                 .then((response) => {
                     this.refreshData();
-                    alert(response.data.message);
+                    alert(response.data.detail);
 
                     if (typeof response.data.invalid_rows !== 'undefined')
                         alert(response.data.invalid_rows );
                 })
                 .catch((error) => {
-                    alert(error.response.data.message );
+                    alert(error.response.data.detail );
                     if (typeof error.response.data.invalid_rows !== 'undefined')
                         alert(error.response.data.invalid_rows );
                     
@@ -637,10 +637,10 @@ export default {
                     // selectedRows[i].used_for_calculation
                     this.$set(selectedRows[i], 'used_for_calculation', bool_val)
                 }
-                alert(response.data.message)
+                alert(response.data.detail)
                 this.showRowActionEditUsedForCalculationModal = false;          
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
                 this.showRowActionEditUsedForCalculationModal = false;
             })
 

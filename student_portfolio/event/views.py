@@ -99,12 +99,12 @@ def eventApi(request, event_id=0):
         if success:
             request.method = "GET"
             response_dict = {
-                "message": "Added Successfully",
+                'detail': "Added Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     elif request.method=='PUT':
         id = event_id
@@ -117,7 +117,7 @@ def eventApi(request, event_id=0):
             success = False
         else:
             data = request.data.dict()
-            print(data)
+            # print(data)
             object, data = Serializer.custom_clean(instance=object, data=data, context={'request' : request})
             serializer = Serializer(instance=object, data=data, context={'request': request})
             if serializer.is_valid():
@@ -139,12 +139,12 @@ def eventApi(request, event_id=0):
 
             request.method = "GET"
             response_dict = {
-                "message": "Updated Successfully",
+                'detail': "Updated Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     elif request.method=='DELETE':
         id = event_id
@@ -162,9 +162,9 @@ def eventApi(request, event_id=0):
                 success = False
 
         if success:
-            return JsonResponse({"message": "Deleted Successfully"}, safe=False)
+            return JsonResponse({'detail': "Deleted Successfully"}, safe=False)
         else:
-            return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 def eventAttendance(request, event_id=0):
 
@@ -211,10 +211,10 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
         attendance = Model.objects.filter(event_id_fk=data['event_id_fk'], university_id=data['university_id'])
 
         if attendance.exists(): #Check for duplication.
-            return JsonResponse({"message": "The student is present in the attendance table."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "The student is present in the attendance table."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
         if not UserProfile.objects.filter(university_id=data['university_id']).exists():
-            return JsonResponse({"message": "The university id does not exist or the entered university id is not valid. You might need to add the data to the database."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "The university id does not exist or the entered university id is not valid. You might need to add the data to the database."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
         _, data = Serializer.custom_clean(data=data, context={'request':request})
@@ -235,12 +235,12 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
         if success:
             request.method = "GET"
             response_dict = {
-                "message": "Added Successfully",
+                'detail': "Added Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
     elif request.method=='PUT':
@@ -270,12 +270,12 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
         if success:
             request.method = "GET"
             response_dict = {
-                "message": "Updated Successfully",
+                'detail': "Updated Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     elif request.method=='DELETE': #Need to handle carefully.
         id = attendance_id
@@ -293,9 +293,9 @@ def eventAttendanceApi(request, event_id=0, attendance_id=0):
                 success = False
 
         if success:
-            return JsonResponse({"message": "Deleted Successfully"}, safe=False)
+            return JsonResponse({'detail': "Deleted Successfully"}, safe=False)
         else:
-            return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @parser_classes([JSONParser, MultiPartParser])
@@ -336,7 +336,7 @@ def eventAttendanceBulkAddApi(request):
         print(serializer.error_messages)
         print(serializer.errors)
         response_dict = {
-            'message': 'Failed to add.',
+            'detail': 'Failed to add.',
             'serializer_errors' : serializer.errors,
         }
         return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -381,7 +381,7 @@ def eventAttendanceBulkAddApi(request):
     if all_must_valid:
         if len(invalid_rows) != 0:
             response_dict = {
-                'message': 'All rows must be valid but the file contains some invalid rows.',
+                'detail': 'All rows must be valid but the file contains some invalid rows.',
                 'invalid_rows': invalid_rows,
             }
             # print(invalid_rows)
@@ -397,12 +397,12 @@ def eventAttendanceBulkAddApi(request):
 
             if success:
                 response_dict = {
-                    'message': 'Added Successfully. All rows are valid.',
+                    'detail': 'Added Successfully. All rows are valid.',
                 }
                 return JsonResponse(data=response_dict, safe=False)
             else:
                 response_dict = {
-                    'message': 'Failed to add.',
+                    'detail': 'Failed to add.',
                 }
                 return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -418,14 +418,14 @@ def eventAttendanceBulkAddApi(request):
 
         if success:
             response_dict = {
-                'message': 'Added Successfully. The file contains some invalid rows.',
+                'detail': 'Added Successfully. The file contains some invalid rows.',
                 'invalid_rows' : invalid_rows,
             }
             # print(invalid_rows)
             return JsonResponse(data=response_dict, safe=False)
         else:
             response_dict = {
-                'message': 'Failed to add.',
+                'detail': 'Failed to add.',
             }
             return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -444,7 +444,7 @@ def eventAttendanceMultiEditUsedForCalculationApi(request):
             used_for_calculation = (data.get('used_for_calculation', None) == 'true')
 
         except IntegrityError:
-            return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse(data={'detail': "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
         # print((ids, used_for_calculation))
         query_object = EventAttendanceApiAccessPolicy.scope_query_object(request=request)
@@ -462,9 +462,9 @@ def eventAttendanceMultiEditUsedForCalculationApi(request):
             success = False
 
         if success:
-            return JsonResponse(data={"message": "Updated successfully."}, safe=False)
+            return JsonResponse(data={'detail': "Updated successfully."}, safe=False)
         else:
-            return JsonResponse(data={"message": "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse(data={'detail': "Failed to update."}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @api_view(['PUT'])
 @parser_classes((JSONParser, MultiPartParser))
@@ -575,12 +575,12 @@ def skillTableApi(request, skill_id=0):
         if success:
             request.method = "GET"
             response_dict = {
-                "message": "Added Successfully",
+                'detail': "Added Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
     elif request.method=='PUT':
         id = skill_id
         query_object = AccessPolicyClass.scope_query_object(request=request)
@@ -614,12 +614,12 @@ def skillTableApi(request, skill_id=0):
 
             request.method = "GET"
             response_dict = {
-                "message": "Updated Successfully",
+                'detail': "Updated Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 def curriculum(request):
     return render(request, 'profile/curriculum.html', {})
@@ -677,12 +677,12 @@ def curriculumApi(request, curriculum_id=0):
         if success:
             request.method = "GET"
             response_dict = {
-                "message" : "Added Successfully",
+                'detail' : "Added Successfully",
                 "data" : Serializer(instance=instance, context={'request' : request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to add."}, safe=False, status=http.client.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to add."}, safe=False, status=http.client.INTERNAL_SERVER_ERROR)
 
     elif request.method == "PUT":
         query_object = AccessPolicyClass.scope_query_object(request=request)
@@ -717,12 +717,12 @@ def curriculumApi(request, curriculum_id=0):
 
             request.method = "GET"
             response_dict = {
-                "message": "Updated Successfully",
+                'detail': "Updated Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to update."}, safe=False, status=http.client.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to update."}, safe=False, status=http.client.INTERNAL_SERVER_ERROR)
 
     elif request.method == "DELETE":
         id = curriculum_id
@@ -740,9 +740,9 @@ def curriculumApi(request, curriculum_id=0):
                 success = False
 
         if success:
-            return JsonResponse({"message": "Deleted Successfully"}, safe=False)
+            return JsonResponse({'detail': "Deleted Successfully"}, safe=False)
         else:
-            return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.client.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to delete."}, safe=False, status=http.client.INTERNAL_SERVER_ERROR)
 
 @api_view(['PUT'])
 @parser_classes((MultiPartParser, JSONParser,))
@@ -759,7 +759,7 @@ def curriculumStudentBulkAddApi(request):
         print(serializer.error_messages)
         print(serializer.errors)
         response_dict = {
-            'message': 'The serializer reject the input.',
+            'detail': 'The serializer reject the input.',
         }
         return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -790,7 +790,7 @@ def curriculumStudentBulkAddApi(request):
     # print(invalid_rows)
     if len(invalid_rows) != 0:
         response_dict = {
-            'message': 'All rows must be valid but the file contains some invalid rows.',
+            'detail': 'All rows must be valid but the file contains some invalid rows.',
             'invalid_rows': invalid_rows,
         }
         return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -808,12 +808,12 @@ def curriculumStudentBulkAddApi(request):
 
     if success:
         response_dict = {
-            'message': 'Added Successfully. All rows are valid.',
+            'detail': 'Added Successfully. All rows are valid.',
         }
         return JsonResponse(data=response_dict, safe=False)
     else:
         response_dict = {
-            'message': 'Failed to add.',
+            'detail': 'Failed to add.',
         }
         return JsonResponse(data=response_dict, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -875,12 +875,12 @@ def skillgroupApi(request, skillgroup_id=0):
         if success:
             request.method = "GET"
             response_dict = {
-                "message": "Added Successfully",
+                'detail': "Added Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     elif request.method == "PUT":
         id = skillgroup_id
@@ -909,12 +909,12 @@ def skillgroupApi(request, skillgroup_id=0):
         if success:
             request.method = "GET"
             response_dict = {
-                "message": "Updated Successfully",
+                'detail': "Updated Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     elif request.method == "DELETE":
         id = skillgroup_id
@@ -932,9 +932,9 @@ def skillgroupApi(request, skillgroup_id=0):
                 success = False
 
         if success:
-            return JsonResponse({"message": "Deleted Successfully"}, safe=False)
+            return JsonResponse({'detail': "Deleted Successfully"}, safe=False)
         else:
-            return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @parser_classes([JSONParser, MultiPartParser ])

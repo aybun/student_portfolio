@@ -19,11 +19,11 @@
       axios.defaults.withCredentials = true;
   
       axios.get(this.$API_URL + "logout").then((response) => {
-        alert(response.data.message)
+        alert(response.data.detail)
         window.location.replace("/home");
 
       }).catch((error)=>{
-        alert(error.response.data.message);
+        alert(error.response.data.detail);
 
       })
     },

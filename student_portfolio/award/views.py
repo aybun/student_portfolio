@@ -79,12 +79,12 @@ def awardApi(request, award_id=0):
         if success:
             request.method = "GET"
             response_dict = {
-                "message": "Added Successfully",
+                'detail': "Added Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message" : "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail' : "Failed to add."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
     elif request.method == "PUT":
         id = award_id
         query_object = AccessPolicyClass.scope_query_object(request=request)
@@ -119,12 +119,12 @@ def awardApi(request, award_id=0):
 
             request.method = "GET"
             response_dict = {
-                "message": "Added Successfully",
+                'detail': "Added Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
         else:
-            return JsonResponse({"message": "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to update."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     elif request.method == "DELETE":
         id = award_id
@@ -142,9 +142,9 @@ def awardApi(request, award_id=0):
                 success = False
 
         if success:
-            return JsonResponse({"message": "Deleted Successfully"}, safe=False)
+            return JsonResponse({'detail': "Deleted Successfully"}, safe=False)
         else:
-            return JsonResponse({"message": "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'detail': "Failed to delete."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 # @parser_classes([JSONParser, MultiPartParser])
 # @permission_classes((AwardApiAccessPolicy,))

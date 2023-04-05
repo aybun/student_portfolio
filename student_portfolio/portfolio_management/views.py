@@ -69,7 +69,7 @@ def login_view(request):
     # password = data.get('password', None)
     data = request.data.get('username_password', None)
     if data is None:
-        return JsonResponse({'message': 'Please provide username and password.'}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
+        return JsonResponse({'detail': 'Please provide username and password.'}, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     data = json.loads(data)
 
@@ -79,23 +79,23 @@ def login_view(request):
     # print(username, password)
     # print(request.POST)
     if username is None or password is None:
-        return JsonResponse({'message': 'Please provide username and password.'}, status=http.HTTPStatus.BAD_REQUEST)
+        return JsonResponse({'detail': 'Please provide username and password.'}, status=http.HTTPStatus.BAD_REQUEST)
 
     user = authenticate(username=username, password=password)
 
     if user is None:
-        return JsonResponse({'message': 'Invalid credentials.'}, status=http.HTTPStatus.BAD_REQUEST)
+        return JsonResponse({'detail': 'Invalid credentials.'}, status=http.HTTPStatus.BAD_REQUEST)
 
     login(request, user)
-    return JsonResponse({'message': 'Successfully logged in.'})
+    return JsonResponse({'detail': 'Successfully logged in.'})
 
 
 def logout_view(request):
     if not request.user.is_authenticated:
-        return JsonResponse({'message': 'You\'re not logged in.'})
+        return JsonResponse({'detail': 'You\'re not logged in.'})
 
     logout(request)
-    return JsonResponse({'message': 'Successfully logged out.'})
+    return JsonResponse({'detail': 'Successfully logged out.'})
 
 @ensure_csrf_cookie
 def session_view(request):

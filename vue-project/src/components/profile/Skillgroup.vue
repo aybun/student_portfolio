@@ -297,14 +297,14 @@ export default {
                 },
             }).then((response) => {
                 const data = response.data.data
-                const message = response.data.message
+                const detail = response.data.detail
                 this.skillgroups.push(data);
                 this.editClick(data)//Change viewing mode.
                 
-                // alert(message + '\n' + JSON.stringify(data));
-                alert(message);
+                // alert(detail + '\n' + JSON.stringify(data));
+                alert(detail);
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
         },
         
@@ -345,13 +345,13 @@ export default {
             }).then((response) => {
                 let data = response.data.data
                 data.skills = this.convertFieldToString(data.skills, 'skill_id_fk')
-                const message = response.data.message
+                const detail = response.data.detail
                 this.reassignUpdatedElementIntoList(this.skillgroups, data); //With reactivity.
                 this.editClick(data)
-                // alert(message + '\n' + JSON.stringify(data) );
-                alert(message);
+                // alert(detail + '\n' + JSON.stringify(data) );
+                alert(detail);
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
         },
 
@@ -372,9 +372,9 @@ export default {
                 },
             }).then((response) => {
                 this.removeElementFromArrayById(this.skillgroups, skillgroup_id);
-                alert(response.data.message)
+                alert(response.data.detail)
             }).catch((error)=>{
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
         },
         removeElementFromArrayById(arr, id){

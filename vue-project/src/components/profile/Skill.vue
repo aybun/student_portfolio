@@ -264,13 +264,13 @@ export default {
                 },
             }).then((response) => {
                 const data = response.data.data
-                const message = response.data.message
+                const detail = response.data.detail
                 this.skills.push(data);
                 this.editClick(data) //Change viewing mode.
-                // alert(message + '\n' + JSON.stringify(data));
-                alert(message);
+                // alert(detail + '\n' + JSON.stringify(data));
+                alert(detail);
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
         },
         async updateClick() {
@@ -305,13 +305,13 @@ export default {
                 },
             }).then((response) => {
                 const data = response.data.data
-                const message = response.data.message
+                const detail = response.data.detail
                 this.reassignUpdatedElementIntoList(this.skills, data); //With reactivity.
                 this.editClick(data)
-                // alert(message + '\n' + JSON.stringify(data));
-                alert(message);
+                // alert(detail + '\n' + JSON.stringify(data));
+                alert(detail);
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
         },
         async validateForm() {

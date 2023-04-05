@@ -237,10 +237,10 @@ export default {
                 }
             }).then((response) => {
                 this.refreshData();
-                alert(response.data.message);
+                alert(response.data.detail);
 
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
 
                 if (typeof error.response.data.invalid_rows != 'undefined')
                     alert(error.response.data.invalid_rows);

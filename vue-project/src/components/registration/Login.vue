@@ -82,7 +82,7 @@ export default {
         // console.log(document.cookie);
         window.location.replace("/home");
       }).catch((error)=>{
-        alert(JSON.stringify(error.response.data.message));
+        alert(JSON.stringify(error.response.data.detail));
       })
     },
 

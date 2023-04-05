@@ -337,14 +337,14 @@ export default {
             })
                 .then((response) => {
                     const data = response.data.data
-                    const message = response.data.message
+                    const detail = response.data.detail
                     this.events.push(data);
                     this.editClick(data) //Change viewing mode.
-                    // alert(message + '\n' + JSON.stringify(data));
-                    alert(message + '\n');
+                    // alert(detail + '\n' + JSON.stringify(data));
+                    alert(detail + '\n');
                 })
                 .catch((error) => {
-                    alert(error.response.data.message);
+                    alert(error.response.data.detail);
                 });
         },
 
@@ -400,14 +400,14 @@ export default {
             })
                 .then((response) => {
                     const data = response.data.data
-                    const message = response.data.message
+                    const detail = response.data.detail
                     this.reassignUpdatedElementIntoList(this.events, data);
                     this.editClick(data)
-                    // alert(message + '\n' + JSON.stringify(data));
-                    alert(message + '\n');
+                    // alert(detail + '\n' + JSON.stringify(data));
+                    alert(detail + '\n');
                 })
                 .catch((error) => {
-                    alert(error.response.data.message);
+                    alert(error.response.data.detail);
                 });
         },
 
@@ -428,9 +428,9 @@ export default {
                 },
             }).then((response) => {
                 this.removeElementFromArrayById(this.events, event_id);
-                alert(response.data.message);
+                alert(response.data.detail);
             }).catch((error) => {
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             })
         },
         removeElementFromArrayById(arr, id) {
