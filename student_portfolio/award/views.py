@@ -41,19 +41,12 @@ def awardApi(request, award_id=0):
             query_object = AccessPolicyClass.scope_query_object(request=request)
             objects = Model.objects.filter(query_object).distinct('id').order_by('id')
 
-            if not objects.exists():
-                return JsonResponse([], safe=False)
-
             serializer = Serializer(objects, many=True, context={'request': request})
-            # print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
             id = award_id
             query_object = AccessPolicyClass.scope_query_object(request=request)
             object = Model.objects.filter(Q(id=id) & query_object).first()
-
-            if object is None:
-                return JsonResponse({}, safe=False)
 
             serializer = Serializer(object, context={'request': request})
             return JsonResponse(serializer.data, safe=False)

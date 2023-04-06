@@ -1023,17 +1023,30 @@ class SkillgroupCRUD(APITestCase):
 
 class CurriculumCRUD(APITestCase):
     def setUp(self):
-        # print('in setup')
+        pass
+
+    @classmethod
+    def setUpTestData(cls):
+        # create users once for each APITestCase (TestCase).
+        cls.create_users(cls)
+
+    def create_users(self):
         staff_group = Group.objects.get_or_create(name='staff')
         student_group = Group.objects.get_or_create(name='student')
-        staff_user = User.objects.create(username='tubtab', password='Tubtab12345678')
+        staff_user_tubtub = User.objects.create(username='tubtab', password='Tubtab12345678')
         student_user_tamtam = User.objects.create(username='tamtam', password='Tamtam12345678')
         student_user_tubtim = User.objects.create(username='tubtim', password='Tubtim12345678')
 
-        staff_group[0].user_set.add(staff_user)
+        UserProfile.objects.create(university_id='623021038-1', user_id_fk=staff_user_tubtub, firstname='tubtab',
+                                   lastname='tubtab')
+        UserProfile.objects.create(university_id='623021039-1', user_id_fk=student_user_tamtam, firstname='tamtam',
+                                   lastname='tamtam')
+        UserProfile.objects.create(university_id='623021039-2', user_id_fk=student_user_tubtim, firstname='tubtim',
+                                   lastname='tubtim')
+
+        staff_group[0].user_set.add(staff_user_tubtub)
         student_group[0].user_set.add(student_user_tamtam)
         student_group[0].user_set.add(student_user_tubtim)
-
 
     def test_staff_can_create(self):
         factory = APIRequestFactory()

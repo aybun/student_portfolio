@@ -70,10 +70,6 @@ def eventApi(request, event_id=0):
             id = event_id
             query_object = AccessPolicyClass.scope_query_object(request=request)
             object = Model.objects.filter(Q(id=id) & query_object).first()
-
-            if object is None:
-                return JsonResponse({}, safe=False)
-
             serializer = Serializer(object, context={'request' : request})
 
             return JsonResponse(serializer.data, safe=False)

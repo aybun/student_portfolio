@@ -743,10 +743,11 @@ export default {
 
         this._generate_formRender();
         
-        axios.get(this.$API_URL + "project").then((response) => {
-            this.projects = response.data;
-        });
-
+        // axios.get(this.$API_URL + "project").then((response) => {
+        //     this.projects = response.data;
+        // });
+        this.refreshData()
+        
         axios.get(this.$API_URL + "staff").then((response) => {
             this.staffTable = this.assignFieldAsIdField(response.data, 'user_id_fk', 'id')
         });

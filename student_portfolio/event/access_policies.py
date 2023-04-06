@@ -101,16 +101,6 @@ class EventAttendanceApiAccessPolicy(AccessPolicy):
             "principal": ["group:student"],
             "effect": "allow",
         },
-        {
-            "action": ["eventAttendanceOfStudents"],
-            "principal" : ["group:staff"],
-            "effect": "allow",
-        },
-        {
-            "action": ["eventAttendanceOfStudents"],
-            "principal": ["group:student"],
-            "effect": "deny",
-        }
 
     ]
 
@@ -130,12 +120,19 @@ class EventAttendanceApiAccessPolicy(AccessPolicy):
     def scope_query_object(cls, request):
         groups = request.user.groups.values_list('name', flat=True)
         if request.method == "GET":
-
-            if 'staff' not in groups: #Assume that any group that has lower authority than staff.
+            if 'staff' in groups:
+                return Q()
+            elif 'student' in groups:
                 return Q(user_id_fk=request.user.id)
-
-        if 'staff' in groups:
-            return Q()
+        elif request.method == "POST":
+            if 'staff' in groups:
+                return Q()
+        elif request.method == "PUT":
+            if 'staff' in groups:
+                return Q()
+        elif request.method == "DELETE":
+            if 'staff' in groups:
+                return Q()
 
 
 class CurriculumApiAccessPolicy(AccessPolicy):

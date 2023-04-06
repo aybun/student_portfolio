@@ -332,7 +332,7 @@ describe("Test award.", () => {
                 'attachment_link': 'notalink',
                 'attachment_file': { files: [{ file: { size: 2500000 } }] },
             }
-
+            
             // Test : valid data.
             wrapper.setData({
                 award: JSON.parse(JSON.stringify(valid_award_data)),

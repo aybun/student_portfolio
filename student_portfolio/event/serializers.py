@@ -270,7 +270,7 @@ class EventSerializer(FieldAccessMixin, serializers.ModelSerializer):
         return approved_by
 
 class EventAttendanceSerializer(FieldAccessMixin, serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
+    id = serializers.IntegerField(required=False, read_only=True)
     event_id_fk = serializers.PrimaryKeyRelatedField(many=False, read_only=False, allow_null=True, required=True,
                                                      queryset=Event.objects.all())
 

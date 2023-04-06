@@ -46,15 +46,11 @@ def projectApi(request, project_id=0):
                 return JsonResponse([], safe=False)
 
             serializer = Serializer(objects, many=True, context={'request': request})
-            # print(serializer.data)
             return JsonResponse(serializer.data, safe=False)
         else:
             id = project_id
             query_object = AccessPolicyClass.scope_query_object(request=request)
             object = Model.objects.filter(Q(id=id) & query_object).first()
-
-            if object is None:
-                return JsonResponse({}, safe=False, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
             serializer = Serializer(object, context={'request': request})
             return JsonResponse(serializer.data, safe=False)

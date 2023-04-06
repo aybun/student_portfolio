@@ -14,6 +14,7 @@ urlpatterns=[
     #Using Django template
     path('event', views.event),
     path('api/event', views.eventApi),
+    path('api/event/', views.eventApi),
     path('api/event/<int:event_id>', views.eventApi),
     path('api/event/curriculum-summary', views.eventCurriculumSummaryApi),
     path('api/event/async-search', views.eventAsyncSearchApi),
@@ -34,6 +35,7 @@ urlpatterns=[
 
 
     path('api/skillTable', views.skillTableApi),
+    path('api/skillTable/', views.skillTableApi),
     path('api/skillTable/<int:skill_id>', views.skillTableApi)
 
 
