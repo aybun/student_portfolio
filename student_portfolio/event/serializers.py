@@ -585,8 +585,8 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 unique_ids.append(id)
                 out_list.append(e)
 
-        print('outlist {}'.format(out_list))
-        print(type(out_list))
+        # print('outlist {}'.format(out_list))
+        # print(type(out_list))
         return out_list
 
     @staticmethod
@@ -604,8 +604,8 @@ class SkillGroupSerializer(FieldAccessMixin, serializers.ModelSerializer):
         elif request.method == "PUT":
             pass
 
-        print('in custom clean')
-        print(instance, data)
+        # print('in custom clean')
+        # print(instance, data)
         return instance, data
 
 

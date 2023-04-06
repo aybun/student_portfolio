@@ -85,7 +85,7 @@ class awardCRUD(APITestCase):
         award_id = data.get('id')
 
         #put
-        out_dict = {'title': 'new_name'}
+        out_dict = {'title': 'changed'}
         request = factory.put('/api/award/' + str(award_id), out_dict)
         force_authenticate(request, user=user)
         response = view(request, award_id=award_id)
@@ -93,7 +93,7 @@ class awardCRUD(APITestCase):
         data = response_data['data']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id', None), award_id)
-        self.assertEqual(data.get('title', None), 'new_name')
+        self.assertEqual(data.get('title', None), 'changed')
 
     def test_staff_can_delete(self):
         factory = APIRequestFactory()

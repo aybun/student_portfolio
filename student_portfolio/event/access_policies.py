@@ -241,7 +241,7 @@ class SkillTableApiAccessPolicy(AccessPolicy):
     statements = [
         {
             "action": ["<method:get>"],
-            "principal": ["*"],
+            "principal": ["group:staff", "group:student"],
             "effect": "allow"
         },
         {

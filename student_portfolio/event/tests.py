@@ -35,33 +35,45 @@ class EventCRUD(APITestCase):
 
 
     def setUp(self):
-        # print('in setup')
+        #This function will run for every test.
+        pass
+
+    @classmethod
+    def setUpTestData(cls):
+        # create users once for each APITestCase (TestCase).
+        cls.create_users(cls)
+
+    def create_users(self):
         staff_group = Group.objects.get_or_create(name='staff')
         student_group = Group.objects.get_or_create(name='student')
-        staff_user = User.objects.create(username='tubtab', password='Tubtab12345678')
+        staff_user_tubtub = User.objects.create(username='tubtab', password='Tubtab12345678')
         student_user_tamtam = User.objects.create(username='tamtam', password='Tamtam12345678')
         student_user_tubtim = User.objects.create(username='tubtim', password='Tubtim12345678')
 
-        staff_group[0].user_set.add(staff_user)
+        UserProfile.objects.create(university_id='623021038-1', user_id_fk=staff_user_tubtub, firstname='tubtab',
+                                   lastname='tubtab')
+        UserProfile.objects.create(university_id='623021039-1', user_id_fk=student_user_tamtam, firstname='tamtam',
+                                   lastname='tamtam')
+        UserProfile.objects.create(university_id='623021039-2', user_id_fk=student_user_tubtim, firstname='tubtim',
+                                   lastname='tubtim')
+
+        staff_group[0].user_set.add(staff_user_tubtub)
         student_group[0].user_set.add(student_user_tamtam)
         student_group[0].user_set.add(student_user_tubtim)
-
-        # print(group[0])
-        #We create read update and delete | We do not have to worry about setting it up and tearing it down.
 
     def test_staff_can_create(self):
         factory = APIRequestFactory()
         user = User.objects.get(username='tubtab')  # tubtab is staff.
         view = eventApi
 
-        request = factory.post('/api/event/', {'title': 'กิจกรรม'} )
+        request = factory.post('/api/event/', {'title': 'event'} )
         force_authenticate(request, user=user)
         response = view(request, event_id=0)
 
         response_data = json.loads(response.content)
         # print(response_data)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
 
@@ -71,7 +83,7 @@ class EventCRUD(APITestCase):
         user = User.objects.get(username='tubtab')  # tuta is staff.
         view = eventApi
 
-        create_request = factory.post('/api/event/', {'title': 'โครงการ'})
+        create_request = factory.post('/api/event/', {'title': 'event'})
         force_authenticate(create_request, user=user)
         response = view(create_request, event_id=0)
         response_data = json.loads(response.content)
@@ -94,7 +106,7 @@ class EventCRUD(APITestCase):
         view = eventApi
 
         #create part
-        create_request = factory.post('/api/event/', {'title': 'โครงการ'})
+        create_request = factory.post('/api/event/', {'title': 'event'})
         force_authenticate(create_request, user=user)
         response = view(create_request, event_id=0)
         response_data = json.loads(response.content)
@@ -102,7 +114,7 @@ class EventCRUD(APITestCase):
         event_id = data.get('id')
 
         self.assertEqual(data['approved'], False)
-        out_dict = {'title': 'โครงการ', 'id' : event_id, 'approved': 'true' }
+        out_dict = {'title': 'changed', 'id' : event_id, 'approved': 'true' }
 
         #Update part
         request = factory.put('/api/event/' + str(event_id), out_dict)
@@ -119,7 +131,7 @@ class EventCRUD(APITestCase):
         user = User.objects.get(username='tubtab')  # tuta is staff.
         view = eventApi
 
-        create_request = factory.post('/api/event/', {'title': 'โครงการ'})
+        create_request = factory.post('/api/event/', {'title': 'event'})
         force_authenticate(create_request, user=user)
         response = view(create_request, event_id=0)
         response_data = json.loads(response.content)
@@ -132,20 +144,20 @@ class EventCRUD(APITestCase):
 
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(response_data['message'], "Deleted Successfully")
+        self.assertEqual(response_data['detail'], "Deleted Successfully")
 
     def test_student_can_create(self):
         factory = APIRequestFactory()
         user = User.objects.get(username='tamtam')  # tamtam is student.
         view = eventApi
 
-        request = factory.post('/api/event/', {'title': 'Tamtam created โครงการ'})
+        request = factory.post('/api/event/', {'title': 'event'})
         force_authenticate(request, user=user)
         response = view(request, event_id=0)
 
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
 
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
@@ -158,7 +170,7 @@ class EventCRUD(APITestCase):
         view = eventApi
 
         #Create
-        create_request = factory.post('/api/event/', {'title': 'ฺโครงการ'})
+        create_request = factory.post('/api/event/', {'title': 'event'})
         force_authenticate(create_request, user=user)
         response = view(create_request, event_id=0)
         response_data = json.loads(response.content)
@@ -167,7 +179,7 @@ class EventCRUD(APITestCase):
 
         #Update
         self.assertEqual(data['approved'], False)
-        out_dict = {'title': 'โครงการ', 'id': event_id, 'approved': 'true'}
+        out_dict = {'title': 'changed', 'id': event_id, 'approved': 'true'}
         request = factory.get('/api/event/' + str(event_id))  # Get method contains no message.
         force_authenticate(request, user=user)
         response = view(request, event_id=event_id)
@@ -229,7 +241,7 @@ class EventCRUD(APITestCase):
         response_data = json.loads(response.content)
 
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to update.")
+        self.assertEqual(response_data['detail'], "Failed to update.")
 
 
     def test_student_can_delete(self):
@@ -265,7 +277,7 @@ class EventCRUD(APITestCase):
         response = view(request, event_id=event_1_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(response_data['message'], "Deleted Successfully")
+        self.assertEqual(response_data['detail'], "Deleted Successfully")
 
 
         # event_2 created_by user and approved=True.
@@ -293,7 +305,7 @@ class EventCRUD(APITestCase):
         response = view(request, event_id=event_2_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to delete.")
+        self.assertEqual(response_data['detail'], "Failed to delete.")
 
         # event_3 created_by other user.
         # Expect : The user cannot delete event_3
@@ -312,7 +324,7 @@ class EventCRUD(APITestCase):
         response = view(request, event_id=event_3_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to delete.")
+        self.assertEqual(response_data['detail'], "Failed to delete.")
 
     def test_unauthenticated_create(self):
 
@@ -396,7 +408,7 @@ class SkillCRUD(APITestCase):
         student_group[0].user_set.add(student_user_tamtam)
         student_group[0].user_set.add(student_user_tubtim)
 
-    def test_staff_create(self):
+    def test_staff_can_create(self):
         factory = APIRequestFactory()
         user = User.objects.get(username='tubtab')  # tubtab is staff.
         view = skillTableApi
@@ -411,11 +423,11 @@ class SkillCRUD(APITestCase):
         # print(response_data)
         data = response_data['data']
         # print(data)
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
 
-    def test_staff_read(self):
+    def test_staff_can_read(self):
         factory = APIRequestFactory()
         user = User.objects.get(username='tubtab')  # tubtab is staff.
         view = skillTableApi
@@ -428,7 +440,7 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -442,7 +454,7 @@ class SkillCRUD(APITestCase):
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id'), id)
 
-    def test_staff_update(self):
+    def test_staff_can_update(self):
         factory = APIRequestFactory()
         user = User.objects.get(username='tubtab')  # tubtab is staff.
         view = skillTableApi
@@ -455,13 +467,13 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         # UPDATE
-        out_dict = { 'id' : id, 'title': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = { 'id' : id, 'title': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=user)
         response = view(request, skill_id=id)
@@ -470,7 +482,7 @@ class SkillCRUD(APITestCase):
         data = response_data['data']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id'), id)
-        self.assertEqual(data.get('title'), 'เปลี่ยนไปเป็นรัก')
+        self.assertEqual(data.get('title'), 'new_name')
 
     def test_staff_cannot_delete(self):
         factory = APIRequestFactory()
@@ -485,7 +497,7 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -528,7 +540,7 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -557,13 +569,13 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         #Update : the student should fail to update.
-        out_dict = {'id': id, 'title': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = {'id': id, 'title': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=student_user)
         response = view(request, skill_id=id)
@@ -585,7 +597,7 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -613,7 +625,7 @@ class SkillCRUD(APITestCase):
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
 
-    def test_unauthenticated_user_can_read(self):
+    def test_unauthenticated_user_cannot_read(self):
         factory = APIRequestFactory()
         staff_user = User.objects.get(username='tubtab')  # tubtab is 'staff'.
         unauthenticated_user = None
@@ -627,7 +639,7 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -638,9 +650,9 @@ class SkillCRUD(APITestCase):
         response = view(request, skill_id=id)
         # print(response)
         # response.render()
-        data = json.loads(response.content)
-        self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(data.get('id'), id)
+        # data = json.loads(response.content)
+        self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
+        # self.assertEqual(data.get('id'), id)
 
 
     def test_unauthenticated_user_cannot_update(self):
@@ -657,13 +669,13 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         #Update : the student should fail to update.
-        out_dict = {'id': id, 'title': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = {'id': id, 'title': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=unauthenticated_user)
         response = view(request, skill_id=id)
@@ -685,7 +697,7 @@ class SkillCRUD(APITestCase):
         # response.render()
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -703,15 +715,28 @@ class SkillCRUD(APITestCase):
 
 class SkillgroupCRUD(APITestCase):
     def setUp(self):
-        # print('in setup')
+        pass
+
+    @classmethod
+    def setUpTestData(cls):
+        # create users once for each APITestCase (TestCase).
+        cls.create_users(cls)
+
+    def create_users(self):
         staff_group = Group.objects.get_or_create(name='staff')
         student_group = Group.objects.get_or_create(name='student')
-
-        staff_user = User.objects.create(username='tubtab', password='Tubtab12345678')
+        staff_user_tubtub = User.objects.create(username='tubtab', password='Tubtab12345678')
         student_user_tamtam = User.objects.create(username='tamtam', password='Tamtam12345678')
         student_user_tubtim = User.objects.create(username='tubtim', password='Tubtim12345678')
 
-        staff_group[0].user_set.add(staff_user)
+        UserProfile.objects.create(university_id='623021038-1', user_id_fk=staff_user_tubtub, firstname='tubtab',
+                                   lastname='tubtab')
+        UserProfile.objects.create(university_id='623021039-1', user_id_fk=student_user_tamtam, firstname='tamtam',
+                                   lastname='tamtam')
+        UserProfile.objects.create(university_id='623021039-2', user_id_fk=student_user_tubtim, firstname='tubtim',
+                                   lastname='tubtim')
+
+        staff_group[0].user_set.add(staff_user_tubtub)
         student_group[0].user_set.add(student_user_tamtam)
         student_group[0].user_set.add(student_user_tubtim)
 
@@ -721,12 +746,12 @@ class SkillgroupCRUD(APITestCase):
         view = skillgroupApi
         api_string = '/api/skillgroup/'
 
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
 
@@ -737,12 +762,12 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # CREATE
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -762,19 +787,19 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         # print(response_data)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         # Update
-        out_dict = {'id': id, 'name': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = {'id': id, 'name': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=user)
         response = view(request, skillgroup_id=id)
@@ -782,7 +807,7 @@ class SkillgroupCRUD(APITestCase):
         data = data = response_data['data']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id'), id)
-        self.assertEqual(data.get('name'), 'เปลี่ยนไปเป็นรัก')
+        self.assertEqual(data.get('name'), 'new_name')
 
     def test_staff_can_delete(self):
         factory = APIRequestFactory()
@@ -791,12 +816,12 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         #Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -816,7 +841,7 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=user)
         response = view(request, skillgroup_id=0)
         response.render()
@@ -831,12 +856,12 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=staff_user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -857,18 +882,18 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=staff_user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         # Update : the student should fail to update.
-        out_dict = {'id': id, 'name': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = {'id': id, 'name': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=student_user)
         response = view(request, skillgroup_id=id)
@@ -884,12 +909,12 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=staff_user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -909,7 +934,7 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=unauthenticated_user)
         response = view(request, skillgroup_id=0)
         response.render()
@@ -924,12 +949,12 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=staff_user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -950,18 +975,18 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=staff_user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         #Update
-        out_dict = {'id': id, 'title': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = {'id': id, 'title': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=unauthenticated_user)
         response = view(request, skillgroup_id=id)
@@ -977,12 +1002,12 @@ class SkillgroupCRUD(APITestCase):
         api_string = '/api/skillgroup/'
 
         # Create
-        request = factory.post(api_string, {'name': 'Group A'})
+        request = factory.post(api_string, {'name': 'group'})
         force_authenticate(request, user=staff_user)
         response = view(request, skillgroup_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -1023,7 +1048,7 @@ class CurriculumCRUD(APITestCase):
         response_data = json.loads(response.content)
         # print(response_data)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
 
@@ -1039,7 +1064,7 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -1066,13 +1091,13 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         #Update
-        out_dict = {'id': id, 'th_name': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = {'id': id, 'th_name': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=user)
         response = view(request, curriculum_id=id)
@@ -1080,7 +1105,7 @@ class CurriculumCRUD(APITestCase):
         data = data = response_data['data']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id'), id)
-        self.assertEqual(data.get('th_name', None), 'เปลี่ยนไปเป็นรัก')
+        self.assertEqual(data.get('th_name', None), 'new_name')
 
     def test_staff_can_delete(self):
         factory = APIRequestFactory()
@@ -1094,7 +1119,7 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -1134,7 +1159,7 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -1160,13 +1185,13 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         #Update : Student tries to update and should failt to do so.
-        out_dict = {'id': id, 'th_name': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = {'id': id, 'th_name': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=student_user)
         response = view(request, curriculum_id=id)
@@ -1187,7 +1212,7 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -1227,7 +1252,7 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -1253,13 +1278,13 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
 
         #Update : Uauthenticated user tries to update and should fail to do so.
-        out_dict = {'id': id, 'th_name': 'เปลี่ยนไปเป็นรัก'}
+        out_dict = {'id': id, 'th_name': 'new_name'}
         request = factory.put(api_string + str(id), out_dict)
         force_authenticate(request, user=unauthenticated_user)
         response = view(request, curriculum_id=id)
@@ -1281,7 +1306,7 @@ class CurriculumCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
         id = data.get('id')
@@ -1333,7 +1358,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request, event_id=0)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id'), None)
 
@@ -1352,7 +1377,7 @@ class EventAttendanceCRUD(APITestCase):
         response_data = json.loads(response.content)
         # print(response_data)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -1364,7 +1389,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         # data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(message, "The student is present in the attendance table.")
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -1373,7 +1398,7 @@ class EventAttendanceCRUD(APITestCase):
         force_authenticate(request, user=user)
         response = view(request)
         response_data = json.loads(response.content)
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(message, "The university id does not exist or the entered university id is not valid. You might need to add the data to the database.")
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -1390,7 +1415,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -1416,7 +1441,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -1447,7 +1472,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -1475,7 +1500,7 @@ class EventAttendanceCRUD(APITestCase):
         response.render()
         response_data = json.loads(response.content)
         # data = response_data['data']
-        # message = response_data['message']
+        # message = response_data['detail]
         self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
 
     def test_student_can_read(self):
@@ -1492,7 +1517,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         tamtam_attendance_id = data.get('id')
@@ -1504,7 +1529,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         tubtim_attendance_id = data.get('id')
@@ -1543,7 +1568,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -1572,7 +1597,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -1616,7 +1641,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -1643,7 +1668,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')
@@ -1672,7 +1697,7 @@ class EventAttendanceCRUD(APITestCase):
         response = view(request)
         response_data = json.loads(response.content)
         data = response_data['data']
-        message = response_data['message']
+        message = response_data['detail']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(data.get('id', None), None)
         id = data.get('id')

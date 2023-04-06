@@ -86,15 +86,15 @@ class ProjectCRUD(APITestCase):
         project_id = data.get('id')
 
         #put
-        # out_dict = {'title': 'new_name'}
-        request = factory.put('/api/project/' + str(project_id), {'title': 'new_name'})
+        # out_dict = {'title': 'changed'}
+        request = factory.put('/api/project/' + str(project_id), {'title': 'changed'})
         force_authenticate(request, user=user)
         response = view(request, project_id=project_id)
         response_data = json.loads(response.content) #Get method contains no message.
         data = response_data['data']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id', None), project_id)
-        self.assertEqual(data.get('title', None), 'new_name')
+        self.assertEqual(data.get('title', None), 'changed')
 
     def test_staff_can_delete(self):
         factory = APIRequestFactory()
