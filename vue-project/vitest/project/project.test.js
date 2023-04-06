@@ -135,7 +135,7 @@ describe("Test project.", () => {
         await wrapper.setData({
             project: {
                 title:
-                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "a".repeat(101),
             },
         });
         title.performValidation();
@@ -184,7 +184,7 @@ describe("Test project.", () => {
         //info : string length || 204 chars
         await wrapper.setData({
             project: {
-                info: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                info: "a".repeat(204),
             },
         });
         info.performValidation();
@@ -292,7 +292,6 @@ describe("Test project.", () => {
             let copied_data = JSON.parse(JSON.stringify(valid_data));
             copied_data['title'] = invalids['title'];
             await wrapper.setData({ project: copied_data });
-            // console.log(copied_data)
             await flushPromises();
             await wrapper.vm.createClick().then((result) => {
                 expect(result).toBe(false);
@@ -326,7 +325,7 @@ describe("Test project.", () => {
             await wrapper.vm.updateClick().then((result) => {
                 expect(result).toBe(false);
             });
-
+            
             //Test info
             copied_data = JSON.parse(JSON.stringify(valid_data));
             copied_data['info'] = invalids['info'];

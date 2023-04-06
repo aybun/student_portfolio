@@ -4,6 +4,7 @@ import http
 import json
 from django.contrib.auth.models import User, Group
 # from django.test import TestCase
+from user_profile.models import UserProfile
 from .views import projectApi
 # Create your tests here.
 from rest_framework.test import APIRequestFactory, force_authenticate, APITestCase
@@ -12,19 +13,31 @@ from rest_framework.test import APIRequestFactory, force_authenticate, APITestCa
 class ProjectCRUD(APITestCase):
 
     def setUp(self):
-        # print('in setup')
+        #This will run every time we enter new test_x_x_ function.
+        pass
+
+    @classmethod
+    def setUpTestData(cls):
+        # create users once for each APITestCase (TestCase).
+        cls.create_users(cls)
+
+    def create_users(self):
         staff_group = Group.objects.get_or_create(name='staff')
         student_group = Group.objects.get_or_create(name='student')
-        staff_user = User.objects.create(username='tubtab', password='Tubtab12345678')
+        staff_user_tubtub = User.objects.create(username='tubtab', password='Tubtab12345678')
         student_user_tamtam = User.objects.create(username='tamtam', password='Tamtam12345678')
         student_user_tubtim = User.objects.create(username='tubtim', password='Tubtim12345678')
 
-        staff_group[0].user_set.add(staff_user)
+        UserProfile.objects.create(university_id='623021038-1', user_id_fk=staff_user_tubtub, firstname='tubtab',
+                                   lastname='tubtab')
+        UserProfile.objects.create(university_id='623021039-1', user_id_fk=student_user_tamtam, firstname='tamtam',
+                                   lastname='tamtam')
+        UserProfile.objects.create(university_id='623021039-2', user_id_fk=student_user_tubtim, firstname='tubtim',
+                                   lastname='tubtim')
+
+        staff_group[0].user_set.add(staff_user_tubtub)
         student_group[0].user_set.add(student_user_tamtam)
         student_group[0].user_set.add(student_user_tubtim)
-
-        # print(group[0])
-        #We create read update and delete | We do not have to worry about setting it up and tearing it down.
 
     def test_staff_can_create(self):
         factory = APIRequestFactory()
@@ -38,7 +51,7 @@ class ProjectCRUD(APITestCase):
         response_data = json.loads(response.content)
         data = response_data['data']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertNotEqual(data.get('id'), None)
+        self.assertNotEqual(data.get('id', None), None)
 
     def test_staff_can_read(self):
         factory = APIRequestFactory()
@@ -73,8 +86,8 @@ class ProjectCRUD(APITestCase):
         project_id = data.get('id')
 
         #put
-        out_dict = {'title': 'new_name'}
-        request = factory.put('/api/project/' + str(project_id), out_dict)
+        # out_dict = {'title': 'new_name'}
+        request = factory.put('/api/project/' + str(project_id), {'title': 'new_name'})
         force_authenticate(request, user=user)
         response = view(request, project_id=project_id)
         response_data = json.loads(response.content) #Get method contains no message.
@@ -101,7 +114,7 @@ class ProjectCRUD(APITestCase):
         response = view(request, project_id=project_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(response_data['message'], "Deleted Successfully")
+        self.assertEqual(response_data['detail'], "Deleted Successfully")
 
     def test_student_can_create(self):
         factory = APIRequestFactory()
@@ -187,7 +200,7 @@ class ProjectCRUD(APITestCase):
         response_data = json.loads(response.content)
 
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to update.")
+        self.assertEqual(response_data['detail'], "Failed to update.")
 
     def test_student_can_delete(self):
 
@@ -223,7 +236,7 @@ class ProjectCRUD(APITestCase):
         response = view(request, project_id=project_1_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(response_data['message'], "Deleted Successfully")
+        self.assertEqual(response_data['detail'], "Deleted Successfully")
 
         # project_2 created_by user and approved=True.
         # Expect : The user failed delete project_2.
@@ -237,7 +250,7 @@ class ProjectCRUD(APITestCase):
         project_2_id = data.get('id')
 
         # staff approves project_2
-        out_dict = {'title': 'changed', 'id': project_2_id, 'approved': 'true'}
+        out_dict = {'title': 'project 2', 'id': project_2_id, 'approved': 'true'}
         request = factory.put('/api/project/' + str(project_2_id), out_dict)
         force_authenticate(request, user=staff_user)
         response = view(request, project_id=project_2_id)
@@ -250,7 +263,7 @@ class ProjectCRUD(APITestCase):
         response = view(request, project_id=project_2_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to delete.")
+        self.assertEqual(response_data['detail'], "Failed to delete.")
 
         # project_3 created_by other user.
         # Expect : The user cannot delete project_3
@@ -269,30 +282,34 @@ class ProjectCRUD(APITestCase):
         response = view(request, project_id=project_3_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to delete.")
+        self.assertEqual(response_data['detail'], "Failed to delete.")
 
     def test_unauthenticated_create(self):
-
-        # expect Forbidden
-
         factory = APIRequestFactory()
-        request = factory.post('/api/project/', {'title': 'project 2'})
-        request = factory.get('/api/project/')
+        request = factory.post('/api/project/', {'title': 'project'})
         view = projectApi
         force_authenticate(request, user=None)
         response = view(request, project_id=0)
-
         self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
 
     def test_unauthenticated_read(self):
-        # expect Forbidden
-
         factory = APIRequestFactory()
-        request = factory.get('/api/project/')
+        user = User.objects.get(username='tubtab')  # tuta is staff.
+        view = projectApi
+
+        # create part
+        create_request = factory.post('/api/project/', {'title': 'โครงการ'})
+        force_authenticate(create_request, user=user)
+        response = view(create_request, project_id=0)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        project_id = data.get('id', None)
+        self.assertNotEqual(project_id, None)
+
+        request = factory.get('/api/project/' + str(project_id))
         view = projectApi
         force_authenticate(request, user=None)
-        response = view(request, project_id=0)
-
+        response = view(request, project_id=project_id)
         self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
 
     def test_unauthenticated_update(self):

@@ -4,6 +4,7 @@ import http
 import json
 from django.contrib.auth.models import User, Group
 # from django.test import TestCase
+from user_profile.models import UserProfile
 from .views import awardApi
 # Create your tests here.
 from rest_framework.test import APIRequestFactory, force_authenticate, APITestCase
@@ -12,26 +13,37 @@ from rest_framework.test import APIRequestFactory, force_authenticate, APITestCa
 class awardCRUD(APITestCase):
 
     def setUp(self):
-        # print('in setup')
+        pass
+        # print(group[0])
+        #We create read update and delete | We do not have to worry about setting it up and tearing it down.
+
+    @classmethod
+    def setUpTestData(cls):
+        # create users once for each APITestCase (TestCase).
+        cls.create_users(cls)
+
+    def create_users(self):
         staff_group = Group.objects.get_or_create(name='staff')
         student_group = Group.objects.get_or_create(name='student')
-        staff_user = User.objects.create(username='tubtab', password='Tubtab12345678')
+        staff_user_tubtub = User.objects.create(username='tubtab', password='Tubtab12345678')
         student_user_tamtam = User.objects.create(username='tamtam', password='Tamtam12345678')
         student_user_tubtim = User.objects.create(username='tubtim', password='Tubtim12345678')
 
-        staff_group[0].user_set.add(staff_user)
+        UserProfile.objects.create(university_id='623021038-1', user_id_fk=staff_user_tubtub, firstname='tubtab', lastname='tubtab')
+        UserProfile.objects.create(university_id='623021039-1', user_id_fk=student_user_tamtam, firstname='tamtam', lastname='tamtam')
+        UserProfile.objects.create(university_id='623021039-2', user_id_fk=student_user_tubtim, firstname='tubtim', lastname='tubtim')
+
+
+        staff_group[0].user_set.add(staff_user_tubtub)
         student_group[0].user_set.add(student_user_tamtam)
         student_group[0].user_set.add(student_user_tubtim)
-
-        # print(group[0])
-        #We create read update and delete | We do not have to worry about setting it up and tearing it down.
 
     def test_staff_can_create(self):
         factory = APIRequestFactory()
         user = User.objects.get(username='tubtab')  # tubtab is staff.
         view = awardApi
 
-        request = factory.post('/api/award/', {'title': 'proj'})
+        request = factory.post('/api/award/', {'title': 'award'})
         force_authenticate(request, user=user)
         response = view(request, award_id=0)
 
@@ -45,7 +57,7 @@ class awardCRUD(APITestCase):
         user = User.objects.get(username='tubtab')  # tubtab is staff.
         view = awardApi
 
-        create_request = factory.post('/api/award/', {'title': 'proj'})
+        create_request = factory.post('/api/award/', {'title': 'award'})
         force_authenticate(create_request, user=user)
         response = view(create_request, award_id=0)
         response_data = json.loads(response.content)
@@ -65,7 +77,7 @@ class awardCRUD(APITestCase):
         user = User.objects.get(username='tubtab')  # tubtab is staff.
         view = awardApi
 
-        create_request = factory.post('/api/award/', {'title': 'proj'})
+        create_request = factory.post('/api/award/', {'title': 'award'})
         force_authenticate(create_request, user=user)
         response = view(create_request, award_id=0)
         response_data = json.loads(response.content)
@@ -101,14 +113,14 @@ class awardCRUD(APITestCase):
         response = view(request, award_id=award_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(response_data['message'], "Deleted Successfully")
+        self.assertEqual(response_data['detail'], "Deleted Successfully")
 
     def test_student_can_create(self):
         factory = APIRequestFactory()
         user = User.objects.get(username='tamtam')  # tamtam is student.
         view = awardApi
 
-        create_request = factory.post('/api/award/', {'title': 'proj'})
+        create_request = factory.post('/api/award/', {'title': 'award'})
         force_authenticate(create_request, user=user)
         response = view(create_request, award_id=0)
         response_data = json.loads(response.content)
@@ -145,7 +157,7 @@ class awardCRUD(APITestCase):
         staff_user = User.objects.get(username='tubtab')  # tuta is staff
         view = awardApi
 
-        create_request = factory.post('/api/award/', {'title': 'proj'})
+        create_request = factory.post('/api/award/', {'title': 'award'})
         force_authenticate(create_request, user=user)
         response = view(create_request, award_id=0)
         response_data = json.loads(response.content)
@@ -154,7 +166,7 @@ class awardCRUD(APITestCase):
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertNotEqual(award_id, None)
 
-        self.assertEqual(data['title'], 'proj')
+        self.assertEqual(data['title'], 'award')
         self.assertEqual(data['approved'], False)
         self.assertEqual(data['used_for_calculation'], False)
 
@@ -187,7 +199,7 @@ class awardCRUD(APITestCase):
         response_data = json.loads(response.content)
 
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to update.")
+        self.assertEqual(response_data['detail'], "Failed to update.")
 
     def test_student_can_delete(self):
 
@@ -223,7 +235,7 @@ class awardCRUD(APITestCase):
         response = view(request, award_id=award_1_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(response_data['message'], "Deleted Successfully")
+        self.assertEqual(response_data['detail'], "Deleted Successfully")
 
         # award_2 created_by user and approved=True.
         # Expect : The user failed delete award_2.
@@ -250,7 +262,7 @@ class awardCRUD(APITestCase):
         response = view(request, award_id=award_2_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to delete.")
+        self.assertEqual(response_data['detail'], "Failed to delete.")
 
         # award_3 created_by other user.
         # Expect : The user cannot delete award_3
@@ -269,7 +281,7 @@ class awardCRUD(APITestCase):
         response = view(request, award_id=award_3_id)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(response_data['message'], "Failed to delete.")
+        self.assertEqual(response_data['detail'], "Failed to delete.")
 
     def test_unauthenticated_create(self):
 
@@ -277,7 +289,6 @@ class awardCRUD(APITestCase):
 
         factory = APIRequestFactory()
         request = factory.post('/api/award/', {'title': 'award 2'})
-        request = factory.get('/api/award/')
         view = awardApi
         force_authenticate(request, user=None)
         response = view(request, award_id=0)
@@ -286,12 +297,25 @@ class awardCRUD(APITestCase):
 
     def test_unauthenticated_read(self):
         # expect Forbidden
-
         factory = APIRequestFactory()
-        request = factory.get('/api/award/')
+        user = User.objects.get(username='tubtab')  # tuta is staff.
+        view = awardApi
+
+        #Create
+        create_request = factory.post('/api/award/', {'title': 'โครงการ'})
+        force_authenticate(create_request, user=user)
+        response = view(create_request, award_id=0)
+        response_data = json.loads(response.content)
+        data = response_data['data']
+        award_id = data.get('id', None)
+        self.assertNotEqual(award_id, None)
+
+        #READ
+        factory = APIRequestFactory()
+        request = factory.get('/api/award/' + str(award_id))
         view = awardApi
         force_authenticate(request, user=None)
-        response = view(request, award_id=0)
+        response = view(request, award_id=award_id)
 
         self.assertEqual(response.status_code, http.HTTPStatus.FORBIDDEN)
 
@@ -302,7 +326,7 @@ class awardCRUD(APITestCase):
         view = awardApi
 
         # create part
-        create_request = factory.post('/api/award/', {'title': 'โครงการ'})
+        create_request = factory.post('/api/award/', {'title': 'award'})
         force_authenticate(create_request, user=user)
         response = view(create_request, award_id=0)
         response_data = json.loads(response.content)
@@ -311,7 +335,7 @@ class awardCRUD(APITestCase):
         self.assertNotEqual(award_id, None)
 
         #the unauthenticated user tries to update the award
-        request = factory.put('/api/award/' + str(award_id), {'title': 'โครงการที่ถูกแก้ไข'})
+        request = factory.put('/api/award/' + str(award_id), {'title': 'changed'})
         view = awardApi
         force_authenticate(request, user=None)
         response = view(request, award_id=award_id)
@@ -324,7 +348,7 @@ class awardCRUD(APITestCase):
         view = awardApi
 
         # create part
-        create_request = factory.post('/api/award/', {'title': 'โครงการ'})
+        create_request = factory.post('/api/award/', {'title': 'award'})
         force_authenticate(create_request, user=user)
         response = view(create_request, award_id=0)
         response_data = json.loads(response.content)
