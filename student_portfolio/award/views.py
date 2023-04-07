@@ -90,7 +90,7 @@ def awardApi(request, award_id=0):
         else:
             data = request.data.dict()
             (object, data) = Serializer.custom_clean(instance=object, data=data, context={'request': request})
-            print(data)
+            # print(data)
             serializer = Serializer(instance=object, data=data, context={'request': request})
 
             if serializer.is_valid():

@@ -53,8 +53,6 @@ class EventApiAccessPolicy(AccessPolicy):
     @classmethod
     def scope_query_object(cls, request):
 
-
-
         groups = request.user.groups.values_list('name', flat=True)
 
         if request.method == "GET":
