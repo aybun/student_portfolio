@@ -46,17 +46,17 @@ export default {
             modalReadonly: false,
 
             showEventAttendanceModal: false,
-            queryParameters : {
+            queryParameters: {
                 lower_bound_start_datetime: "2022-06-01T00:00:00.000Z",
                 upper_bound_start_datetime: "2023-06-01T00:00:00.000Z",
-                
+
             },
-            
-            asyncSeachEventVariables : {
+
+            asyncSeachEventVariables: {
                 event_search_term: '',
-                isLoading:false,
-                event:null,
-                events:[],
+                isLoading: false,
+                event: null,
+                events: [],
             },
 
             event: {},
@@ -231,8 +231,8 @@ export default {
             else {
                 // console.log(this.queryParameters)
                 const searchParams = new URLSearchParams([['lower_bound_start_datetime', this.queryParameters.lower_bound_start_datetime],
-                                                          ['upper_bound_start_datetime', this.queryParameters.upper_bound_start_datetime]]);
-                axios.get(this.$API_URL + "event", {params: searchParams}).then((response) => {
+                ['upper_bound_start_datetime', this.queryParameters.upper_bound_start_datetime]]);
+                axios.get(this.$API_URL + "event", { params: searchParams }).then((response) => {
                     this.events = response.data;
                 });
             }
@@ -294,10 +294,10 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof this.testMode !== "undefined"){
+            if (typeof this.testMode !== "undefined") {
                 return formIsValid;
             }
-            
+
             if (!formIsValid) return;
             //Packing values.
             this.assignBooleanValueToCheckboxFields(
@@ -355,7 +355,7 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof this.testMode !== "undefined"){
+            if (typeof this.testMode !== "undefined") {
 
                 return formIsValid;
             }
@@ -602,38 +602,38 @@ export default {
 
             return list
         },
-        
-        cloneEventSettings(){
+
+        cloneEventSettings() {
 
             let event = this.event
             let pastEvent = this.asyncSeachEventVariables.event
 
             if (typeof pastEvent.id === 'undefined')
                 return;
-            
-            const shouldBeCopiedFields = [
-                                        'start_datetime', 
-                                        'end_datetime',
-                                        'used_for_calculation',
-                                        'arranged_inside', 
-                                        'skills'];
 
-            shouldBeCopiedFields.forEach((e)=>{
+            const shouldBeCopiedFields = [
+                'start_datetime',
+                'end_datetime',
+                'used_for_calculation',
+                'arranged_inside',
+                'skills'];
+
+            shouldBeCopiedFields.forEach((e) => {
                 event[e] = pastEvent[e]
             });
 
-            let today_date = (new Date()).toISOString().slice(0,10) //yyyy-mm-dd
+            let today_date = (new Date()).toISOString().slice(0, 10) //yyyy-mm-dd
             let start_datetime_time_string = event.start_datetime.split("T")[1]
             let end_datetime_time_string = event.end_datetime.split("T")[1]
             // console.log(today_date)
             // console.log(start_datetime_time_string)
-            
+
             event.start_datetime = today_date + "T" + start_datetime_time_string
             event.end_datetime = today_date + "T" + end_datetime_time_string
             // console.log(event.start_datetime)
             this.assignDataToEventForm(event);
         },
-        _event_custom_label({id, title}){
+        _event_custom_label({ id, title }) {
             if (id === "" || id === null || typeof id === 'undefined') {
                 return "Select";
             } else if (title === null || typeof title === "undefined") {
@@ -650,27 +650,27 @@ export default {
 
             return `${id} ${title}`;
         },
-        async asyncSearchEvent(event_search_term){
-            if (event_search_term === '' || event_search_term === null )
+        async asyncSearchEvent(event_search_term) {
+            if (event_search_term === '' || event_search_term === null)
                 return;
-            
+
             const vars = this.asyncSeachEventVariables
             vars.isLoading = true
 
-            if(typeof window.LIT !== 'undefined') {
+            if (typeof window.LIT !== 'undefined') {
                 clearTimeout(window.LIT);
             }
 
-            window.LIT = setTimeout(async () =>  {
-                
-            
+            window.LIT = setTimeout(async () => {
+
+
                 const searchParams = new URLSearchParams([
-                    ['event_search_term',  event_search_term]
+                    ['event_search_term', event_search_term]
                 ]);
 
-                await axios.get(this.$API_URL + "event/async-search", {params : searchParams}).then((response) => {
+                await axios.get(this.$API_URL + "event/async-search", { params: searchParams }).then((response) => {
                     vars.events = response.data;
-                // console.log(this.user)
+                    // console.log(this.user)
                 });
 
                 vars.isLoading = false
@@ -678,7 +678,7 @@ export default {
 
             }, 500); //setTimeout
 
-            
+
         },
         _data_processing_for_test() {
             //Assume that the fields related to api calls are ready to be processed.
@@ -752,34 +752,45 @@ export default {
 
 <template>
     <div>
-        <FormulateForm>
-            <h2 class="form-title">Query Parameters</h2>
-            <formulate-input type="vue-datetime" datetype="datetime" label="Lower bound start datetime" v-model="queryParameters.lower_bound_start_datetime"></formulate-input>
-            <formulate-input type="vue-datetime" datetype="datetime" label="Upper bound start datetime" v-model="queryParameters.upper_bound_start_datetime"></formulate-input>
-            <formulate-input type="button" @click="refreshData();">Query</formulate-input>
-        </FormulateForm>
-        
+        <h1 class="text-center">ระบบกิจกรรม</h1>
+
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                data-bs-target="#query-parameters-collapse" aria-expanded="false" aria-controls="query-parameters-collapse">
+                Query Parameters
+            </button>
+        </p>
+        <div class="collapse" id="query-parameters-collapse">
+            <div class="card card-body">
+                <FormulateForm>
+                    <h2 class="form-title">Query Parameters</h2>
+                    <formulate-input type="vue-datetime" datetype="datetime" label="Lower bound start datetime"
+                        v-model="queryParameters.lower_bound_start_datetime"></formulate-input>
+                    <formulate-input type="vue-datetime" datetype="datetime" label="Upper bound start datetime"
+                        v-model="queryParameters.upper_bound_start_datetime"></formulate-input>
+                    <button @click="refreshData();" class="btn btn-primary">Query</button>
+                </FormulateForm>
+            </div>
+        </div>
+
         <button v-if="!onlyAttendedByUser" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal"
             data-bs-target="#edit-info-modal" @click="addClick()">
             Add Event
         </button>
 
-        <vue-good-table ref="event-vgt" :columns="vgtColumns" :rows="events" 
-            :select-options="{
-                enabled: false,
-                selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
-            }" 
-            :search-options="{ enabled: true }" 
-            :pagination-options="{
-                enabled: true,
-                mode: 'records',
-                perPage: 20,
-                setCurrentPage: 1,
-            }">
+        <vue-good-table ref="event-vgt" :columns="vgtColumns" :rows="events" :select-options="{
+            enabled: false,
+            selectOnCheckboxOnly: true, // only select when checkbox is clicked instead of the row
+        }" :search-options="{ enabled: true }" :pagination-options="{
+    enabled: true,
+    mode: 'records',
+    perPage: 20,
+    setCurrentPage: 1,
+}">
 
             <div slot="table-actions">
-                
-                
+
+
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
                         aria-expanded="false">
@@ -812,8 +823,8 @@ export default {
                         (!props.row.approved &&
                             props.row.created_by === user.id &&
                             user.is_student)
-                    " type="button" :id="'edit-button-' + props.row.id" class="btn btn-light mr-1" data-bs-toggle="modal"
-                        data-bs-target="#edit-info-modal" @click="editClick(props.row)">
+                    " type="button" :id="'edit-button-' + props.row.id" class="btn btn-light mr-1"
+                        data-bs-toggle="modal" data-bs-target="#edit-info-modal" @click="editClick(props.row)">
                         <i class="bi bi-pencil-square"></i>
                     </button>
 
@@ -852,18 +863,23 @@ export default {
                                     data-bs-target="#edit-info-modal">
                                     Show Attendances
                                 </button>
-                                
-                                <multiselect v-if="addingNewEvent && !modalReadonly" v-model="asyncSeachEventVariables.event" id="asyncSearchEventMultiselect" :custom-label="_event_custom_label" track-by="id" placeholder="Search and Clone the event settings" open-direction="bottom" :options="asyncSeachEventVariables.events" 
-                                    :multiple="false" :searchable="true" :loading="asyncSeachEventVariables.isLoading" :internal-search="false" :clear-on-select="false" 
-                                    :close-on-select="true" :options-limit="7" :limit="7" :max-height="600" :show-no-results="false" :hide-selected="true" @search-change="asyncSearchEvent">
+
+                                <multiselect v-if="addingNewEvent && !modalReadonly"
+                                    v-model="asyncSeachEventVariables.event" id="asyncSearchEventMultiselect"
+                                    :custom-label="_event_custom_label" track-by="id"
+                                    placeholder="Search and Clone the event settings" open-direction="bottom"
+                                    :options="asyncSeachEventVariables.events" :multiple="false" :searchable="true"
+                                    :loading="asyncSeachEventVariables.isLoading" :internal-search="false"
+                                    :clear-on-select="false" :close-on-select="true" :options-limit="7" :limit="7"
+                                    :max-height="600" :show-no-results="false" :hide-selected="true"
+                                    @search-change="asyncSearchEvent">
                                     <span slot="noResult">No elements found. Consider changing the search query.</span>
                                 </multiselect>
-                                <button v-if="addingNewEvent && !modalReadonly" type="button" class="btn btn-primary m-2 fload-end"
-                                    @click="cloneEventSettings();" >Clone settings 
+                                <button v-if="addingNewEvent && !modalReadonly" type="button"
+                                    class="btn btn-primary m-2 fload-end" @click="cloneEventSettings();">Clone settings
                                 </button>
-                                
-                                <FormulateForm name="event-formulate-form-1" ref="event-formulate-form-1"
-                                >
+
+                                <FormulateForm name="event-formulate-form-1" ref="event-formulate-form-1">
                                     <formulate-input ref="event-formulate-form-1-title" type="text" v-model="event.title"
                                         label="Title" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
@@ -881,9 +897,9 @@ export default {
                                                 );
                                             },
                                         }" :validation-messages="{
-                                        later: 'End datetime must be later than start datetime.',
-                                        }" 
-                                        error-behavior="live" :disabled="modalReadonly || !formRender.edit.end_datetime">
+    later: 'End datetime must be later than start datetime.',
+}" error-behavior="live"
+                                        :disabled="modalReadonly || !formRender.edit.end_datetime">
                                     </FormulateInput>
                                     <formulate-input ref="event-formulate-form-1-info" label="Info"
                                         :key="'event-formulate-form-1-info-' + formKey" type="textarea" v-model="event.info"
@@ -891,18 +907,18 @@ export default {
                                         validation-name="info"></formulate-input>
 
                                     <h6>Skills</h6>
-                                    <multiselect  ref="event-formulate-form-1-skills"
-                                        v-model="event.skills" :hide-selected="true" :close-on-select="false"
-                                        :multiple="true" :options="skillTable" :custom-label="_skills_custom_label"
-                                        track-by="id" placeholder="Select..."
-                                        :disabled="modalReadonly || !formRender.edit.skills">
+                                    <multiselect ref="event-formulate-form-1-skills" v-model="event.skills"
+                                        :hide-selected="true" :close-on-select="false" :multiple="true"
+                                        :options="skillTable" :custom-label="_skills_custom_label" track-by="id"
+                                        placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
                                     </multiselect>
                                     <p></p>
                                     <h6>Staffs</h6>
-                                    <multiselect ref="event-formulate-form-1-staffs" v-model="event.staffs" :hide-selected="true" :close-on-select="false"
-                                        :multiple="true" :options="staffTable" :custom-label="_staffs_custom_label"
-                                        track-by="id" placeholder="Select..."
-                                        :disabled="modalReadonly || !formRender.edit.staffs"></multiselect>
+                                    <multiselect ref="event-formulate-form-1-staffs" v-model="event.staffs"
+                                        :hide-selected="true" :close-on-select="false" :multiple="true"
+                                        :options="staffTable" :custom-label="_staffs_custom_label" track-by="id"
+                                        placeholder="Select..." :disabled="modalReadonly || !formRender.edit.staffs">
+                                    </multiselect>
 
                                     <p></p>
                                     <FormulateInput ref="event-formulate-form-1-arranged_inside" v-model="checkboxes"
@@ -926,19 +942,20 @@ export default {
                                     <FormulateInput type="file" ref="event-formulate-form-1-attachment_file"
                                         :key="'event-formulate-form-1-attachment_file-' + formKey"
                                         v-model="event.attachment_file" label="Attachment file" error-behavior="live"
-                                        validation-event="input" validation="optional|maxFileSize:2000000" upload-behavior="delayed" :disabled="
+                                        validation-event="input" validation="optional|maxFileSize:2000000"
+                                        upload-behavior="delayed" :disabled="
                                             modalReadonly || !formRender.edit.attachment_file
                                         " :validation-rules="{
-                                            maxFileSize: (context, ...args) => {
-                                                if (getFileOrNull(context.value) !== null)
-                                                    return context.value.files[0].file.size < parseInt(args[0]);
-                                                return true;
-                                            },
-                                        }" :validation-messages="{
-                                            maxFileSize: (context) => {
-                                                return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';
-                                            },
-                                        }">
+    maxFileSize: (context, ...args) => {
+        if (getFileOrNull(context.value) !== null)
+            return context.value.files[0].file.size < parseInt(args[0]);
+        return true;
+    },
+}" :validation-messages="{
+    maxFileSize: (context) => {
+        return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';
+    },
+}">
 
                                     </FormulateInput>
                                     <button v-if="(copiedEvent.attachment_file !== null)" type="button"
@@ -949,7 +966,7 @@ export default {
                                         class="btn btn-outline-danger" @click="
                                             copiedEvent.attachment_file = null;
                                         event.attachment_file = ''; formKey += 1;
-                                                                  " :disabled="modalReadonly">
+                                                                                                              " :disabled="modalReadonly">
                                         Remove File
                                     </button>
                                 </FormulateForm>
@@ -973,7 +990,7 @@ export default {
                 </div>
             </div>
         </div>
-        
+
         <EventAttendanceModal v-model="showEventAttendanceModal" :click-to-close="false">
             <template v-slot:title>Event Attendance</template>
 
@@ -981,7 +998,8 @@ export default {
                     @click="showEventAttendanceModal = false" data-bs-toggle="modal" data-bs-target="#edit-info-modal">
                     Close
                 </button></template>
-            <EventAttendance v-if="!addingNewEvent && (typeof this.testMode === 'undefined') " :event_id="event.id" :user="user"></EventAttendance>
+            <EventAttendance v-if="!addingNewEvent && (typeof this.testMode === 'undefined')" :event_id="event.id"
+                :user="user"></EventAttendance>
             <!-- <template v-slot:params><EventAttendance :event_id="event.id"></EventAttendance></template> -->
         </EventAttendanceModal>
 

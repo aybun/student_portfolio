@@ -31,12 +31,12 @@ export default {
 
             checkboxes: [],
             checkboxFields: ["approved", "used_for_calculation"],
-            
-            queryParameters : {
+
+            queryParameters: {
                 lower_bound_received_date: "2022-06-01",
                 upper_bound_received_date: "2023-06-01"
             },
-            
+
             modalReadonly: false,
 
             formRenderSpec: {
@@ -156,8 +156,8 @@ export default {
 
         refreshData() {
             const searchParams = new URLSearchParams([['lower_bound_received_date', this.queryParameters.lower_bound_received_date],
-                                                          ['upper_bound_received_date', this.queryParameters.upper_bound_received_date]]);
-            axios.get(this.$API_URL + "award", {params : searchParams}).then((response) => {
+            ['upper_bound_received_date', this.queryParameters.upper_bound_received_date]]);
+            axios.get(this.$API_URL + "award", { params: searchParams }).then((response) => {
                 this.awards = response.data;
             });
         },
@@ -175,10 +175,10 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof this.testMode !== "undefined"){
+            if (typeof this.testMode !== "undefined") {
                 return formIsValid;
             }
-                
+
             if (!formIsValid) return;
 
             this.assignBooleanValueToCheckboxFields(
@@ -224,7 +224,7 @@ export default {
                 const detail = response.data.detail
                 this.awards.push(data);
                 this.editClick(data) //Change viewing mode.
-                
+
                 // alert(detail + '\n' + JSON.stringify(data));
                 alert(detail);
 
@@ -276,11 +276,10 @@ export default {
             await this.validateForm().then((result) => {
                 formIsValid = result;
             });
-                
-            if (typeof this.testMode !== "undefined"){
+
+            if (typeof this.testMode !== "undefined") {
                 return formIsValid;
             }
-                
 
             if (!formIsValid) return;
 
@@ -327,8 +326,8 @@ export default {
                 const detail = response.data.detail
                 this.reassignUpdatedElementIntoList(this.awards, data); //With reactivity.
                 this.editClick(data)
-                
-                alert(detail + '\n' + JSON.stringify(data) );
+
+                alert(detail + '\n' + JSON.stringify(data));
             }).catch((error) => {
                 alert(error.response.data.detail);
             });
@@ -352,13 +351,13 @@ export default {
             }).then((response) => {
                 this.removeElementFromArrayById(this.awards, award_id);
                 alert(response.data.detail)
-            }).catch((error)=>{
+            }).catch((error) => {
                 alert(error.response.data.detail);
             });
         },
-        removeElementFromArrayById(arr, id){
-            for(let i = 0; i < arr.length; ++i){
-                if (arr[i].id === id){
+        removeElementFromArrayById(arr, id) {
+            for (let i = 0; i < arr.length; ++i) {
+                if (arr[i].id === id) {
                     arr.splice(i, 1);
                     break;
                 }
@@ -403,7 +402,7 @@ export default {
 
             return `${id} ${title}`;
         },
-        
+
         receiverCustomLabel({ id, university_id, firstname, lastname }) {
             if (id === "" || id === null || typeof id === 'undefined') {
                 return "Select";
@@ -571,30 +570,30 @@ export default {
             } else {
                 throw "The mode must be in { exlude, include }.";
             }
-            
+
             this.formRender = formRender;
         },
 
-        renameKeyOfDictsInList(listOfDicts, newName, OldName){
-            for(let i = 0; i < listOfDicts.length; ++i){
+        renameKeyOfDictsInList(listOfDicts, newName, OldName) {
+            for (let i = 0; i < listOfDicts.length; ++i) {
                 let dict = listOfDicts[i]
-                Object.defineProperty(dict, newName,  Object.getOwnPropertyDescriptor(dict, OldName))
+                Object.defineProperty(dict, newName, Object.getOwnPropertyDescriptor(dict, OldName))
                 delete dict[OldName];
             }
             return listOfDicts
         },
-        assignFieldAsIdField(list, newIdFieldName, oldIdFieldName){
+        assignFieldAsIdField(list, newIdFieldName, oldIdFieldName) {
             // For examplenew = 'user_id_fk' , old = 'id'
             // id : 3 and user_id_fk : 99 -> id : 99, user_id_fk : 99.  
-            for (let i = 0; i < list.length; ++i){
-                list[i][oldIdFieldName] =  list[i][newIdFieldName]
+            for (let i = 0; i < list.length; ++i) {
+                list[i][oldIdFieldName] = list[i][newIdFieldName]
             }
 
             return list
         },
-        
-        
-        _data_processing_for_test(){
+
+
+        _data_processing_for_test() {
             //Assume that the fields related to api calls are ready to be processed.
             this._generate_formRender();
             this.prepareData();
@@ -604,9 +603,9 @@ export default {
         },
 
     },
-    
+
     created: async function () {
-        
+
         if (typeof this.testMode !== "undefined") {
             this._data_processing_for_test();
             return;
@@ -620,8 +619,8 @@ export default {
         axios.defaults.withCredentials = true;
 
         await axios.get(this.$API_URL + "user").then((response) => {
-                this.user = response.data;
-            })
+            this.user = response.data;
+        })
 
         this._generate_formRender();
 
@@ -679,12 +678,26 @@ export default {
 
 <template>
     <div>
-        <FormulateForm>
-            <h2 class="form-title">Query Parameters</h2>
-            <formulate-input type="date"  label="Lower bound received date" v-model="queryParameters.lower_bound_received_date"></formulate-input>
-            <formulate-input type="date"  label="Upper bound received date" v-model="queryParameters.upper_bound_received_date"></formulate-input>
-            <formulate-input type="button" @click="refreshData();">Query</formulate-input>
-        </FormulateForm>
+        <h1 class="text-center">ระบบจัดเก็บรางวัล</h1>
+
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                data-bs-target="#query-parameters-collapse" aria-expanded="false" aria-controls="query-parameters-collapse">
+                Query Parameters
+            </button>
+        </p>
+        <div class="collapse" id="query-parameters-collapse">
+            <div class="card card-body">
+                <FormulateForm>
+                    <h2 class="form-title">Query Parameters</h2>
+                    <formulate-input type="date" label="Lower bound received date"
+                        v-model="queryParameters.lower_bound_received_date"></formulate-input>
+                    <formulate-input type="date" label="Upper bound received date"
+                        v-model="queryParameters.upper_bound_received_date"></formulate-input>
+                    <button @click="refreshData();" class="btn btn-primary">Query</button>
+                </FormulateForm>
+            </div>
+        </div>
 
         <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
@@ -792,36 +805,39 @@ export default {
 
                                     <div class="skill">
                                         <h6>Skills</h6>
-                                        <multiselect ref="award-formulate-form-1-skills" v-model="award.skills" :hide-selected="true" :close-on-select="false"
-                                            :multiple="true" :options="skillTable" :custom-label="skillCustomLabel"
-                                            track-by="id" placeholder="Select..."
-                                            :disabled="modalReadonly || !formRender.edit.skills">
+                                        <multiselect ref="award-formulate-form-1-skills" v-model="award.skills"
+                                            :hide-selected="true" :close-on-select="false" :multiple="true"
+                                            :options="skillTable" :custom-label="skillCustomLabel" track-by="id"
+                                            placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
                                         </multiselect>
                                     </div>
 
                                     <div class="receiver">
                                         <h6>Receivers</h6>
                                         <div>
-                                            <multiselect ref="award-formulate-form-1-receivers"
-                                                name="receivers" v-model="award.receivers"
-                                                v-validate="'required|min:1'" data-vv-validate-on="input"
-                                                data-vv-as="receivers" data-vv-scope="award-formulate-form-1"
-                                                :hide-selected="true" :close-on-select="false" :multiple="true"
-                                                :options="studentTable" :custom-label="receiverCustomLabel" track-by="user_id_fk"
+                                            <multiselect ref="award-formulate-form-1-receivers" name="receivers"
+                                                v-model="award.receivers" v-validate="'required|min:1'"
+                                                data-vv-validate-on="input" data-vv-as="receivers"
+                                                data-vv-scope="award-formulate-form-1" :hide-selected="true"
+                                                :close-on-select="false" :multiple="true" :options="studentTable"
+                                                :custom-label="receiverCustomLabel" track-by="user_id_fk"
                                                 placeholder="Select..."
                                                 :disabled="modalReadonly || !formRender.edit.receivers">
                                             </multiselect>
-                                            <span v-show="veeErrors.has('award-formulate-form-1.receivers')" style="color: red">{{  veeErrors.first('award-formulate-form-1.receivers') }}</span>
-                                                
-                                                
+                                            <span v-show="veeErrors.has('award-formulate-form-1.receivers')"
+                                                style="color: red">{{ veeErrors.first('award-formulate-form-1.receivers')
+                                                }}</span>
+
+
                                         </div>
                                     </div>
 
                                     <div class="staff">
                                         <h6>Supervisors</h6>
-                                        <multiselect ref="award-formulate-form-1-supervisors" v-model="award.supervisors" :hide-selected="true"
-                                            :close-on-select="false" :multiple="true" :options="staffTable"
-                                            :custom-label="supervisorCustomLabel" track-by="id" placeholder="Select..."
+                                        <multiselect ref="award-formulate-form-1-supervisors" v-model="award.supervisors"
+                                            :hide-selected="true" :close-on-select="false" :multiple="true"
+                                            :options="staffTable" :custom-label="supervisorCustomLabel" track-by="id"
+                                            placeholder="Select..."
                                             :disabled="modalReadonly || !formRender.edit.supervisors"></multiselect>
                                     </div>
 
@@ -831,18 +847,17 @@ export default {
                                         <FormulateInput ref="award-formulate-form-1-approved" v-model="checkboxes"
                                             :options="{ approved: 'approved' }" type="checkbox"
                                             :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
-                                        <FormulateInput ref="award-formulate-form-1-used_for_calculation" v-model="checkboxes"
-                                            :options="{ used_for_calculation: 'Use for calculation' }" type="checkbox"
-                                            :disabled="
+                                        <FormulateInput ref="award-formulate-form-1-used_for_calculation"
+                                            v-model="checkboxes" :options="{ used_for_calculation: 'Use for calculation' }"
+                                            type="checkbox" :disabled="
                                                 modalReadonly || !formRender.edit.used_for_calculation
                                             "></FormulateInput>
                                     </div>
 
                                     <div class="mb-3">
                                         <FormulateInput ref="award-formulate-form-1-attachment_link" type="url"
-                                            v-model="award.attachment_link" label="Attachment link"
-                                            placeholder="URL" help="optional" validation="optional|url|max:200,length"
-                                            :disabled="
+                                            v-model="award.attachment_link" label="Attachment link" placeholder="URL"
+                                            help="optional" validation="optional|url|max:200,length" :disabled="
                                                 modalReadonly || !formRender.edit.attachment_link
                                             "></FormulateInput>
                                     </div>
@@ -852,30 +867,29 @@ export default {
                                     <div class="mb-3">
                                         <FormulateInput type="file"
                                             :key="'award-formulate-form-1-attachment_file-' + formKey"
-                                            ref="award-formulate-form-1-attachment_file"
-                                            v-model="award.attachment_file" label="Attachment file"
-                                            help="" 
-                                            :validation-rules="{ 
-                                                maxFileSize :  (context, ... args) => {
+                                            ref="award-formulate-form-1-attachment_file" v-model="award.attachment_file"
+                                            label="Attachment file" help="" :validation-rules="{
+                                                maxFileSize: (context, ...args) => {
                                                     if (getFileOrNull(context.value) !== null)
                                                         return context.value.files[0].file.size < parseInt(args[0]);
                                                     return true;
-                                                },           
-                                            }"
-                                                                
-                                            :validation-messages="{ maxFileSize : (context) => {
-                                                return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';},                                     
-                                            }"
- error-behavior="live" validation-event="input" validation="optional|maxFileSize:2000000" upload-behavior="delayed" :disabled="
-    modalReadonly || !formRender.edit.attachment_file
-"></FormulateInput>
+                                                },
+                                            }" :validation-messages="{
+    maxFileSize: (context) => {
+        return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';
+    },
+}" error-behavior="live" validation-event="input"
+                                            validation="optional|maxFileSize:2000000" upload-behavior="delayed" :disabled="
+                                                modalReadonly || !formRender.edit.attachment_file
+                                            "></FormulateInput>
                                         <!--                            File Button-->
                                         <button v-if="(copiedAward.attachment_file !== null)" type="button"
                                             class="btn btn-primary" @click="openNewWindow(copiedAward.attachment_file)">
                                             File URL
                                         </button>
                                         <button v-if="(copiedAward.attachment_file !== null)" type="button"
-                                            class="btn btn-outline-danger" @click="copiedAward.attachment_file = null; award.attachment_file = ''; formKey += 1;"       
+                                            class="btn btn-outline-danger"
+                                            @click="copiedAward.attachment_file = null; award.attachment_file = ''; formKey += 1;"
                                             :disabled="modalReadonly">
                                             Remove File
                                         </button>

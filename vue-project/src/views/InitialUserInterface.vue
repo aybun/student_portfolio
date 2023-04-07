@@ -110,7 +110,7 @@
                                                 class="link-dark rounded">Login</router-link>
                                         </li>
                                         <li v-if="user.is_authenticated"><router-link to="/logout"
-                                                class="link-dark rounded">Sign Out</router-link>
+                                                class="link-dark rounded">Logout</router-link>
                                         </li>
                                     </ul>
                                 </div>

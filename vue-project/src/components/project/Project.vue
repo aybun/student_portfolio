@@ -1,11 +1,26 @@
 <template>
     <div>
-        <FormulateForm>
-            <h2 class="form-title">Query Parameters</h2>
-            <formulate-input type="date"  label="Lower bound start date" v-model="queryParameters.lower_bound_start_date"></formulate-input>
-            <formulate-input type="date"  label="Upper bound start date" v-model="queryParameters.upper_bound_start_date"></formulate-input>
-            <formulate-input type="button" @click="refreshData();">Query</formulate-input>
-        </FormulateForm>
+        <h1 class="text-center">ระบบเสนอโครงการ</h1>
+
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#query-parameters-collapse"
+                aria-expanded="false" aria-controls="query-parameters-collapse">
+                Query Parameters
+            </button>
+        </p>
+        <div class="collapse" id="query-parameters-collapse">
+            <div class="card card-body">
+                <FormulateForm>
+                    <h2 class="form-title">Query Parameters</h2>
+                    <formulate-input type="date" label="Lower bound start date"
+                        v-model="queryParameters.lower_bound_start_date"></formulate-input>
+                    <formulate-input type="date" label="Upper bound start date"
+                        v-model="queryParameters.upper_bound_start_date"></formulate-input>
+                    <button @click="refreshData();" class="btn btn-primary">Query</button>
+                </FormulateForm>
+            </div>
+        </div>
+
         <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
             Propose Project
@@ -87,24 +102,24 @@
                             <div class="p-1 w-50 bd-highlight">
                                 <FormulateForm name="project-formulate-form-1" ref="project-formulate-form-1"
                                     #default="{ hasErrors }">
-                                    <formulate-input ref="project-formulate-form-1-title" type="text" v-model="project.title"
-                                        label="Title" validation="required|max:100"
+                                    <formulate-input ref="project-formulate-form-1-title" type="text"
+                                        v-model="project.title" label="Title" validation="required|max:100"
                                         :readonly="modalReadonly || !formRender.edit.title"></formulate-input>
                                     <formulate-input ref="project-formulate-form-1-start_date" type="date"
                                         v-model="project.start_date" label="Start Date" validation="required"
                                         :readonly="modalReadonly || !formRender.edit.start_date"></formulate-input>
                                     <formulate-input ref="project-formulate-form-1-end_date" type="date"
-                                        v-model="project.end_date" label="End Date" 
-                                        validation="required|later" :validation-rules="{
+                                        v-model="project.end_date" label="End Date" validation="required|later"
+                                        :validation-rules="{
                                             later: () => {
                                                 return (
                                                     Date.parse(project.start_date) <
                                                     Date.parse(project.end_date)
                                                 );
                                             },
-                                        }" 
-                                        :validation-messages="{
-                                            later: 'End date must be later than start date.'}"
+                                        }" :validation-messages="{
+    later: 'End date must be later than start date.'
+}"
                                         :readonly="modalReadonly || !formRender.edit.end_date"></formulate-input>
                                     <formulate-input ref="project-formulate-form-1-info" label="Info"
                                         :key="'project-formulate-form-1-input-info-' + formKey" type="textarea"
@@ -113,18 +128,19 @@
                                         validation-name="info"></formulate-input>
                                     <div class="skill">
                                         <h6>Skills</h6>
-                                        <multiselect ref="project-formulate-form-1-skills"
-                                            v-model="project.skills" :hide-selected="true" :close-on-select="false"
-                                            :multiple="true" :options="skillTable" :custom-label="_skills_custom_label"
-                                            track-by="id" placeholder="Select..."
-                                            :disabled="modalReadonly || !formRender.edit.skills"></multiselect>
+                                        <multiselect ref="project-formulate-form-1-skills" v-model="project.skills"
+                                            :hide-selected="true" :close-on-select="false" :multiple="true"
+                                            :options="skillTable" :custom-label="_skills_custom_label" track-by="id"
+                                            placeholder="Select..." :disabled="modalReadonly || !formRender.edit.skills">
+                                        </multiselect>
                                     </div>
                                     <div class="staff">
                                         <h6>Staffs</h6>
-                                        <multiselect ref="project-formulate-form-1-staffs" v-model="project.staffs" :hide-selected="true" :close-on-select="false"
-                                            :multiple="true" :options="staffTable" :custom-label="_staffs_custom_label"
-                                            track-by="id" placeholder="Select..."
-                                            :disabled="modalReadonly || !formRender.edit.staffs"></multiselect>
+                                        <multiselect ref="project-formulate-form-1-staffs" v-model="project.staffs"
+                                            :hide-selected="true" :close-on-select="false" :multiple="true"
+                                            :options="staffTable" :custom-label="_staffs_custom_label" track-by="id"
+                                            placeholder="Select..." :disabled="modalReadonly || !formRender.edit.staffs">
+                                        </multiselect>
                                     </div>
                                     <p></p>
                                     <div class="mb-3">
@@ -138,33 +154,34 @@
                                             ">
                                         </FormulateInput>
                                     </div>
-                                    <FormulateInput ref="project-formulate-form-1-attachment_link" type="url" validation="optional|url|max:200,length"
-                                        v-model="project.attachment_link" label="Attachment link" help="optional" :disabled="
+                                    <FormulateInput ref="project-formulate-form-1-attachment_link" type="url"
+                                        validation="optional|url|max:200,length" v-model="project.attachment_link"
+                                        label="Attachment link" help="optional" :disabled="
                                             modalReadonly || !formRender.edit.attachment_link
                                         "></FormulateInput>
                                     <FormulateInput type="file" :key="'project-formulate-form-1-attachment_file-' + formKey"
-                                        ref="project-formulate-form-1-attachment_file"
-                                        v-model="project.attachment_file"
-                                        label="Attachment file" help="" 
-                                        :validation-rules="{ 
-                                                maxFileSize :  (context, ... args) => {
-                                                    if (getFileOrNull(context.value) !== null)
-                                                        return context.value.files[0].file.size < parseInt(args[0]);
-                                                    return true;
-                                                },           
-                                            }"
-                                                                
-                                            :validation-messages="{ maxFileSize : (context) => {
-                                                return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';},                                     
-                                            }" error-behavior="live" validation-event="input" validation="optional|maxFileSize:2000000" upload-behavior="delayed" :disabled="
-    modalReadonly || !formRender.edit.attachment_file
-"></FormulateInput>
+                                        ref="project-formulate-form-1-attachment_file" v-model="project.attachment_file"
+                                        label="Attachment file" help="" :validation-rules="{
+                                            maxFileSize: (context, ...args) => {
+                                                if (getFileOrNull(context.value) !== null)
+                                                    return context.value.files[0].file.size < parseInt(args[0]);
+                                                return true;
+                                            },
+                                        }" :validation-messages="{
+    maxFileSize: (context) => {
+        return 'The file size must not exceed ' + parseInt(context.args[0]) / (1000000) + ' mb.';
+    },
+}" error-behavior="live" validation-event="input"
+                                        validation="optional|maxFileSize:2000000" upload-behavior="delayed" :disabled="
+                                            modalReadonly || !formRender.edit.attachment_file
+                                        "></FormulateInput>
                                     <button v-if="(copiedProject.attachment_file !== null)" type="button"
                                         class="btn btn-primary" @click="openNewWindow(copiedProject.attachment_file)">
                                         File URL
                                     </button>
                                     <button v-if="(copiedProject.attachment_file !== null)" type="button"
-                                        class="btn btn-outline-danger" @click="copiedProject.attachment_file = null; project.attachment_file = ''; formKey += 1;"       
+                                        class="btn btn-outline-danger"
+                                        @click="copiedProject.attachment_file = null; project.attachment_file = ''; formKey += 1;"
                                         :disabled="modalReadonly">
                                         Remove File
                                     </button>
@@ -182,7 +199,7 @@
                             Create
                         </button>
 
-                        <button id="updateButton" type="button" @click="updateClick()" v-if="!addingNewProject"
+                        <button id="updateButton" type="button" @click="updateClick()" v-if="!addingNewProject && !modalReadonly"
                             class="btn btn-primary">
                             Update
                         </button>
@@ -212,18 +229,18 @@ export default {
         return {
             modalTitle: "",
             addingNewProject: false,
-            
+
             modalReadonly: false,
             formKey: 1,
 
             project: {},
             copiedProject: {},
             projects: [],
-            
+
             staffTable: [],
             user: {},
-            
-            queryParameters : {
+
+            queryParameters: {
                 lower_bound_start_date: "2022-06-01",
                 upper_bound_start_date: "2023-06-01"
             },
@@ -255,7 +272,7 @@ export default {
                     // tooltip: '',
                     thClass: "text-center",
                     tdClass: "text-center",
-                    
+
                     filterOptions: {
                         styleClass: "class1", // class to be added to the parent th element
                         enabled: true, // enable filter for this column
@@ -361,8 +378,8 @@ export default {
 
         refreshData() {
             const searchParams = new URLSearchParams([['lower_bound_start_date', this.queryParameters.lower_bound_start_date],
-                                                          ['upper_bound_start_date', this.queryParameters.upper_bound_start_date]]);
-            axios.get(this.$API_URL + "project", {params : searchParams}).then((response) => {
+            ['upper_bound_start_date', this.queryParameters.upper_bound_start_date]]);
+            axios.get(this.$API_URL + "project", { params: searchParams }).then((response) => {
                 this.projects = response.data;
             });
         },
@@ -419,7 +436,7 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof this.testMode !== "undefined"){
+            if (typeof this.testMode !== "undefined") {
                 return formIsValid;
             }
 
@@ -470,7 +487,7 @@ export default {
                     alert(detail);
                 }).catch((error) => {
                     alert(error.response.data.detail);
-            });
+                });
         },
         async updateClick() {
             let formIsValid = false;
@@ -478,10 +495,10 @@ export default {
                 formIsValid = result;
             });
 
-            if (typeof this.testMode !== "undefined"){
+            if (typeof this.testMode !== "undefined") {
                 return formIsValid;
             }
-                
+
             if (!formIsValid) return;
 
             this.assignBooleanValueToCheckboxFields(
@@ -549,13 +566,13 @@ export default {
             }).then((response) => {
                 this.removeElementFromArrayById(this.projects, project_id);
                 alert(response.data.detail)
-            }).catch((error)=>{
+            }).catch((error) => {
                 alert(error.response.data.detail);
             })
         },
-        removeElementFromArrayById(arr, id){
-            for(let i = 0; i < arr.length; ++i){
-                if (arr[i].id === id){
+        removeElementFromArrayById(arr, id) {
+            for (let i = 0; i < arr.length; ++i) {
+                if (arr[i].id === id) {
                     arr.splice(i, 1);
                     break;
                 }
@@ -710,16 +727,16 @@ export default {
         openNewWindow(url) {
             window.open(url);
         },
-        assignFieldAsIdField(list, newIdFieldName, oldIdFieldName){
+        assignFieldAsIdField(list, newIdFieldName, oldIdFieldName) {
             // For example new = 'user_id_fk' , old = 'id'
             // id : 3 and user_id_fk : 99 -> id : 99, user_id_fk : 99.  
-            for (let i = 0; i < list.length; ++i){
-                list[i][oldIdFieldName] =  list[i][newIdFieldName]
+            for (let i = 0; i < list.length; ++i) {
+                list[i][oldIdFieldName] = list[i][newIdFieldName]
             }
 
             return list
         },
-        _data_processing_for_test(){
+        _data_processing_for_test() {
             //Assume that the fields related to api calls are ready to be processed.
             this._generate_formRender();
             this.prepareData();
@@ -730,7 +747,7 @@ export default {
     },
 
     created: async function () {
-        
+
         if (typeof this.testMode !== "undefined") {
             this._data_processing_for_test()
             return;
@@ -742,12 +759,12 @@ export default {
         });
 
         this._generate_formRender();
-        
+
         // axios.get(this.$API_URL + "project").then((response) => {
         //     this.projects = response.data;
         // });
         this.refreshData()
-        
+
         axios.get(this.$API_URL + "staff").then((response) => {
             this.staffTable = this.assignFieldAsIdField(response.data, 'user_id_fk', 'id')
         });
@@ -756,13 +773,13 @@ export default {
             this.skillTable = response.data;
         });
 
-        this.$nextTick(()=>{
+        this.$nextTick(() => {
             const inputs = [
-            // 'input[placeholder="Filter Received"]',
-            'input[placeholder="Filter Start Date"]',
-            'input[placeholder="Filter End Date"]',
+                // 'input[placeholder="Filter Received"]',
+                'input[placeholder="Filter Start Date"]',
+                'input[placeholder="Filter End Date"]',
             ];
-            
+
             inputs.forEach(function (input) {
                 flatpickr(input, {
                     dateFormat: "d-m-Y",
@@ -777,14 +794,14 @@ export default {
                 .addEventListener("hidden.bs.modal", (event) => {
                     this.veeErrors.clear();
                     this.formKey += 1;
-            });
+                });
         })
     },
     mounted: function () {
 
 
-        
-        
+
+
     },
 };
 </script>
