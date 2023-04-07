@@ -26,7 +26,9 @@ class AwardApiAccessPolicy(AccessPolicy):
         elif method == "POST":
             fields.pop('id', None)
 
-            if 'staff' not in groups:
+            if 'staff' in groups:
+                pass
+            elif 'student' in groups:
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
                 fields.pop('approved_by', None)
@@ -34,7 +36,9 @@ class AwardApiAccessPolicy(AccessPolicy):
         elif method == "PUT":
             fields.pop('created_by', None)
 
-            if 'staff' not in groups:
+            if 'staff' in groups:
+                pass
+            elif 'student' in groups:
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
                 fields.pop('approved_by', None)

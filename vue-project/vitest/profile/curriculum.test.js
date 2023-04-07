@@ -175,7 +175,7 @@ describe("Curriculum", () => {
         });
 
         await flushPromises()
-
+        
         let valid_data = JSON.parse(JSON.stringify(curriculums[0]))
         
         let invalids = {
@@ -209,7 +209,7 @@ describe("Curriculum", () => {
         await wrapper.vm.createClick().then((result) => {
             expect(result).toBe(false);
         })
-
+        
         //Test en_name
         copied_data = JSON.parse(JSON.stringify(valid_data));
         copied_data['en_name'] = invalids['en_name'];

@@ -31,7 +31,9 @@ class EventApiAccessPolicy(AccessPolicy):
         if method == "POST":
             fields.pop('id', None)
 
-            if 'staff' not in groups:  # The user is a student or lower level user.
+            if 'staff'in groups:
+                pass
+            elif 'student' in groups:
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
                 fields.pop('approved_by', None)
@@ -39,7 +41,9 @@ class EventApiAccessPolicy(AccessPolicy):
         elif method == "PUT":
             fields.pop('created_by')
 
-            if 'staff' not in groups:  # The user is a student or lower level user.
+            if 'staff' in groups:
+                pass
+            elif 'student' in groups:
                 fields.pop('used_for_calculation', None)
                 fields.pop('approved', None)
                 fields.pop('approved_by', None)
@@ -72,7 +76,7 @@ class EventApiAccessPolicy(AccessPolicy):
                 return query_object
 
             elif 'student' in groups:
-                return query_object & (Q(approved=True) & Q(arranged_inside=True)) | Q(created_by=request.user.id)
+                return query_object & (Q(approved=True) | Q(created_by=request.user.id))
 
         elif request.method == "PUT":
             if 'staff' in groups:

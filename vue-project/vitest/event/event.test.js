@@ -184,7 +184,7 @@ describe("Test event.", () => {
         await flushPromises();
         // console.log(attachment_link.validationErrors.length)
         expect(attachment_link.validationErrors.length).toBe(0);
-
+        
         attachment_link = wrapper.vm.$refs[ref_attachment_link];
         await wrapper.setData({ event: { attachment_link: '#'.repeat(201) } });
         attachment_link.performValidation();

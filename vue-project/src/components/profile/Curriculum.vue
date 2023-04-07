@@ -444,15 +444,15 @@ export default {
                 }
             }).then((response)=>{
                 const data = response.data.data
-                const message = response.data.message
+                const detail = response.data.detail
 
                 this.curriculums.push(data);
                 this.editClick(data)
                 
-                // alert(message + '\n' + JSON.stringify(data));
-                alert(message);
+                // alert(detail + '\n' + JSON.stringify(data));
+                alert(detail);
             }).catch((error)=>{
-                alert(error.response.data.message)
+                alert(error.response.data.detail)
             })
 
         },
@@ -491,14 +491,14 @@ export default {
                 }
             }).then((response)=>{
                 const data = response.data.data
-                const message = response.data.message
+                const detail = response.data.detail
                 this.reassignUpdatedElementIntoList(this.curriculums, response.data.data);
                 this.editClick(data)
                 
-                // alert(message + '\n' + JSON.stringify(data) );
-                alert(message);
+                // alert(detail + '\n' + JSON.stringify(data) );
+                alert(detail);
             }).catch((error)=>{
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             })
         },
 
@@ -519,9 +519,9 @@ export default {
                 }
             }).then((response)=>{
                 this.removeElementFromArrayById(this.curriculums, curriculum_id);
-                alert(response.data.message)
+                alert(response.data.detail)
             }).catch((error)=>{
-                alert(error.response.data.message);
+                alert(error.response.data.detail);
             });
 
         },
