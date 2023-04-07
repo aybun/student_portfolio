@@ -274,10 +274,9 @@ export default {
         async updateClick() {
             let formIsValid = false;
             await this.validateForm().then((result) => {
-
                 formIsValid = result;
             });
-
+                
             if (typeof this.testMode !== "undefined"){
                 return formIsValid;
             }
@@ -530,13 +529,13 @@ export default {
             await this.$formulate.submit("award-formulate-form-1");
 
             const vue_formulate_valid = this.$refs["award-formulate-form-1"].isValid;
-            console.log('vue_formulate_valid', vue_formulate_valid)
+            // console.log('vue_formulate_valid', vue_formulate_valid)
             //vee-validate scope : award
             let vee_validate_valid = false;
             await this.$validator.validateAll('award-formulate-form-1').then((result) => {
                 vee_validate_valid = result;
             });
-            console.log('vee_validate_valid', vee_validate_valid)
+            // console.log('vee_validate_valid', vee_validate_valid)
             //We could take the result. But we want to be explicit here.
             // const vee_validate_valid = !this.veeErrors.has("multiselect-receivers");
 

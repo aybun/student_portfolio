@@ -173,18 +173,20 @@ describe("Test award.", () => {
         const title = wrapper.vm.$refs[ref_title];
 
         // title : required
-        await wrapper.setData({ award: { title: "" } });
+        wrapper.setData({ award: { title: "" } });
+        await flushPromises();
         title.performValidation();
         await flushPromises();
         expect(title.validationErrors).toContain("Title is required.");
 
         //title : max:100  || the string contains 101 characters.
-        await wrapper.setData({
+        wrapper.setData({
             award: {
                 title:
                     "a".repeat(101),
             },
         });
+        await flushPromises();
         title.performValidation();
         await flushPromises();
         expect(title.validationErrors).toContain(
@@ -334,6 +336,7 @@ describe("Test award.", () => {
             }
             
             // Test : valid data.
+            await flushPromises()
             wrapper.setData({
                 award: JSON.parse(JSON.stringify(valid_award_data)),
             });
@@ -350,9 +353,9 @@ describe("Test award.", () => {
                 expect(result).toBe(true);
             })
 
-            await flushPromises()
-
+            
             //Test title
+            await flushPromises()
             let copied_data = JSON.parse(JSON.stringify(valid_award_data))
             copied_data['title'] = invalids['title']
             wrapper.setData({
@@ -370,6 +373,7 @@ describe("Test award.", () => {
             //End title
 
             //Test rank
+            await flushPromises()
             copied_data = JSON.parse(JSON.stringify(valid_award_data))
             copied_data['rank'] = invalids['rank']
             wrapper.setData({
@@ -377,6 +381,7 @@ describe("Test award.", () => {
             });
             await flushPromises()
             wrapper.vm.createClick().then((result) => {
+                
                 expect(result).toBe(false);
             })
             await flushPromises()
@@ -385,6 +390,7 @@ describe("Test award.", () => {
             })
 
             //Test rank
+            await flushPromises()
             copied_data = JSON.parse(JSON.stringify(valid_award_data))
             copied_data['rank'] = invalids['rank']
             wrapper.setData({
@@ -400,6 +406,7 @@ describe("Test award.", () => {
             })
 
             //Test received_date
+            await flushPromises()
             copied_data = JSON.parse(JSON.stringify(valid_award_data))
             copied_data['received_date'] = invalids['received_date']
             wrapper.setData({
@@ -413,8 +420,10 @@ describe("Test award.", () => {
             wrapper.vm.updateClick().then((result) => {
                 expect(result).toBe(false);
             })
+            
 
             //Test info
+            await flushPromises()
             copied_data = JSON.parse(JSON.stringify(valid_award_data))
             copied_data['info'] = invalids['info']
             wrapper.setData({
@@ -429,7 +438,10 @@ describe("Test award.", () => {
                 expect(result).toBe(false);
             })
 
+            
+
             //Test info
+            await flushPromises()
             copied_data = JSON.parse(JSON.stringify(valid_award_data))
             copied_data['receivers'] = invalids['receivers']
             wrapper.setData({
@@ -437,17 +449,23 @@ describe("Test award.", () => {
             });
             await flushPromises()
             wrapper.vm.createClick().then((result) => {
+                // console.log('in create')
+                // console.log(wrapper.vm.veeErrors.collect(award_formname + '.' + 'receivers'))
                 expect(result).toBe(false);
             })
             await flushPromises()
             wrapper.vm.updateClick().then((result) => {
+                // console.log('in update')
+                // console.log(wrapper.vm.veeErrors.collect(award_formname + '.' + 'receivers'))
                 expect(result).toBe(false);
             })
+            
 
             // Test attachment_link
+            await flushPromises()
             copied_data = JSON.parse(JSON.stringify(valid_award_data))
             copied_data['attachment_link'] = invalids['attachment_link']
-            console.log(copied_data['attachment_link'])
+            // console.log(copied_data['attachment_link'])
             wrapper.setData({
                 award: copied_data,
             });
@@ -459,10 +477,9 @@ describe("Test award.", () => {
             wrapper.vm.updateClick().then((result) => {
                 expect(result).toBe(false);
             })  
-            await flushPromises()
-
-
+            
             //Test attachment_file
+            await flushPromises()
             copied_data = JSON.parse(JSON.stringify(valid_award_data))
             copied_data['attachment_file'] = invalids['attachment_file']
             wrapper.setData({

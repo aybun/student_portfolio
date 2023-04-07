@@ -32,7 +32,6 @@ class awardCRUD(APITestCase):
         student_group[0].user_set.add(student_user_tamtam)
         student_group[0].user_set.add(student_user_tubtim)
 
-
         UserProfile.objects.create(university_id='623021038-1', user_id_fk=staff_user_tubtub, firstname='tubtab', lastname='tubtab')
         UserProfile.objects.create(university_id='623021039-1', user_id_fk=student_user_tamtam, firstname='tamtam', lastname='tamtam')
         UserProfile.objects.create(university_id='623021039-2', user_id_fk=student_user_tubtim, firstname='tubtim', lastname='tubtim')
