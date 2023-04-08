@@ -66,7 +66,7 @@ class AwardApiAccessPolicy(AccessPolicy):
                 return query_object
 
             elif 'student' in groups:
-                return query_object & Q(receivers=request.user.id) | Q(created_by=request.user.id)
+                return query_object & (Q(receivers=request.user.id) | Q(created_by=request.user.id))
 
         elif request.method == "PUT":
             if 'staff' in groups:

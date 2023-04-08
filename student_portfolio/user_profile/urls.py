@@ -12,12 +12,15 @@ urlpatterns=[
     path('profile/event-attendance', views.eventAttendance),
 
     path('api/staff', views.staffApi),
+    path('api/staff/', views.staffApi),
     path('api/staff/<int:userprofile_id>', views.staffApi),
 
     path('api/student', views.studentApi),
+    path('api/student/', views.studentApi),
     path('api/student/<int:userprofile_id>', views.studentApi),
 
     path('api/profile', views.profileApi),
+    path('api/profile/', views.profileApi),
     path('api/profile/<int:userprofile_id>', views.profileApi),
 
 

@@ -12,7 +12,7 @@ class ProjectApiAccessPolicy(AccessPolicy):
             "effect": "allow"
         },
     ]
-
+    
     @classmethod
     def scope_fields(cls, request, fields: dict, instance=None) -> dict:
 
@@ -61,7 +61,7 @@ class ProjectApiAccessPolicy(AccessPolicy):
                 return query_object
 
             elif 'student' in groups:
-                return query_object & Q(approved=True) | Q(created_by=request.user.id)
+                return query_object & (Q(approved=True) | Q(created_by=request.user.id))
 
         elif request.method == "PUT":
             if 'staff' in groups:
