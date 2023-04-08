@@ -1,10 +1,13 @@
 <template>
-    <div v-if="chartsLoaded">
-        <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts" :key="'skill-radar-chart-' + index">
-            <SkillRadarChart :ref="'skill-radar-chart-' + index"  :loaded="chartsLoaded" :chartData="chartDataList[index]" :chartOptions="chartOptionList[index]"></SkillRadarChart>
+    <div>
+        <h1 class="text-center">ทักษะของฉัน</h1>
+        <h2 class="text-left">{{ curriculum.th_name }}</h2>
+        <div v-if="chartsLoaded">
+            <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts" :key="'skill-radar-chart-' + index">
+                <SkillRadarChart :ref="'skill-radar-chart-' + index"  :loaded="chartsLoaded" :chartData="chartDataList[index]" :chartOptions="chartOptionList[index]"></SkillRadarChart>
+            </div>
         </div>
     </div>
-    
 </template>
 
 <script>
@@ -22,6 +25,7 @@ export default {
             //API Zone
             user:{},
             profile:{}, //Get Curriculum id from enroll.
+            curriculum : {},
             curriculums:[],
             skillgroups:[],
             skillTable:[],
@@ -156,6 +160,7 @@ export default {
             this.chartsLoaded=false;
 
             const curriculum = this.getCurriculum()
+            this.curriculum = curriculum;
             // console.log(curriculum)
             const skillgroups_for_charts = this.getSkillgroupsForChartsFromCurriculum(curriculum)
             this.skillgroupsForRadarCharts = skillgroups_for_charts;
@@ -201,8 +206,8 @@ export default {
                 
                 
                 const option = {
-                            // responsive: false,
-                            // maintainAspectRatio: false,
+                    responsive: false,
+                    maintainAspectRatio: false,
                     scales:{
                         r:{
                             max:10,

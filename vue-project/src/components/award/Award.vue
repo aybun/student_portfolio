@@ -701,7 +701,7 @@ export default {
 
         <button type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
-            Create Award
+            Add Award
         </button>
 
 

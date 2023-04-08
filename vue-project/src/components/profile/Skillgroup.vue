@@ -1,5 +1,7 @@
 <template>
     <div>
+        <h1 class="text-center">ระบบการจัดการกลุ่มของทักษะ</h1>
+        
         <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
             Add Skillgroup
@@ -58,7 +60,7 @@
         </vue-good-table>
         <div class="modal fade" id="edit-info-modal" tabindex="-1" aria-labelledby="edit-info-modal-label"
             aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-            <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="edit-info-modal-label">
@@ -91,7 +93,7 @@
                                             validation="required"
                                         >                        
                                             <FormulateInput type="vue-select" name="skill_id_fk" validation-name="Skill" label="Skill" :options="skillTableVueSelect" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput>
-                                            <FormulateInput type="number" name='goal_point' validation-name="Point" label="Point" validation="required|min:0|max:10" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput> 
+                                            <FormulateInput type="number" name='goal_point' validation-name="Goal Point" label="Goal Point" validation="required|min:0|max:10" :disabled="modalReadonly || !formRender.edit.skills"></FormulateInput> 
                                             
                                         </FormulateInput>
                                 </FormulateForm>

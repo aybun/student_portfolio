@@ -1,8 +1,10 @@
 <template>
     <div>
+        <h1 class="text-center">ระบบการจัดการทักษะ</h1>
+        
         <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
-            Create Skill
+            Add Skill
         </button>
 
         <vue-good-table ref="skill-vgt" :columns="vgtColumns" :rows="skills"

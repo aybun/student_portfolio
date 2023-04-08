@@ -1,14 +1,26 @@
 <template>
     <div>
-        <FormulateForm>
-            <h2 class="form-title">Query Parameters</h2>
-            <formulate-input type="vue-datetime" datetype="datetime" label="Lower bound start datetime"
-                v-model="queryParameters.lower_bound_start_datetime"></formulate-input>
-            <formulate-input type="vue-datetime" datetype="datetime" label="Upper bound start datetime"
-                v-model="queryParameters.upper_bound_start_datetime"></formulate-input>
-            <formulate-input type="button" @click="queryPrepareReloadCharts(); ">Query Evevnts</formulate-input>
-        </FormulateForm>
+        <h1 class="text-center">ภาพรวมการจัดกิจกรรม</h1>
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                data-bs-target="#query-parameters-collapse" aria-expanded="false" aria-controls="query-parameters-collapse">
+                Query Parameters
+            </button>
+        </p>
+        <div class="collapse" id="query-parameters-collapse">
+            <div class="card card-body">
+                <FormulateForm>
+                    <h2 class="form-title">Query Parameters</h2>
+                    <formulate-input type="vue-datetime" datetype="datetime" label="Lower bound start datetime"
+                        v-model="queryParameters.lower_bound_start_datetime"></formulate-input>
+                    <formulate-input type="vue-datetime" datetype="datetime" label="Upper bound start datetime"
+                        v-model="queryParameters.upper_bound_start_datetime"></formulate-input>
+                    <button @click="queryPrepareReloadCharts();" class="btn btn-primary">Query</button>
+                </FormulateForm>
+            </div>
+        </div>
 
+        <h2 class="text-center" v-if="barChartLoaded">การจัดกิจกรรมของวิทยาลัยการคอมพิวเตอร์</h2>
         <BarChart :loaded="barChartLoaded" :chartData="barChartData" :chartOptions="barChartOption"></BarChart>
 
         <FormulateForm>
@@ -16,19 +28,24 @@
                 :close-on-select="true" :multiple="false" :options="curriculums" :custom-label="_curriculum_custom_label"
                 track-by="id" placeholder="Select..." open-direction="bottom" :disabled="false">
             </multiselect>
-            <formulate-input type="button" @click="reloadRadarCharts(); querySummaryAndReloadAverageRadarCharts();">Compute</formulate-input>
+            <formulate-input type="button"
+                @click="reloadRadarCharts(); querySummaryAndReloadAverageRadarCharts();">Compute</formulate-input>
         </FormulateForm>
         
+        <h2 class="text-center" v-if="radarChartsLoaded">การจัดกิจกรรมของหลักสูตร</h2>
         <div v-if="radarChartsLoaded" :key="'skill-radar-charts-' + radarCharstKey">
             <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts">
-                <SkillRadarChart :ref="'skill-radar-chart-' + index"  :loaded="radarChartsLoaded" :chartData="radarChartsDataList[index]" :chartOptions="radarChartsOptionList[index]"></SkillRadarChart>
+                <SkillRadarChart :ref="'skill-radar-chart-' + index" :loaded="radarChartsLoaded"
+                    :chartData="radarChartsDataList[index]" :chartOptions="radarChartsOptionList[index]"></SkillRadarChart>
             </div>
         </div>
-            
-        <p>Average Radar Charts</p>
+
+        <h2 class="text-center" v-if="radarChartsLoaded">ทักษะของนักศึกษาโดยเฉลี่ย</h2>
+        <!-- <p>Average Radar Charts</p> -->
         <div v-if="avgRadarChartsLoaded" :key="'avg-skill-radar-charts-' + avgRadarChartsKey">
             <div v-for="(skillgroup, index ) in skillgroupsForRadarCharts">
-                <SkillRadarChart  :loaded="avgRadarChartsLoaded" :chartData="avgRadarChartsDataList[index]" :chartOptions="avgRadarChartsOptionList[index]"></SkillRadarChart>
+                <SkillRadarChart :loaded="avgRadarChartsLoaded" :chartData="avgRadarChartsDataList[index]"
+                    :chartOptions="avgRadarChartsOptionList[index]"></SkillRadarChart>
             </div>
         </div>
     </div>
@@ -68,16 +85,16 @@ export default {
             n_groups: 0,
             // max_n_groups:5,
 
-            skillgroupsForRadarCharts : [],
+            skillgroupsForRadarCharts: [],
             radarChartsDataList: [],
             radarChartsOptionList: [],
             radarChartsLoaded: false,
-            radarCharstKey:1,
-            eventCurriculumSummaryFreq : {},
-            avgRadarChartsDataList:[],
+            radarCharstKey: 1,
+            eventCurriculumSummaryFreq: {},
+            avgRadarChartsDataList: [],
             avgRadarChartsOptionList: [],
             avgRadarChartsLoaded: false,
-            avgRadarChartsKey:1,
+            avgRadarChartsKey: 1,
 
             skillFreq: [],
 
@@ -86,7 +103,7 @@ export default {
             barChartLoaded: false,
             // barChartKey:1,
 
-            
+
 
             queryParameters: {
                 lower_bound_start_datetime: "2022-06-01T00:00:00.000Z",
@@ -110,7 +127,7 @@ export default {
             this.reloadBarChart();
             this.reloadRadarCharts();
 
-            if (this.curriculum !== null){
+            if (this.curriculum !== null) {
                 await this.getEventCurriculumSummary()
                 this.reloadAverageRaderCharts();
             }
@@ -127,11 +144,11 @@ export default {
                     // console.log(this.events)
                 });
 
-            if (curriculum !== null){
+            if (curriculum !== null) {
                 this.getEventCurriculumSummary();
-            }    
+            }
         },
-        async getEventCurriculumSummary(){
+        async getEventCurriculumSummary() {
             const eventSearchParams = new URLSearchParams([
                 ['used_for_calculation', true],
                 ['lower_bound_start_datetime', this.queryParameters.lower_bound_start_datetime],
@@ -144,8 +161,8 @@ export default {
                     // console.log(this.events)
                 });
         },
-        async querySummaryAndReloadAverageRadarCharts(){
-            if (this.curriculum !== null){
+        async querySummaryAndReloadAverageRadarCharts() {
+            if (this.curriculum !== null) {
                 await this.getEventCurriculumSummary()
                 this.reloadAverageRaderCharts();
             }
@@ -339,59 +356,59 @@ export default {
             // console.log(skillgroups_for_charts)
             const data_for_chart = this.getDataForRadarCharts(skillgroups_for_charts)
             // console.log(data_for_chart)
-            
-            
+
+
             const chart_freq_data = data_for_chart['chart_freq_data']
             const goal_freq_data = data_for_chart['goal_freq_data']
             const skill_label_data = data_for_chart['skill_label_data']
 
             const chartDataList = []
             const chartOptionList = []
-            for (let i = 0; i < skillgroups_for_charts.length; ++i ){
+            for (let i = 0; i < skillgroups_for_charts.length; ++i) {
 
                 const chart_data = {}
                 chart_data.labels = skill_label_data[i]
                 chart_data.datasets = [
-                        {
-                            label: 'My Skills',
-                            data: chart_freq_data[i],
-                            fill: true,
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            borderColor: 'rgb(255, 99, 132)',
-                            pointBackgroundColor: 'rgb(255, 99, 132)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgb(255, 99, 132)'
-                        },
-                        {
-                            label: 'Goal',
-                            data: goal_freq_data[i],
-                            fill: true,
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            borderColor: 'rgb(54, 162, 235)',
-                            pointBackgroundColor: 'rgb(54, 162, 235)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgb(54, 162, 235)'
-                        },
+                    {
+                        label: 'My Skills',
+                        data: chart_freq_data[i],
+                        fill: true,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointBackgroundColor: 'rgb(255, 99, 132)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(255, 99, 132)'
+                    },
+                    {
+                        label: 'Goal',
+                        data: goal_freq_data[i],
+                        fill: true,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        pointBackgroundColor: 'rgb(54, 162, 235)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(54, 162, 235)'
+                    },
                 ]
-                
-                
+
+
                 const option = {
-                            responsive: false,
-                            maintainAspectRatio: false,
-                    scales:{
-                        r:{
-                            max:10,
-                            min:0,
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            max: 10,
+                            min: 0,
                         },
                     },
 
                     elements: {
-                            line: {
-                                borderWidth: 3,
-                                
-                            }
+                        line: {
+                            borderWidth: 3,
+
+                        }
                     },
                     plugins: {
                         title: {
@@ -404,14 +421,14 @@ export default {
                 chartDataList.push(chart_data)
                 chartOptionList.push(option)
             }
-            
+
             this.radarChartsDataList = chartDataList
             this.radarChartsOptionList = chartOptionList
             this.radarChartsLoaded = true
 
         },
 
-        reloadAverageRaderCharts(){
+        reloadAverageRaderCharts() {
             if (this.curriculum === null)
                 return;
 
@@ -427,54 +444,54 @@ export default {
             const chart_freq_data = data_for_chart['chart_freq_data']
             const goal_freq_data = data_for_chart['goal_freq_data']
             const skill_label_data = data_for_chart['skill_label_data']
-            
+
             const chartDataList = []
             const chartOptionList = []
-            for (let i = 0; i < skillgroups_for_charts.length; ++i ){
+            for (let i = 0; i < skillgroups_for_charts.length; ++i) {
 
                 const chart_data = {}
                 chart_data.labels = skill_label_data[i]
                 chart_data.datasets = [
-                        {
-                            label: 'My Skills',
-                            data: chart_freq_data[i],
-                            fill: true,
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            borderColor: 'rgb(255, 99, 132)',
-                            pointBackgroundColor: 'rgb(255, 99, 132)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgb(255, 99, 132)'
-                        },
-                        {
-                            label: 'Goal',
-                            data: goal_freq_data[i],
-                            fill: true,
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            borderColor: 'rgb(54, 162, 235)',
-                            pointBackgroundColor: 'rgb(54, 162, 235)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgb(54, 162, 235)'
-                        },
+                    {
+                        label: 'My Skills',
+                        data: chart_freq_data[i],
+                        fill: true,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointBackgroundColor: 'rgb(255, 99, 132)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(255, 99, 132)'
+                    },
+                    {
+                        label: 'Goal',
+                        data: goal_freq_data[i],
+                        fill: true,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        pointBackgroundColor: 'rgb(54, 162, 235)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(54, 162, 235)'
+                    },
                 ]
-                
-                
+
+
                 const option = {
-                            responsive: false,
-                            maintainAspectRatio: false,
-                    scales:{
-                        r:{
-                            max:10,
-                            min:0,
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            max: 10,
+                            min: 0,
                         },
                     },
 
                     elements: {
-                            line: {
-                                borderWidth: 3,
-                                
-                            }
+                        line: {
+                            borderWidth: 3,
+
+                        }
                     },
                     plugins: {
                         title: {
@@ -487,7 +504,7 @@ export default {
                 chartDataList.push(chart_data)
                 chartOptionList.push(option)
             }
-            
+
             this.avgRadarChartsDataList = chartDataList
             this.avgRadarChartsOptionList = chartOptionList
             this.avgRadarChartsLoaded = true
@@ -546,13 +563,13 @@ export default {
                 // console.log(this.skillTable)
             });
 
-        
+
         this.queryPrepareReloadCharts();
         // await this.queryEvents()
 
         // this.prepareChartData();
         // this.reloadBarChart();
-        
+
         // this.reloadCharts()
 
 

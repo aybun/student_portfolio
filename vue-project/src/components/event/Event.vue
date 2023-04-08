@@ -752,7 +752,7 @@ export default {
 
 <template>
     <div>
-        <h1 class="text-center">ระบบกิจกรรม</h1>
+        <h1 class="text-center">ระบบจัดเก็บการเข้าร่วมกิจกรรม</h1>
 
         <p>
             <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
