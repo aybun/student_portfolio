@@ -516,9 +516,9 @@ def syncAttendanceByUniversityId(request, event_id=0):
             success = False
 
         if success:
-            return JsonResponse("Synced Successfully", safe=False)
+            return JsonResponse({'detail' : "Synced Successfully"}, safe=False)
         else:
-            return JsonResponse("Failed to sync.", safe=False)
+            return JsonResponse({'detail' : "Failed to sync."}, safe=False, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET', 'PUT', 'POST'])
