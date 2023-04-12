@@ -112,7 +112,7 @@ def awardApi(request, award_id=0):
 
             request.method = "GET"
             response_dict = {
-                'detail': "Added Successfully",
+                'detail': "Updated Successfully",
                 "data": Serializer(instance=instance, context={'request': request}).data
             }
             return JsonResponse(response_dict, safe=False)
