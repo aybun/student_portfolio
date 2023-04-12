@@ -42,7 +42,7 @@
                         <i class="bi bi-eye"></i>
                     </button>
 
-                    <button v-if="user.is_staff" type="button" :id="'edit-button-' + props.row.id"
+                    <button v-if="false" type="button" :id="'edit-button-' + props.row.id"
                         class="btn btn-light mr-1" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
                         @click="editClick(props.row)">
                         <i class="bi bi-pencil-square"></i>
