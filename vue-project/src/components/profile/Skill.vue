@@ -2,7 +2,7 @@
     <div>
         <h1 class="text-center">ระบบการจัดการทักษะ</h1>
         
-        <button v-if="user.is_staff" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
+        <button v-if="false" type="button" class="btn btn-primary m-2 fload-end" data-bs-toggle="modal" data-bs-target="#edit-info-modal"
             @click="addClick()">
             Add Skill
         </button>
