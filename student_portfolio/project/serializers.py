@@ -134,10 +134,6 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     data['approved_by'] = request.user.id
                 else:
                     data['approved_by'] = None
-            else:
-                data.pop('approved', None)
-                data.pop('approved_by', None)
-
 
         elif method == 'PUT':
 
@@ -152,13 +148,8 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                     if not instance.approved:
                         data['approved_by'] = request.user.id
                     else:
+                        data.pop('approved', None)
                         data.pop('approved_by', None)
-                else:
-                    data['approved_by'] = None
-            else:
-                data.pop("approved", None)
-                data.pop("approved_by", None)
-
 
         return instance, data
 
@@ -171,4 +162,5 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
     def validate_approved_by(self, approved_by):
         if approved_by == 'null' or approved_by == '':
             return None
+
         return approved_by

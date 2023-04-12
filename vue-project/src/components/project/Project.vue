@@ -146,7 +146,7 @@
                                     <div class="mb-3">
                                         <FormulateInput ref="project-formulate-form-1-approved" v-model="checkboxes"
                                             :options="{ approved: 'approved' }" type="checkbox"
-                                            :disabled="modalReadonly || !formRender.edit.approved"></FormulateInput>
+                                            :disabled="project.approved || modalReadonly || !formRender.edit.approved"></FormulateInput>
                                         <FormulateInput ref="project-formulate-form-1-used_for_calculation"
                                             v-model="checkboxes" :options="{ used_for_calculation: 'Use for calculation' }"
                                             type="checkbox" :disabled="
