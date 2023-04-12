@@ -133,7 +133,8 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 if data.get('approved', None) == 'true':
                     data['approved_by'] = request.user.id
                 else:
-                    data['approved_by'] = None
+                    data.pop('approved', None)
+                    data.pop('approved_by', None)
 
         elif method == 'PUT':
 
@@ -144,12 +145,11 @@ class ProjectSerializer(FieldAccessMixin, serializers.ModelSerializer):
                 data.pop('attachment_file', None)
 
             if 'staff' in groups:
-                if data.get('approved', None) == 'true':
-                    if not instance.approved:
-                        data['approved_by'] = request.user.id
-                    else:
-                        data.pop('approved', None)
-                        data.pop('approved_by', None)
+                if data.get('approved', None) == 'true' and (not instance.approved):
+                    data['approved_by'] = request.user.id
+                else:
+                    data.pop('approved', None)
+                    data.pop('approved_by', None)
 
         return instance, data
 

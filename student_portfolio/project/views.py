@@ -119,7 +119,7 @@ def projectApi(request, project_id=0):
 
             request.method = 'GET'
             response_dict = {
-                'detail': "Added Successfully",
+                'detail': "Updated Successfully",
                 'data': Serializer(instance=object, context={'request': request}).data,
             }
             return JsonResponse(response_dict, safe=False)
