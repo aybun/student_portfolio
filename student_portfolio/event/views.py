@@ -819,7 +819,7 @@ def skillgroup(request):
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @parser_classes([JSONParser, MultiPartParser])
-@permission_classes((SkillGroupApiAccessPolicy,))
+@permission_classes((SkillGroupApiAccessPolicy,)) #Paste it here.
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 def skillgroupApi(request, skillgroup_id=0):
 

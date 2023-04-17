@@ -14,8 +14,6 @@ class awardCRUD(APITestCase):
 
     def setUp(self):
         pass
-        # print(group[0])
-        #We create read update and delete | We do not have to worry about setting it up and tearing it down.
 
     @classmethod
     def setUpTestData(cls):
@@ -169,9 +167,9 @@ class awardCRUD(APITestCase):
         self.assertEqual(data['approved'], False)
         self.assertEqual(data['used_for_calculation'], False)
 
-        out_dict = {'title': 'changed', 'id': award_id, 'approved': 'true', 'used_for_calculation': 'true'}
-
         # Update part
+        out_dict = {'title': 'changed', 'id': award_id, 'approved': 'true',
+                    'used_for_calculation': 'true'}
         request = factory.put('/api/award/' + str(award_id), out_dict)
         force_authenticate(request, user=user)
         response = view(request, award_id=award_id)
@@ -179,6 +177,7 @@ class awardCRUD(APITestCase):
         data = response_data['data']
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertEqual(data.get('id'), award_id)
+        self.assertEqual(data['title'], 'changed')
         self.assertEqual(data.get('approved'), False)
         self.assertEqual(data.get('used_for_calculation'), False)
 

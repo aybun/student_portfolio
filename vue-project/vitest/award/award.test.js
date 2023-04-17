@@ -154,8 +154,8 @@ describe("Test award.", () => {
             localVue,
             data() {
                 return {
-                    award: {}, // This is the input
-                    testMode: true, //Skill api calls in the award component.
+                    award: {}, 
+                    testMode: true, 
 
                     user: JSON.parse(JSON.stringify(user_staff)),
                     awards: JSON.parse(JSON.stringify(awards)),

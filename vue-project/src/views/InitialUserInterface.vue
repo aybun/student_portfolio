@@ -80,12 +80,12 @@
                                         <li v-if="user.is_student"><router-link to="/skillchart"
                                                 class="link-dark rounded">Skill
                                                 Chart</router-link></li>
-                                        <li v-if="user.is_authenticated"><router-link to="/skill"
+                                        <li v-if="user.is_staff"><router-link to="/skill"
                                                 class="link-dark rounded">Skill</router-link></li>
-                                        <li v-if="user.is_authenticated"><router-link to="/skillgroup"
+                                        <li v-if="user.is_staff"><router-link to="/skillgroup"
                                                 class="link-dark rounded">Skillgroup</router-link>
                                         </li>
-                                        <li v-if="user.is_authenticated"><router-link to="/curriculum"
+                                        <li v-if="user.is_staff"><router-link to="/curriculum"
                                                 class="link-dark rounded">Curriculum</router-link>
                                         </li>
                                         <!-- <li><a href="#" class="link-dark rounded">Overview</a></li> -->

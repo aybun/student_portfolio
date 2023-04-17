@@ -190,11 +190,15 @@ class SkillGroupApiAccessPolicy(AccessPolicy):
             "effect": "allow"
 
         },
-
         {
             "action": ["<method:get>"],
             "principal": ["group:staff", "group:student"],
             "effect": "allow"
+        },
+        {   #We do not need this part.
+            "action": ["<method:put>"],
+            "principal": ["group:student"],
+            "effect": "deny"
         },
     ]
 
