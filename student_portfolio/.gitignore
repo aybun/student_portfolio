@@ -3,4 +3,6 @@
 media
 private-media
 
+.venv
+
 **/__pycache__/
