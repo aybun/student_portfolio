@@ -16,7 +16,7 @@ from student_portfolio.settings import PRIVATE_STORAGE_ROOT
 
 def award_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return PRIVATE_STORAGE_ROOT + '\{0}_{1}_{2}'.format('award', instance.id, filename)
+    return PRIVATE_STORAGE_ROOT + '//{0}_{1}_{2}'.format('award', instance.id, filename)
 
 class Award(models.Model):
     id = models.BigAutoField(primary_key=True)

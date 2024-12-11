@@ -31,18 +31,17 @@ def _split_filename(filename):
 
     pos_1 = filename.find('_')
     pos_2 = (pos_1 + 1) + filename[pos_1 + 1:].find('_')
-    print('FILENAME : {} {} {}'.format(filename, pos_1, pos_2))
+    # print('FILENAME : {} {} {}'.format(filename, pos_1, pos_2))
     app_name = filename[0:pos_1]
     id = filename[pos_1 + 1: pos_2]
 
     return app_name, id
 
 def _get_filename(fullpath):
-
-    pos = fullpath.rfind("\\")
-    if pos == -1:
-        pos = fullpath.rfind("//")
-
+    pos = fullpath.rfind("/")
+    # if pos == -1:
+    #     pos = fullpath.rfind("\\")
+    print("pos : {}".format(pos))
     return fullpath[pos+1:]
 
 
@@ -52,13 +51,12 @@ class StorageView(PrivateStorageView):
     def can_access_file(self, private_file):
         # This overrides PRIVATE_STORAGE_AUTH_FUNCTION
         #Define the name based on model???
-
-        # print(private_file.full_path)
-        # print(private_file.relative_name)
         filename = _get_filename(private_file.full_path)
-        # print(filename)
         app_name, id = _split_filename(filename)
-        print((app_name, id))
+
+        print("inside private storage view ")
+        print("full_path : {}".format(private_file.full_path))
+        print((filename, app_name, id))
 
         groups = list(self.request.user.groups.values_list('name', flat=True))
         accessible = False
@@ -87,7 +85,7 @@ class StorageView(PrivateStorageView):
                 accessible = True
 
         # elif app_name == 'profle':
-
+        print("accessible : {}".format(accessible))
         return accessible
 
 def testprivate(request, id=0):
