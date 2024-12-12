@@ -33,8 +33,8 @@ export default {
             checkboxFields: ["approved", "used_for_calculation"],
 
             queryParameters: {
-                lower_bound_received_date: "2022-06-01",
-                upper_bound_received_date: "2023-06-01"
+                lower_bound_received_date: "2024-01-01",
+                upper_bound_received_date: "2028-12-01"
             },
 
             modalReadonly: false,

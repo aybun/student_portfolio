@@ -242,8 +242,8 @@ export default {
       user: {},
 
       queryParameters: {
-        lower_bound_start_date: "2022-06-01",
-        upper_bound_start_date: "2023-06-01"
+        lower_bound_start_date: "2024-01-01",
+        upper_bound_start_date: "2028-12-30"
       },
 
       checkboxes: [],

@@ -13,7 +13,7 @@ from student_portfolio.settings import PRIVATE_STORAGE_ROOT
 
 def project_attachment_file_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    return PRIVATE_STORAGE_ROOT + '\{0}_{1}_{2}'.format('project', instance.id, filename)
+    return PRIVATE_STORAGE_ROOT + '//{0}_{1}_{2}'.format('project', instance.id, filename)
 
 
 class Project(models.Model):
